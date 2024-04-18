@@ -30,9 +30,9 @@ const TableComponent = ({ data }) => {
                         <td>{row.totalSavings}</td>
                         <td>{row.totalInvestments}</td>
                         <td>{row.totalSaved}</td>
-                        <td>{row.interestReturn}</td>
-                        <td>{row.investmentReturn}</td>
-                        <td>{row.grandTotal}</td>
+                        <td>{row.interestReturn.toFixed(2)}</td>
+                        <td>{row.investmentReturn.toFixed(2)}</td>
+                        <td>{row.grandTotal.toFixed(2)}</td>
                         <td>{row.commentary}</td>
                     </tr>
                 ))}
