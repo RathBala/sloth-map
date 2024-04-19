@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import TableComponent from './components/TableComponent';
 import './App.css';
 
+const DEPOSIT_SAVINGS = 500;
+const DEPOSIT_INVESTMENTS = 300;
+
 const generateData = (interestRate, investmentReturnRate) => {
     const months = [
         'January 2024',
@@ -19,80 +22,87 @@ const generateData = (interestRate, investmentReturnRate) => {
     ];
     let previous = {
         month: 'January 2024',
-        depositSavings: 500,
-        depositInvestments: 300,
-        withdrawals: 100,
-        totalSavings: 500,
-        totalInvestments: 300,
-        totalDeposit: Number(500 + 300).toFixed(2),
-        interestReturn: Number(500 * (interestRate / 12 / 100)).toFixed(2),
-        investmentReturn: Number(
-            300 * (investmentReturnRate / 12 / 100)
+        depositSavings: DEPOSIT_SAVINGS,
+        depositInvestments: DEPOSIT_INVESTMENTS,
+        withdrawals: 0,
+        totalSavings: DEPOSIT_SAVINGS,
+        totalInvestments: DEPOSIT_INVESTMENTS,
+        totalDeposit: Number(DEPOSIT_SAVINGS + DEPOSIT_INVESTMENTS).toFixed(2),
+        interestReturn: Number(
+            DEPOSIT_SAVINGS * (interestRate / 12 / 100)
         ).toFixed(2),
-        totalDepositFormatted: Number(500 + 300).toFixed(2),
-        totalSavingsFormatted: Number(500).toFixed(2),
-        totalInvestmentsFormatted: Number(300).toFixed(2),
-        totalSavedFormatted: Number(500 + 300).toFixed(2),
+        investmentReturn: Number(
+            DEPOSIT_INVESTMENTS * (investmentReturnRate / 12 / 100)
+        ).toFixed(2),
+        totalDepositFormatted: Number(
+            DEPOSIT_SAVINGS + DEPOSIT_INVESTMENTS
+        ).toFixed(2),
+        totalSavingsFormatted: Number(DEPOSIT_SAVINGS).toFixed(2),
+        totalInvestmentsFormatted: Number(DEPOSIT_INVESTMENTS).toFixed(2),
+        totalSavedFormatted: Number(
+            DEPOSIT_SAVINGS + DEPOSIT_INVESTMENTS
+        ).toFixed(2),
         interestReturnFormatted: Number(
-            500 * (interestRate / 12 / 100)
+            DEPOSIT_SAVINGS * (interestRate / 12 / 100)
         ).toFixed(2),
         investmentReturnFormatted: Number(
-            300 * (investmentReturnRate / 12 / 100)
+            DEPOSIT_INVESTMENTS * (investmentReturnRate / 12 / 100)
         ).toFixed(2),
         grandTotalFormatted: Number(
-            500 +
-                300 +
-                500 * (interestRate / 12 / 100) +
-                300 * (investmentReturnRate / 12 / 100)
+            DEPOSIT_SAVINGS +
+                DEPOSIT_INVESTMENTS +
+                DEPOSIT_SAVINGS * (interestRate / 12 / 100) +
+                DEPOSIT_INVESTMENTS * (investmentReturnRate / 12 / 100)
         ).toFixed(2),
         commentary: 'Reviewed annual financial goals.',
     };
     let data = [previous];
 
     for (let i = 1; i < months.length; i++) {
-        const totalDeposit =
-            previous.depositSavings + previous.depositInvestments;
-        const interestReturn =
+        const totalDeposit = DEPOSIT_SAVINGS + DEPOSIT_INVESTMENTS;
+        const previousInterestReturn =
             previous.totalSavings * (interestRate / 12 / 100);
-        const investmentReturn =
+        const previousInvestmentReturn =
             previous.totalInvestments * (investmentReturnRate / 12 / 100);
         const totalSavings = Math.max(
             0,
             previous.totalSavings +
-                interestReturn +
+                previousInterestReturn +
                 previous.depositSavings -
                 previous.withdrawals
         );
         const withdrawalsAdjusted = Math.max(
             0,
-            previous.withdrawals - (previous.depositSavings + interestReturn)
+            previous.withdrawals -
+                (previous.depositSavings + previousInterestReturn)
         );
         const totalInvestments =
             previous.totalInvestments +
-            investmentReturn +
+            previousInvestmentReturn +
             previous.depositInvestments -
             withdrawalsAdjusted;
         const totalSaved = totalSavings + totalInvestments;
-        const grandTotal = totalSaved + interestReturn + investmentReturn;
+        const grandTotal =
+            totalSaved + previousInterestReturn + previousInvestmentReturn;
 
         const newMonthData = {
             month: months[i],
-            depositSavings: 500,
-            depositInvestments: 300,
+            depositSavings: DEPOSIT_SAVINGS,
+            depositInvestments: DEPOSIT_INVESTMENTS,
             withdrawals: 100,
             totalDeposit,
             totalSavings,
             totalInvestments,
             totalSaved,
-            interestReturn,
-            investmentReturn,
+            previousInterestReturn,
+            previousInvestmentReturn,
             grandTotal,
             totalDepositFormatted: totalDeposit.toFixed(2),
             totalSavingsFormatted: totalSavings.toFixed(2),
             totalInvestmentsFormatted: totalInvestments.toFixed(2),
             totalSavedFormatted: totalSaved.toFixed(2),
-            interestReturnFormatted: interestReturn.toFixed(2),
-            investmentReturnFormatted: investmentReturn.toFixed(2),
+            interestReturnFormatted: previousInterestReturn.toFixed(2),
+            investmentReturnFormatted: previousInvestmentReturn.toFixed(2),
             grandTotalFormatted: grandTotal.toFixed(2),
             commentary: 'Adjusted investments for better performance.',
         };
