@@ -25,14 +25,14 @@ const TableComponent = ({ data }) => {
                         <td>{row.month}</td>
                         <td>{row.depositSavings}</td>
                         <td>{row.depositInvestments}</td>
-                        <td>{row.totalDeposit}</td>
+                        <td>{row.totalDepositFormatted}</td>
                         <td>{row.withdrawals}</td>
-                        <td>{row.totalSavings}</td>
-                        <td>{row.totalInvestments}</td>
-                        <td>{row.totalSaved}</td>
-                        <td>{row.interestReturn.toFixed(2)}</td>
-                        <td>{row.investmentReturn.toFixed(2)}</td>
-                        <td>{row.grandTotal.toFixed(2)}</td>
+                        <td>{row.totalSavingsFormatted}</td>
+                        <td>{row.totalInvestmentsFormatted}</td>
+                        <td>{row.totalSavedFormatted}</td>
+                        <td>{row.interestReturnFormatted}</td>
+                        <td>{row.investmentReturnFormatted}</td>
+                        <td>{row.grandTotalFormatted}</td>
                         <td>{row.commentary}</td>
                     </tr>
                 ))}

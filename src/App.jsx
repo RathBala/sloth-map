@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import TableComponent from './components/TableComponent';
 import './App.css';
 
-// Moved outside of the App component and receives rates as arguments
 const generateData = (interestRate, investmentReturnRate) => {
     const months = [
         'January 2024',
@@ -19,14 +18,36 @@ const generateData = (interestRate, investmentReturnRate) => {
         'December 2024',
     ];
     let previous = {
+        month: 'January 2024',
         depositSavings: 500,
         depositInvestments: 300,
         withdrawals: 100,
-        totalSavings: 400,
-        totalInvestments: 600,
+        totalSavings: 500,
+        totalInvestments: 300,
+        totalDeposit: Number(500 + 300).toFixed(2),
+        interestReturn: Number(500 * (interestRate / 12 / 100)).toFixed(2),
+        investmentReturn: Number(
+            300 * (investmentReturnRate / 12 / 100)
+        ).toFixed(2),
+        totalDepositFormatted: Number(500 + 300).toFixed(2),
+        totalSavingsFormatted: Number(500).toFixed(2),
+        totalInvestmentsFormatted: Number(300).toFixed(2),
+        totalSavedFormatted: Number(500 + 300).toFixed(2),
+        interestReturnFormatted: Number(
+            500 * (interestRate / 12 / 100)
+        ).toFixed(2),
+        investmentReturnFormatted: Number(
+            300 * (investmentReturnRate / 12 / 100)
+        ).toFixed(2),
+        grandTotalFormatted: Number(
+            500 +
+                300 +
+                500 * (interestRate / 12 / 100) +
+                300 * (investmentReturnRate / 12 / 100)
+        ).toFixed(2),
         commentary: 'Reviewed annual financial goals.',
     };
-    let data = [previous]; // Start with the first month's data
+    let data = [previous];
 
     for (let i = 1; i < months.length; i++) {
         const totalDeposit =
@@ -58,7 +79,7 @@ const generateData = (interestRate, investmentReturnRate) => {
             month: months[i],
             depositSavings: 500,
             depositInvestments: 300,
-            withdrawals: 100, // This could be dynamic if needed
+            withdrawals: 100,
             totalDeposit,
             totalSavings,
             totalInvestments,
@@ -66,6 +87,13 @@ const generateData = (interestRate, investmentReturnRate) => {
             interestReturn,
             investmentReturn,
             grandTotal,
+            totalDepositFormatted: totalDeposit.toFixed(2),
+            totalSavingsFormatted: totalSavings.toFixed(2),
+            totalInvestmentsFormatted: totalInvestments.toFixed(2),
+            totalSavedFormatted: totalSaved.toFixed(2),
+            interestReturnFormatted: interestReturn.toFixed(2),
+            investmentReturnFormatted: investmentReturn.toFixed(2),
+            grandTotalFormatted: grandTotal.toFixed(2),
             commentary: 'Adjusted investments for better performance.',
         };
         data = [...data, newMonthData];
@@ -75,12 +103,14 @@ const generateData = (interestRate, investmentReturnRate) => {
 };
 
 const App = () => {
-    const [interestRate, setInterestRate] = useState(5); // Default interest rate %
-    const [investmentReturnRate, setInvestmentReturnRate] = useState(10); // Default investment return rate %
+    const [interestRate, setInterestRate] = useState(5);
+    const [investmentReturnRate, setInvestmentReturnRate] = useState(10);
     const [tableData, setTableData] = useState([]);
 
     useEffect(() => {
-        setTableData(generateData(interestRate, investmentReturnRate));
+        const newData = generateData(interestRate, investmentReturnRate);
+        console.log(newData);
+        setTableData(newData);
     }, [interestRate, investmentReturnRate]);
 
     const handleInterestRateChange = (e) => {
