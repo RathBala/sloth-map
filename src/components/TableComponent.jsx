@@ -1,6 +1,10 @@
 /* eslint-disable react/prop-types */
 
-const TableComponent = ({ data }) => {
+const TableComponent = ({ data, onFieldChange }) => {
+    const handleChange = (index, field, value) => {
+        onFieldChange(index, field, value);
+    };
+
     return (
         <table>
             <thead>
@@ -23,17 +27,65 @@ const TableComponent = ({ data }) => {
                 {data.map((row, index) => (
                     <tr key={index}>
                         <td>{row.month}</td>
-                        <td>{row.depositSavings}</td>
-                        <td>{row.depositInvestments}</td>
+                        <td>
+                            <input
+                                type="number"
+                                value={row.depositSavings}
+                                onChange={(e) =>
+                                    handleChange(
+                                        index,
+                                        'depositSavings',
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="number"
+                                value={row.depositInvestments}
+                                onChange={(e) =>
+                                    handleChange(
+                                        index,
+                                        'depositInvestments',
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </td>
                         <td>{row.totalDepositFormatted}</td>
-                        <td>{row.withdrawals}</td>
+                        <td>
+                            <input
+                                type="number"
+                                value={row.withdrawals}
+                                onChange={(e) =>
+                                    handleChange(
+                                        index,
+                                        'withdrawals',
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </td>
                         <td>{row.totalSavingsFormatted}</td>
                         <td>{row.totalInvestmentsFormatted}</td>
                         <td>{row.totalSavedFormatted}</td>
                         <td>{row.interestReturnFormatted}</td>
                         <td>{row.investmentReturnFormatted}</td>
                         <td>{row.grandTotalFormatted}</td>
-                        <td>{row.commentary}</td>
+                        <td>
+                            <input
+                                type="text"
+                                value={row.commentary}
+                                onChange={(e) =>
+                                    handleChange(
+                                        index,
+                                        'commentary',
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </td>
                     </tr>
                 ))}
             </tbody>

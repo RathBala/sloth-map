@@ -1,12 +1,19 @@
 import { useState, useEffect } from 'react';
 import TableComponent from './components/TableComponent';
+import InputFields from './components/InputFields';
 import './App.css';
 
-const DEPOSIT_SAVINGS = 500;
-const DEPOSIT_INVESTMENTS = 300;
-const WITHDRAWALS = 100;
+// const DEPOSIT_SAVINGS = 500;
+// const DEPOSIT_INVESTMENTS = 300;
+// const WITHDRAWALS = 100;
 
-const generateData = (interestRate, investmentReturnRate) => {
+const generateData = (
+    interestRate,
+    investmentReturnRate,
+    depositSavings,
+    depositInvestments,
+    withdrawals
+) => {
     const months = [
         'January 2024',
         'February 2024',
@@ -23,36 +30,38 @@ const generateData = (interestRate, investmentReturnRate) => {
     ];
     let previous = {
         month: 'January 2024',
-        depositSavings: DEPOSIT_SAVINGS,
+        depositSavings: initialDepositSavings,
         depositInvestments: DEPOSIT_INVESTMENTS,
         withdrawals: 0,
-        totalSavings: DEPOSIT_SAVINGS,
+        totalSavings: initialDepositSavings,
         totalInvestments: DEPOSIT_INVESTMENTS,
-        totalDeposit: Number(DEPOSIT_SAVINGS + DEPOSIT_INVESTMENTS).toFixed(2),
+        totalDeposit: Number(
+            initialDepositSavings + DEPOSIT_INVESTMENTS
+        ).toFixed(2),
         interestReturn: Number(
-            DEPOSIT_SAVINGS * (interestRate / 12 / 100)
+            initialDepositSavings * (interestRate / 12 / 100)
         ).toFixed(2),
         investmentReturn: Number(
             DEPOSIT_INVESTMENTS * (investmentReturnRate / 12 / 100)
         ).toFixed(2),
         totalDepositFormatted: Number(
-            DEPOSIT_SAVINGS + DEPOSIT_INVESTMENTS
+            initialDepositSavings + DEPOSIT_INVESTMENTS
         ).toFixed(2),
-        totalSavingsFormatted: Number(DEPOSIT_SAVINGS).toFixed(2),
+        totalSavingsFormatted: Number(initialDepositSavings).toFixed(2),
         totalInvestmentsFormatted: Number(DEPOSIT_INVESTMENTS).toFixed(2),
         totalSavedFormatted: Number(
-            DEPOSIT_SAVINGS + DEPOSIT_INVESTMENTS
+            initialDepositSavings + DEPOSIT_INVESTMENTS
         ).toFixed(2),
         interestReturnFormatted: Number(
-            DEPOSIT_SAVINGS * (interestRate / 12 / 100)
+            initialDepositSavings * (interestRate / 12 / 100)
         ).toFixed(2),
         investmentReturnFormatted: Number(
             DEPOSIT_INVESTMENTS * (investmentReturnRate / 12 / 100)
         ).toFixed(2),
         grandTotalFormatted: Number(
-            DEPOSIT_SAVINGS +
+            initialDepositSavings +
                 DEPOSIT_INVESTMENTS +
-                DEPOSIT_SAVINGS * (interestRate / 12 / 100) +
+                initialDepositSavings * (interestRate / 12 / 100) +
                 DEPOSIT_INVESTMENTS * (investmentReturnRate / 12 / 100)
         ).toFixed(2),
         commentary: 'Reviewed annual financial goals.',
@@ -60,7 +69,7 @@ const generateData = (interestRate, investmentReturnRate) => {
     let data = [previous];
 
     for (let i = 1; i < months.length; i++) {
-        const totalDeposit = DEPOSIT_SAVINGS + DEPOSIT_INVESTMENTS;
+        const totalDeposit = initialDepositSavings + DEPOSIT_INVESTMENTS;
 
         const previousInterestReturn =
             previous.totalSavings * (interestRate / 12 / 100);
@@ -80,7 +89,7 @@ const generateData = (interestRate, investmentReturnRate) => {
             WITHDRAWALS -
                 (previous.depositSavings +
                     previousInterestReturn +
-                    DEPOSIT_SAVINGS)
+                    initialDepositSavings)
         );
 
         let totalInvestments =
@@ -102,7 +111,7 @@ const generateData = (interestRate, investmentReturnRate) => {
 
         const newMonthData = {
             month: months[i],
-            depositSavings: DEPOSIT_SAVINGS,
+            depositSavings: initialDepositSavings,
             depositInvestments: DEPOSIT_INVESTMENTS,
             withdrawals: WITHDRAWALS,
             totalDeposit,
@@ -129,10 +138,11 @@ const App = () => {
     const [interestRate, setInterestRate] = useState(5);
     const [investmentReturnRate, setInvestmentReturnRate] = useState(10);
     const [tableData, setTableData] = useState([]);
+    const [targetNestEgg, setTargetNestEgg] = useState(5000000);
+    const [age, setAge] = useState(38);
 
     useEffect(() => {
         const newData = generateData(interestRate, investmentReturnRate);
-        console.log(newData);
         setTableData(newData);
     }, [interestRate, investmentReturnRate]);
 
@@ -144,25 +154,53 @@ const App = () => {
         setInvestmentReturnRate(parseFloat(e.target.value));
     };
 
+    const handleTargetNestEggChange = (e) => {
+        setTargetNestEgg(parseFloat(e.target.value));
+    };
+
+    const handleAgeChange = (e) => {
+        setAge(parseFloat(e.target.value));
+    };
+
+    const handleFieldChange = (index, field, value) => {
+        const parsedValue = [
+            'depositSavings',
+            'depositInvestments',
+            'withdrawals',
+        ].includes(field)
+            ? parseFloat(value)
+            : value;
+
+        const newData = tableData.map((item, i) => {
+            if (i >= index && field !== 'commentary') {
+                return { ...item, [field]: parsedValue };
+            } else if (i === index && field === 'commentary') {
+                return { ...item, [field]: parsedValue };
+            }
+            return item;
+        });
+
+        setTableData(newData);
+    };
+
     return (
         <div className="App">
-            <label>
-                Interest Rate (%):
-                <input
-                    type="number"
-                    value={interestRate}
-                    onChange={handleInterestRateChange}
-                />
-            </label>
-            <label>
-                Investment Return Rate (%):
-                <input
-                    type="number"
-                    value={investmentReturnRate}
-                    onChange={handleInvestmentReturnRateChange}
-                />
-            </label>
-            <TableComponent data={tableData} />
+            <InputFields
+                interestRate={interestRate}
+                investmentReturnRate={investmentReturnRate}
+                targetNestEgg={targetNestEgg}
+                age={age}
+                handleInterestRateChange={handleInterestRateChange}
+                handleInvestmentReturnRateChange={
+                    handleInvestmentReturnRateChange
+                }
+                handleTargetNestEggChange={handleTargetNestEggChange}
+                handleAgeChange={handleAgeChange}
+            />
+            <TableComponent
+                data={tableData}
+                onFieldChange={handleFieldChange}
+            />
         </div>
     );
 };
