@@ -141,6 +141,7 @@ const App = () => {
     const [targetNestEgg, setTargetNestEgg] = useState(5000000);
     const [age, setAge] = useState(38);
 
+    // This useEffect will only run once on component mount
     useEffect(() => {
         const initialData = generateData(
             interestRate,
@@ -149,9 +150,37 @@ const App = () => {
             300,
             100
         );
-        console.log('Setting table data:', initialData);
         setTableData(initialData);
-    }, [interestRate, investmentReturnRate]);
+    }, []);
+
+    useEffect(() => {
+        if (tableData.length > 0) {
+            const updatedData = tableData.map((data, index) =>
+                recalculateFields(
+                    tableData,
+                    index,
+                    interestRate,
+                    investmentReturnRate
+                )
+            );
+            setTableData(updatedData);
+        }
+    }, [interestRate]);
+
+    // This useEffect handles changes to investmentReturnRate
+    useEffect(() => {
+        if (tableData.length > 0) {
+            const updatedData = tableData.map((data, index) =>
+                recalculateFields(
+                    tableData,
+                    index,
+                    interestRate,
+                    investmentReturnRate
+                )
+            );
+            setTableData(updatedData);
+        }
+    }, [investmentReturnRate]);
 
     useEffect(() => {
         console.log('Table data updated:', tableData);
@@ -259,8 +288,15 @@ function recalculateFields(
     interestRate,
     investmentReturnRate
 ) {
+    console.log('Current index:', index);
+    console.log(
+        'Previous index:',
+        index === 0 ? 'N/A (first month)' : index - 1
+    );
+
     const data = dataArray[index];
     const previous = index === 0 ? data : dataArray[index - 1];
+
     const previousInterestReturn =
         previous.totalSavings * (interestRate / 12 / 100);
     const previousInvestmentReturn =
@@ -273,12 +309,17 @@ function recalculateFields(
             data.depositSavings -
             data.withdrawals
     );
-    const totalInvestments = Math.max(
+    const shortfall = Math.max(
         0,
-        previous.totalInvestments +
-            previousInvestmentReturn +
-            data.depositInvestments
+        parseFloat(data.withdrawals) -
+            (parseFloat(previous.totalSavings) + previousInterestReturn)
     );
+    let totalInvestments =
+        parseFloat(previous.totalInvestments) +
+        previousInvestmentReturn +
+        parseFloat(data.depositInvestments) -
+        shortfall;
+    totalInvestments = Math.max(0, totalInvestments);
     const totalSaved = totalSavings + totalInvestments;
     const interestReturn = totalSavings * (interestRate / 12 / 100);
     const investmentReturn =
@@ -287,13 +328,13 @@ function recalculateFields(
 
     return {
         ...data,
-        totalDeposit: totalDeposit.toFixed(2),
-        totalSavings: totalSavings.toFixed(2),
-        totalInvestments: totalInvestments.toFixed(2),
-        totalSaved: totalSaved.toFixed(2),
-        interestReturn: interestReturn.toFixed(2),
-        investmentReturn: investmentReturn.toFixed(2),
-        grandTotal: grandTotal.toFixed(2),
+        totalDepositFormatted: totalDeposit.toFixed(2),
+        totalSavingsFormatted: totalSavings.toFixed(2),
+        totalInvestmentsFormatted: totalInvestments.toFixed(2),
+        totalSavedFormatted: totalSaved.toFixed(2),
+        interestReturnFormatted: interestReturn.toFixed(2),
+        investmentReturnFormatted: investmentReturn.toFixed(2),
+        grandTotalFormatted: grandTotal.toFixed(2),
         commentary: data.commentary,
     };
 }

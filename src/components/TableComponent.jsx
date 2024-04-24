@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 
 const TableComponent = ({ data, onFieldChange }) => {
+    console.log('Data received by TableComponent:', data);
     const handleChange = (index, field, value) => {
         onFieldChange(index, field, value);
     };
