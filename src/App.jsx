@@ -141,7 +141,6 @@ const App = () => {
     const [targetNestEgg, setTargetNestEgg] = useState(5000000);
     const [age, setAge] = useState(38);
 
-    // This useEffect will only run once on component mount
     useEffect(() => {
         const initialData = generateData(
             interestRate,
@@ -155,32 +154,16 @@ const App = () => {
 
     useEffect(() => {
         if (tableData.length > 0) {
-            const updatedData = tableData.map((data, index) =>
-                recalculateFields(
-                    tableData,
-                    index,
-                    interestRate,
-                    investmentReturnRate
-                )
+            const updatedData = generateData(
+                interestRate,
+                investmentReturnRate,
+                500,
+                300,
+                100
             );
             setTableData(updatedData);
         }
-    }, [interestRate]);
-
-    // This useEffect handles changes to investmentReturnRate
-    useEffect(() => {
-        if (tableData.length > 0) {
-            const updatedData = tableData.map((data, index) =>
-                recalculateFields(
-                    tableData,
-                    index,
-                    interestRate,
-                    investmentReturnRate
-                )
-            );
-            setTableData(updatedData);
-        }
-    }, [investmentReturnRate]);
+    }, [interestRate, investmentReturnRate]);
 
     useEffect(() => {
         console.log('Table data updated:', tableData);
@@ -325,6 +308,14 @@ function recalculateFields(
     const investmentReturn =
         totalInvestments * (investmentReturnRate / 12 / 100);
     const grandTotal = totalSaved + interestReturn + investmentReturn;
+
+    console.log(
+        'Here are some of the values: ',
+        grandTotal,
+        investmentReturn,
+        interestReturn,
+        totalSaved
+    );
 
     return {
         ...data,
