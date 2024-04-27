@@ -7,19 +7,24 @@ const App = () => {
     const [interestRate, setInterestRate] = useState(5);
     const [investmentReturnRate, setInvestmentReturnRate] = useState(10);
     const [tableData, setTableData] = useState(() =>
-        generateData(interestRate, investmentReturnRate, 500, 300, 100)
+        generateData(interestRate, investmentReturnRate, 500, 300, 0)
     );
     const [targetNestEgg, setTargetNestEgg] = useState(5000000);
     const [age, setAge] = useState(38);
 
+    // used to update the data displayed in the table whenever there's a change
+    // in either the interestRate or the investmentReturnRate
     useEffect(() => {
-        const updatedData = generateData(
-            interestRate,
-            investmentReturnRate,
-            500,
-            300,
-            100
+        console.log(
+            'useEffect triggered for interestRate or investmentReturnRate change.'
         );
+        const updatedData = recalculateFromIndex(
+            [...tableData],
+            0,
+            interestRate,
+            investmentReturnRate
+        );
+        console.log('Updated data from useEffect:', updatedData);
         setTableData(updatedData);
     }, [interestRate, investmentReturnRate]);
 
@@ -35,82 +40,101 @@ const App = () => {
         setTargetNestEgg(parseFloat(e.target.value));
     const handleAgeChange = (e) => setAge(parseFloat(e.target.value));
 
-    function updateRunningTotals(data, interestRate, investmentReturnRate) {
-        let runningTotalSavings = 0;
-        let runningTotalInvestments = 0;
+    function recalculateFromIndex(
+        data,
+        startIndex,
+        interestRate,
+        investmentReturnRate
+    ) {
+        let runningTotalSavings =
+            startIndex === 0 ? 0 : data[startIndex - 1].totalSavings;
+        let runningTotalInvestments =
+            startIndex === 0 ? 0 : data[startIndex - 1].totalInvestments;
 
-        data.forEach((entry, index) => {
-            if (index > 0) {
-                const prevEntry = data[index - 1];
-                runningTotalSavings +=
-                    prevEntry.depositSavings -
-                    prevEntry.withdrawals +
-                    prevEntry.interestReturn;
-                runningTotalInvestments +=
-                    prevEntry.depositInvestments + prevEntry.investmentReturn;
+        console.log(`Recalculation started from index: ${startIndex}`);
 
-                if (runningTotalSavings < 0) {
-                    runningTotalInvestments += runningTotalSavings;
-                    runningTotalSavings = 0;
-                }
+        for (let i = startIndex; i < data.length; i++) {
+            const entry = data[i];
 
-                runningTotalInvestments = Math.max(0, runningTotalInvestments);
-            } else {
-                runningTotalSavings = entry.depositSavings - entry.withdrawals;
-                runningTotalInvestments = entry.depositInvestments;
+            runningTotalSavings += entry.depositSavings - entry.withdrawals;
+            runningTotalInvestments += entry.depositInvestments;
 
-                if (runningTotalSavings < 0) {
-                    runningTotalInvestments += runningTotalSavings;
-                    runningTotalSavings = 0;
-                }
-
-                runningTotalInvestments = Math.max(0, runningTotalInvestments);
+            if (runningTotalSavings < 0) {
+                runningTotalInvestments += runningTotalSavings;
+                runningTotalSavings = 0;
             }
 
-            entry.totalSavings = runningTotalSavings;
-            entry.totalInvestments = runningTotalInvestments;
-            entry.interestReturn =
+            runningTotalInvestments = Math.max(0, runningTotalInvestments);
+
+            const interestReturn =
                 runningTotalSavings * (interestRate / 12 / 100);
-            entry.investmentReturn =
+            console.log('Interest return is: ', interestReturn);
+            const investmentReturn =
                 runningTotalInvestments * (investmentReturnRate / 12 / 100);
-            entry.totalSaved = entry.totalSavings + entry.totalInvestments;
-            entry.grandTotal =
-                entry.totalSaved +
-                entry.interestReturn +
-                entry.investmentReturn;
-        });
+
+            console.log(
+                `Month: ${entry.month}, Savings: ${runningTotalSavings},
+                Investments: ${runningTotalInvestments}, Interest Rate: ${interestRate},
+                Investment Return Rate: ${investmentReturnRate}`
+            );
+
+            data[i] = {
+                ...entry,
+                totalSavings: runningTotalSavings,
+                totalInvestments: runningTotalInvestments,
+                interestReturn,
+                investmentReturn,
+                totalSaved: runningTotalSavings + runningTotalInvestments,
+                grandTotal:
+                    runningTotalSavings +
+                    runningTotalInvestments +
+                    interestReturn +
+                    investmentReturn,
+                // Add formatted values
+                interestReturnFormatted: interestReturn.toFixed(2),
+                investmentReturnFormatted: investmentReturn.toFixed(2),
+                totalSavingsFormatted: runningTotalSavings.toFixed(2),
+                totalInvestmentsFormatted: runningTotalInvestments.toFixed(2),
+                totalSavedFormatted: (
+                    runningTotalSavings + runningTotalInvestments
+                ).toFixed(2),
+                grandTotalFormatted: (
+                    runningTotalSavings +
+                    runningTotalInvestments +
+                    interestReturn +
+                    investmentReturn
+                ).toFixed(2),
+                commentary: entry.commentary, // Assuming commentary is unchanged
+            };
+
+            runningTotalSavings += interestReturn;
+            runningTotalInvestments += investmentReturn;
+        }
 
         return data;
     }
 
     const handleFieldChange = (index, field, value) => {
-        const newValue = field === 'commentary' ? value : parseFloat(value);
+        console.log(
+            `Field change - Index: ${index}, Field: ${field}, Value: ${value}`
+        );
+
         setTableData((currentData) => {
-            let newData = [...currentData];
+            const newData = [...currentData];
+            console.log('Before update:', newData[index]);
 
-            // Apply the new value to the current row
-            newData[index] = { ...newData[index], [field]: newValue };
+            newData[index] = { ...newData[index], [field]: parseFloat(value) };
+            console.log('After field update:', newData[index]);
 
-            if (
-                field === 'withdrawals' ||
-                field === 'depositSavings' ||
-                field === 'depositInvestments'
-            ) {
-                // Update all entries starting from the current index
-                let updatedData = updateRunningTotals(
-                    newData,
-                    interestRate,
-                    investmentReturnRate
-                );
+            const updatedData = recalculateFromIndex(
+                newData,
+                index,
+                interestRate,
+                investmentReturnRate
+            );
+            console.log('After recalculation:', updatedData);
 
-                // Combine the unchanged data with the newly updated data
-                newData = [
-                    ...newData.slice(0, index),
-                    ...updatedData.slice(index),
-                ];
-            }
-
-            return newData;
+            return updatedData;
         });
     };
 
@@ -183,6 +207,14 @@ function generateData(
 
     data.forEach((entry, index) => {
         let interestReturn = runningTotalSavings * (interestRate / 12 / 100);
+        console.log(
+            'Raw interestReturn:',
+            interestReturn,
+            'Type:',
+            typeof interestReturn
+        );
+        console.log('Formatted interestReturn:', interestReturn.toFixed(2));
+
         let investmentReturn =
             runningTotalInvestments * (investmentReturnRate / 12 / 100);
 
