@@ -3,6 +3,14 @@ import TableComponent from './components/TableComponent';
 import InputFields from './components/InputFields';
 import './App.css';
 
+function formatNumber(num) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'decimal',
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+    }).format(num);
+}
+
 const App = () => {
     const [interestRate, setInterestRate] = useState(5);
     const [investmentReturnRate, setInvestmentReturnRate] = useState(10);
@@ -12,21 +20,36 @@ const App = () => {
     const [targetNestEgg, setTargetNestEgg] = useState(5000000);
     const [age, setAge] = useState(38);
 
-    // used to update the data displayed in the table whenever there's a change
-    // in either the interestRate or the investmentReturnRate
     useEffect(() => {
         console.log(
-            'useEffect triggered for interestRate or investmentReturnRate change.'
+            'useEffect triggered for interestRate, investmentReturnRate, or targetNestEgg change.'
         );
-        const updatedData = recalculateFromIndex(
-            [...tableData],
+
+        // Use a copy of the current table data to apply changes
+        let updatedData = [...tableData];
+
+        // Recalculate data from the beginning to apply new rates
+        updatedData = recalculateFromIndex(
+            updatedData,
             0,
             interestRate,
             investmentReturnRate
         );
-        console.log('Updated data from useEffect:', updatedData);
+
+        // Ensure the data meets the target nest egg requirements
+        updatedData = ensureNestEgg(
+            targetNestEgg,
+            updatedData,
+            interestRate,
+            investmentReturnRate,
+            recalculateFromIndex
+        );
+
+        // Update the state with the new data
         setTableData(updatedData);
-    }, [interestRate, investmentReturnRate]);
+
+        console.log('Updated data from useEffect:', updatedData);
+    }, [interestRate, investmentReturnRate, targetNestEgg]); // Remove tableData from here
 
     useEffect(() => {
         console.log('Table data updated:', tableData);
@@ -55,6 +78,9 @@ const App = () => {
 
         for (let i = startIndex; i < data.length; i++) {
             const entry = data[i];
+
+            const totalDeposit =
+                entry.depositSavings + entry.depositInvestments;
 
             if (i > 0) {
                 runningTotalSavings += data[i - 1].interestReturn;
@@ -95,19 +121,24 @@ const App = () => {
                     runningTotalInvestments +
                     interestReturn +
                     investmentReturn,
-                interestReturnFormatted: interestReturn.toFixed(2),
-                investmentReturnFormatted: investmentReturn.toFixed(2),
-                totalSavingsFormatted: runningTotalSavings.toFixed(2),
-                totalInvestmentsFormatted: runningTotalInvestments.toFixed(2),
-                totalSavedFormatted: (
+                interestReturnFormatted: formatNumber(interestReturn),
+                investmentReturnFormatted: formatNumber(investmentReturn),
+                totalDepositFormatted: formatNumber(
+                    entry.depositSavings + entry.depositInvestments
+                ),
+                totalSavingsFormatted: formatNumber(runningTotalSavings),
+                totalInvestmentsFormatted: formatNumber(
+                    runningTotalInvestments
+                ),
+                totalSavedFormatted: formatNumber(
                     runningTotalSavings + runningTotalInvestments
-                ).toFixed(2),
-                grandTotalFormatted: (
+                ),
+                grandTotalFormatted: formatNumber(
                     runningTotalSavings +
-                    runningTotalInvestments +
-                    interestReturn +
-                    investmentReturn
-                ).toFixed(2),
+                        runningTotalInvestments +
+                        interestReturn +
+                        investmentReturn
+                ),
                 commentary: entry.commentary,
             };
         }
@@ -172,178 +203,186 @@ const App = () => {
     );
 };
 
-function generateData(
+function generateData() {
+    const today = new Date();
+    const currentMonth =
+        today.toLocaleString('default', { month: 'long' }) +
+        ' ' +
+        today.getFullYear();
+
+    return [
+        {
+            month: currentMonth,
+            depositSavings: 100, // Set default deposit for savings
+            depositInvestments: 100, // Set default deposit for investments
+            withdrawals: 0,
+            totalSavings: 0,
+            totalInvestments: 0,
+            totalSaved: 0,
+            interestReturn: 0,
+            investmentReturn: 0,
+            grandTotal: 0,
+            commentary: '',
+        },
+    ];
+}
+
+function getNextMonth(currentMonth) {
+    const dateParts = currentMonth.split(' ');
+    const month = dateParts[0];
+    const year = parseInt(dateParts[1], 10);
+
+    const date = new Date(`${month} 1, ${year}`);
+    date.setMonth(date.getMonth() + 1);
+    return (
+        date.toLocaleString('default', { month: 'long' }) +
+        ' ' +
+        date.getFullYear()
+    );
+}
+
+function ensureNestEgg(
+    target,
+    data,
     interestRate,
     investmentReturnRate,
-    depositSavings,
-    depositInvestments,
-    withdrawals
+    recalculate
 ) {
-    const months = [
-        'January 2024',
-        'February 2024',
-        'March 2024',
-        'April 2024',
-        'May 2024',
-        'June 2024',
-        'July 2024',
-        'August 2024',
-        'September 2024',
-        'October 2024',
-        'November 2024',
-        'December 2024',
-    ];
-    let data = months.map((month) => ({
-        month,
-        depositSavings,
-        depositInvestments,
-        withdrawals: withdrawals,
-        totalSavings: 0,
-        totalInvestments: 0,
-        totalSaved: 0,
-        interestReturn: 0,
-        investmentReturn: 0,
-        grandTotal: 0,
-        commentary: '',
-    }));
-
-    let runningTotalSavings = depositSavings - withdrawals;
-    let runningTotalInvestments = depositInvestments;
-
-    if (runningTotalSavings < 0) {
-        runningTotalInvestments += runningTotalSavings;
-        runningTotalSavings = 0;
-    }
-
-    runningTotalInvestments = Math.max(0, runningTotalInvestments);
-
-    data.forEach((entry, index) => {
-        let interestReturn = runningTotalSavings * (interestRate / 12 / 100);
-        console.log(
-            'Raw interestReturn:',
-            interestReturn,
-            'Type:',
-            typeof interestReturn
+    let lastTotal = data.length ? data[data.length - 1].grandTotal : 0;
+    let iterations = 0;
+    while (lastTotal < target && iterations < 100) {
+        // Stop after 100 iterations to prevent infinite loops
+        const newEntry = {
+            month: data.length
+                ? getNextMonth(data[data.length - 1].month)
+                : 'Start Month',
+            depositSavings: data.length
+                ? data[data.length - 1].depositSavings
+                : 0,
+            depositInvestments: data.length
+                ? data[data.length - 1].depositInvestments
+                : 0,
+            withdrawals: data.length ? data[data.length - 1].withdrawals : 0,
+            totalSavings: 0,
+            totalInvestments: 0,
+            totalSaved: 0,
+            interestReturn: 0,
+            investmentReturn: 0,
+            grandTotal: 0,
+            commentary: '',
+        };
+        data = [...data, newEntry];
+        data = recalculate(
+            data,
+            data.length - 1,
+            interestRate,
+            investmentReturnRate
         );
-        console.log('Formatted interestReturn:', interestReturn.toFixed(2));
-
-        let investmentReturn =
-            runningTotalInvestments * (investmentReturnRate / 12 / 100);
-
-        // Assign interest and investment return to the current month's entry
-        entry.interestReturn = interestReturn;
-        entry.investmentReturn = investmentReturn;
-
-        entry.grandTotal =
-            runningTotalSavings +
-            runningTotalInvestments +
-            interestReturn +
-            investmentReturn;
-
-        entry.totalSavings = runningTotalSavings;
-        entry.totalInvestments = runningTotalInvestments;
-        entry.totalSaved = entry.totalSavings + entry.totalInvestments;
-
-        entry.totalDepositFormatted = (
-            depositSavings + depositInvestments
-        ).toFixed(2);
-        entry.totalSavingsFormatted = runningTotalSavings.toFixed(2);
-        entry.totalInvestmentsFormatted = runningTotalInvestments.toFixed(2);
-        entry.totalSavedFormatted = entry.totalSaved.toFixed(2);
-        entry.interestReturnFormatted = interestReturn.toFixed(2);
-        entry.investmentReturnFormatted = investmentReturn.toFixed(2);
-        entry.grandTotalFormatted = entry.grandTotal.toFixed(2);
-        entry.commentary = '';
-
-        if (index < data.length - 1) {
-            // Prepare for next month by applying deposits and withdrawals
-            runningTotalSavings += depositSavings - withdrawals;
-            runningTotalInvestments += depositInvestments;
-
-            // Adjust if current withdrawals make the savings go negative
-            if (runningTotalSavings < 0) {
-                runningTotalInvestments += runningTotalSavings; // Adjust investments by the negative savings amount
-                runningTotalSavings = 0; // Reset savings to zero
-            }
-
-            // Ensure running total investments do not go negative
-            runningTotalInvestments = Math.max(0, runningTotalInvestments);
-
-            // Add returns to running totals for the next month
-            runningTotalSavings += interestReturn;
-            runningTotalInvestments += investmentReturn;
-        }
-    });
-
+        lastTotal = data[data.length - 1].grandTotal;
+        iterations++;
+    }
     return data;
 }
 
-// function recalculateFields(
-//     dataArray,
-//     index,
+// function generateData(
 //     interestRate,
-//     investmentReturnRate
+//     investmentReturnRate,
+//     depositSavings,
+//     depositInvestments,
+//     withdrawals
 // ) {
-//     const data = dataArray[index];
-//     const previous = index === 0 ? null : dataArray[index - 1];
+//     const months = [
+//         'January 2024',
+//         'February 2024',
+//         'March 2024',
+//         'April 2024',
+//         'May 2024',
+//         'June 2024',
+//         'July 2024',
+//         'August 2024',
+//         'September 2024',
+//         'October 2024',
+//         'November 2024',
+//         'December 2024',
+//     ];
+//     let data = months.map((month) => ({
+//         month,
+//         depositSavings,
+//         depositInvestments,
+//         withdrawals: withdrawals,
+//         totalSavings: 0,
+//         totalInvestments: 0,
+//         totalSaved: 0,
+//         interestReturn: 0,
+//         investmentReturn: 0,
+//         grandTotal: 0,
+//         commentary: '',
+//     }));
 
-//     const previousTotalSavings = previous
-//         ? parseFloat(previous.totalSavings)
-//         : 0;
-//     const previousTotalInvestments = previous
-//         ? parseFloat(previous.totalInvestments)
-//         : 0;
+//     let runningTotalSavings = depositSavings - withdrawals;
+//     let runningTotalInvestments = depositInvestments;
 
-//     const previousInterestReturn =
-//         previousTotalSavings * (interestRate / 12 / 100);
-//     const previousInvestmentReturn =
-//         previousTotalInvestments * (investmentReturnRate / 12 / 100);
+//     if (runningTotalSavings < 0) {
+//         runningTotalInvestments += runningTotalSavings;
+//         runningTotalSavings = 0;
+//     }
 
-//     const totalDeposit = data.depositSavings + data.depositInvestments;
+//     runningTotalInvestments = Math.max(0, runningTotalInvestments);
 
-//     const totalSavings = Math.max(
-//         0,
-//         previousTotalSavings +
-//             previousInterestReturn +
-//             data.depositSavings -
-//             data.withdrawals
-//     );
-//     const shortfall = Math.max(
-//         0,
-//         parseFloat(data.withdrawals) -
-//             (parseFloat(previousTotalSavings) + previousInterestReturn)
-//     );
-//     let totalInvestments =
-//         parseFloat(previousTotalInvestments) +
-//         previousInvestmentReturn +
-//         parseFloat(data.depositInvestments) -
-//         shortfall;
-//     totalInvestments = Math.max(0, totalInvestments);
-//     const totalSaved = totalSavings + totalInvestments;
-//     const interestReturn = totalSavings * (interestRate / 12 / 100);
-//     const investmentReturn =
-//         totalInvestments * (investmentReturnRate / 12 / 100);
-//     const grandTotal = totalSaved + interestReturn + investmentReturn;
+//     data.forEach((entry, index) => {
+//         let interestReturn = runningTotalSavings * (interestRate / 12 / 100);
+//         console.log(
+//             'Raw interestReturn:',
+//             interestReturn,
+//             'Type:',
+//             typeof interestReturn
+//         );
+//         console.log('Formatted interestReturn:', interestReturn.toFixed(2));
 
-//     console.log(
-//         'Here are some of the values: ',
-//         grandTotal,
-//         investmentReturn,
-//         interestReturn,
-//         totalSaved
-//     );
+//         let investmentReturn =
+//             runningTotalInvestments * (investmentReturnRate / 12 / 100);
 
-//     return {
-//         ...data,
-//         totalDepositFormatted: totalDeposit.toFixed(2),
-//         totalSavingsFormatted: totalSavings.toFixed(2),
-//         totalInvestmentsFormatted: totalInvestments.toFixed(2),
-//         totalSavedFormatted: totalSaved.toFixed(2),
-//         interestReturnFormatted: interestReturn.toFixed(2),
-//         investmentReturnFormatted: investmentReturn.toFixed(2),
-//         grandTotalFormatted: grandTotal.toFixed(2),
-//         commentary: data.commentary,
-//     };
+//         entry.interestReturn = interestReturn;
+//         entry.investmentReturn = investmentReturn;
+
+//         entry.grandTotal =
+//             runningTotalSavings +
+//             runningTotalInvestments +
+//             interestReturn +
+//             investmentReturn;
+
+//         entry.totalSavings = runningTotalSavings;
+//         entry.totalInvestments = runningTotalInvestments;
+//         entry.totalSaved = entry.totalSavings + entry.totalInvestments;
+
+//         entry.totalDepositFormatted = (
+//             depositSavings + depositInvestments
+//         ).toFixed(2);
+//         entry.totalSavingsFormatted = runningTotalSavings.toFixed(2);
+//         entry.totalInvestmentsFormatted = runningTotalInvestments.toFixed(2);
+//         entry.totalSavedFormatted = entry.totalSaved.toFixed(2);
+//         entry.interestReturnFormatted = interestReturn.toFixed(2);
+//         entry.investmentReturnFormatted = investmentReturn.toFixed(2);
+//         entry.grandTotalFormatted = entry.grandTotal.toFixed(2);
+//         entry.commentary = '';
+
+//         if (index < data.length - 1) {
+//             runningTotalSavings += depositSavings - withdrawals;
+//             runningTotalInvestments += depositInvestments;
+
+//             if (runningTotalSavings < 0) {
+//                 runningTotalInvestments += runningTotalSavings;
+//                 runningTotalSavings = 0;
+//             }
+
+//             runningTotalInvestments = Math.max(0, runningTotalInvestments);
+
+//             runningTotalSavings += interestReturn;
+//             runningTotalInvestments += investmentReturn;
+//         }
+//     });
+
+//     return data;
 // }
 
 export default App;
