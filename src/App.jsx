@@ -56,6 +56,11 @@ const App = () => {
         for (let i = startIndex; i < data.length; i++) {
             const entry = data[i];
 
+            if (i > 0) {
+                runningTotalSavings += data[i - 1].interestReturn;
+                runningTotalInvestments += data[i - 1].investmentReturn;
+            }
+
             runningTotalSavings += entry.depositSavings - entry.withdrawals;
             runningTotalInvestments += entry.depositInvestments;
 
@@ -90,7 +95,6 @@ const App = () => {
                     runningTotalInvestments +
                     interestReturn +
                     investmentReturn,
-                // Add formatted values
                 interestReturnFormatted: interestReturn.toFixed(2),
                 investmentReturnFormatted: investmentReturn.toFixed(2),
                 totalSavingsFormatted: runningTotalSavings.toFixed(2),
@@ -104,11 +108,8 @@ const App = () => {
                     interestReturn +
                     investmentReturn
                 ).toFixed(2),
-                commentary: entry.commentary, // Assuming commentary is unchanged
+                commentary: entry.commentary,
             };
-
-            runningTotalSavings += interestReturn;
-            runningTotalInvestments += investmentReturn;
         }
 
         return data;
@@ -124,6 +125,17 @@ const App = () => {
             console.log('Before update:', newData[index]);
 
             newData[index] = { ...newData[index], [field]: parseFloat(value) };
+
+            if (
+                field === 'withdrawals' ||
+                field === 'depositSavings' ||
+                field === 'depositInvestments'
+            ) {
+                for (let i = index + 1; i < newData.length; i++) {
+                    newData[i] = { ...newData[i], [field]: parseFloat(value) };
+                }
+            }
+
             console.log('After field update:', newData[index]);
 
             const updatedData = recalculateFromIndex(
@@ -241,10 +253,7 @@ function generateData(
         entry.interestReturnFormatted = interestReturn.toFixed(2);
         entry.investmentReturnFormatted = investmentReturn.toFixed(2);
         entry.grandTotalFormatted = entry.grandTotal.toFixed(2);
-        entry.commentary =
-            index === 0
-                ? 'Initial deposit.'
-                : 'Adjusted investments for better performance.';
+        entry.commentary = '';
 
         if (index < data.length - 1) {
             // Prepare for next month by applying deposits and withdrawals
