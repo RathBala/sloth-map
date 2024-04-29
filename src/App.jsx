@@ -21,19 +21,13 @@ const App = () => {
     );
     const [targetNestEgg, setTargetNestEgg] = useState(5000000);
     const [age, setAge] = useState(38);
+    const [recalcTrigger, setRecalcTrigger] = useState(0); // New state to trigger recalculation
 
     useEffect(() => {
-        console.log(
-            'useEffect triggered for interestRate, investmentReturnRate, or targetNestEgg change.'
-        );
         recalculateData();
-    }, [interestRate, investmentReturnRate, targetNestEgg]);
+    }, [interestRate, investmentReturnRate, targetNestEgg, recalcTrigger]); // Added recalcTrigger here
 
-    // useEffect(() => {
-    //     console.log('Table data updated:', tableData);
-    // }, [tableData]);
-
-    function recalculateData() {
+    const recalculateData = () => {
         let updatedData = [...tableData];
         updatedData = recalculateFromIndex(
             updatedData,
@@ -49,24 +43,15 @@ const App = () => {
             recalculateFromIndex
         );
         setTableData(updatedData);
-    }
+    };
 
-    const handleInterestRateChange = (e) => {
+    const handleInterestRateChange = (e) =>
         setInterestRate(parseFloat(e.target.value));
-        recalculateData(); // Recalculate immediately after setting the new rate
-    };
-    const handleInvestmentReturnRateChange = (e) => {
+    const handleInvestmentReturnRateChange = (e) =>
         setInvestmentReturnRate(parseFloat(e.target.value));
-        recalculateData(); // Recalculate immediately after setting the new rate
-    };
-    const handleTargetNestEggChange = (e) => {
+    const handleTargetNestEggChange = (e) =>
         setTargetNestEgg(parseFloat(e.target.value));
-        recalculateData(); // Recalculate immediately after setting the new rate
-    };
-    const handleAgeChange = (e) => {
-        setAge(parseFloat(e.target.value));
-        recalculateData(); // Recalculate immediately after setting the new rate
-    };
+    const handleAgeChange = (e) => setAge(parseFloat(e.target.value));
 
     function recalculateFromIndex(
         data,
@@ -134,7 +119,6 @@ const App = () => {
 
             newData[index] = { ...newData[index], [field]: parseFloat(value) };
 
-            // Propagate changes to subsequent entries if necessary
             if (
                 [
                     'withdrawals',
@@ -143,16 +127,24 @@ const App = () => {
                 ].includes(field)
             ) {
                 for (let i = index + 1; i < newData.length; i++) {
-                    newData[i] = { ...newData[i], [field]: newData[i][field] };
+                    newData[i] = { ...newData[i], [field]: parseFloat(value) };
                 }
             }
 
             console.log('After field update:', newData[index]);
-            return newData;
+            const updatedData = recalculateFromIndex(
+                newData,
+                index,
+                interestRate,
+                investmentReturnRate
+            );
+
+            console.log('After recalculation:', updatedData);
+
+            return updatedData;
         });
 
-        // Call recalculateData after state update to ensure all changes are accounted for
-        setTimeout(recalculateData, 0);
+        setRecalcTrigger((prev) => prev + 1);
     };
 
     // const handleFieldChange = (index, field, value) => {
@@ -272,35 +264,38 @@ function ensureNestEgg(
 ) {
     let lastTotal = data.length ? data[data.length - 1].grandTotal : 0;
     let iterations = 0;
-    while (lastTotal < target && iterations < 1000) {
-        const newEntry = {
-            month: data.length
-                ? getNextMonth(data[data.length - 1].month)
-                : 'Start Month',
-            depositSavings: data.length
-                ? data[data.length - 1].depositSavings
-                : 0,
-            depositInvestments: data.length
-                ? data[data.length - 1].depositInvestments
-                : 0,
-            withdrawals: data.length ? data[data.length - 1].withdrawals : 0,
-            totalSavings: 0,
-            totalInvestments: 0,
-            totalSaved: 0,
-            interestReturn: 0,
-            investmentReturn: 0,
-            grandTotal: 0,
-            commentary: '',
-        };
-        data = [...data, newEntry];
-        data = recalculate(
-            data,
-            data.length - 1,
-            interestRate,
-            investmentReturnRate
-        );
-        lastTotal = data[data.length - 1].grandTotal;
-        iterations++;
+    // Check if we need to remove excess rows or add new ones based on the target
+    if (lastTotal >= target) {
+        // If grand total exceeds or meets the target, check if excess rows need removal
+        while (lastTotal >= target && data.length > 1) {
+            data.pop(); // Remove the last row
+            lastTotal = data[data.length - 1].grandTotal; // Update the last total
+        }
+    } else {
+        while (lastTotal < target && iterations < 1000) {
+            const newEntry = {
+                month: getNextMonth(data[data.length - 1].month),
+                depositSavings: data[data.length - 1].depositSavings, // Inherit last value
+                depositInvestments: data[data.length - 1].depositInvestments, // Inherit last value
+                withdrawals: data[data.length - 1].withdrawals, // Inherit last value
+                totalSavings: 0,
+                totalInvestments: 0,
+                totalSaved: 0,
+                interestReturn: 0,
+                investmentReturn: 0,
+                grandTotal: 0,
+                commentary: '',
+            };
+            data = [...data, newEntry];
+            data = recalculate(
+                data,
+                data.length - 1,
+                interestRate,
+                investmentReturnRate
+            );
+            lastTotal = data[data.length - 1].grandTotal;
+            iterations++;
+        }
     }
     console.log(
         `Iteration stopped at ${iterations} iterations. Target was ${lastTotal >= target ? 'met' : 'not met'}.`
