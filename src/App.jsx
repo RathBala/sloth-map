@@ -64,8 +64,6 @@ const App = () => {
         let runningTotalInvestments =
             startIndex === 0 ? 0 : data[startIndex - 1].totalInvestments;
 
-        console.log(`Recalculation started from index: ${startIndex}`);
-
         for (let i = startIndex; i < data.length; i++) {
             const entry = data[i];
 
@@ -195,6 +193,9 @@ const App = () => {
         grandTotalFormatted: formatNumber(entry.grandTotal),
     }));
 
+    // const lastEntry = tableData[tableData.length - 1];
+    // const achieveNestEggBy = lastEntry ? lastEntry.month : 'TBC';
+
     return (
         <div className="App">
             <InputFields
@@ -208,6 +209,7 @@ const App = () => {
                 }
                 handleTargetNestEggChange={handleTargetNestEggChange}
                 handleAgeChange={handleAgeChange}
+                // achieveNestEggBy={achieveNestEggBy}
             />
             <TableComponent
                 data={formattedTableData}
@@ -263,21 +265,25 @@ function ensureNestEgg(
     recalculate
 ) {
     let lastTotal = data.length ? data[data.length - 1].grandTotal : 0;
-    let iterations = 0;
-    // Check if we need to remove excess rows or add new ones based on the target
+
+    console.log(
+        `Starting ensureNestEgg with lastTotal: ${lastTotal} and target: ${target}`
+    );
+
     if (lastTotal >= target) {
-        // If grand total exceeds or meets the target, check if excess rows need removal
-        while (lastTotal >= target && data.length > 1) {
-            data.pop(); // Remove the last row
-            lastTotal = data[data.length - 1].grandTotal; // Update the last total
+        while (data.length > 1 && data[data.length - 1].grandTotal >= target) {
+            data.pop();
+            lastTotal = data[data.length - 1].grandTotal;
+            console.log(`Row removed, new lastTotal: ${lastTotal}`);
         }
     } else {
+        let iterations = 0;
         while (lastTotal < target && iterations < 1000) {
             const newEntry = {
                 month: getNextMonth(data[data.length - 1].month),
-                depositSavings: data[data.length - 1].depositSavings, // Inherit last value
-                depositInvestments: data[data.length - 1].depositInvestments, // Inherit last value
-                withdrawals: data[data.length - 1].withdrawals, // Inherit last value
+                depositSavings: data[data.length - 1].depositSavings,
+                depositInvestments: data[data.length - 1].depositInvestments,
+                withdrawals: data[data.length - 1].withdrawals,
                 totalSavings: 0,
                 totalInvestments: 0,
                 totalSaved: 0,
@@ -294,12 +300,40 @@ function ensureNestEgg(
                 investmentReturnRate
             );
             lastTotal = data[data.length - 1].grandTotal;
+            console.log(
+                `New entry added, recalculated lastTotal: ${lastTotal}`
+            );
             iterations++;
         }
+        console.log(
+            `Iteration stopped at ${iterations} iterations. 
+            Target was ${lastTotal >= target ? 'met' : 'not met'}.`
+        );
     }
-    console.log(
-        `Iteration stopped at ${iterations} iterations. Target was ${lastTotal >= target ? 'met' : 'not met'}.`
-    );
+
+    if (data.length > 1 && data[data.length - 1].grandTotal < target) {
+        const newEntry = {
+            month: getNextMonth(data[data.length - 1].month),
+            depositSavings: data[data.length - 1].depositSavings,
+            depositInvestments: data[data.length - 1].depositInvestments,
+            withdrawals: data[data.length - 1].withdrawals,
+            totalSavings: 0,
+            totalInvestments: 0,
+            totalSaved: 0,
+            interestReturn: 0,
+            investmentReturn: 0,
+            grandTotal: 0,
+            commentary: '',
+        };
+        data.push(newEntry);
+        data = recalculate(
+            data,
+            data.length - 1,
+            interestRate,
+            investmentReturnRate
+        );
+    }
+
     return data;
 }
 

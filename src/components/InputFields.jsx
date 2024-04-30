@@ -9,12 +9,8 @@ const InputFields = ({
     handleInvestmentReturnRateChange,
     handleTargetNestEggChange,
     handleAgeChange,
+    // achieveNestEggBy,
 }) => {
-    const calculateAchieveNestEggBy = () => {
-        // TODO: Implement the logic to calculate when the nest egg will be achieved
-        return 'TBC';
-    };
-
     const calculateYearsRemainingToRetirement = () => {
         // TODO: Implement the logic to calculate the years remaining to retirement
         return 0;
@@ -56,7 +52,7 @@ const InputFields = ({
                 <input type="number" value={age} onChange={handleAgeChange} />
             </label>
 
-            <p>Achieve Nest Egg By: {calculateAchieveNestEggBy()}</p>
+            <p>Achieve Nest Egg By: achieveNestEggBy code goes here</p>
             <p>
                 Years Remaining To Retirement:{' '}
                 {calculateYearsRemainingToRetirement()}
