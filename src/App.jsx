@@ -193,8 +193,10 @@ const App = () => {
         grandTotalFormatted: formatNumber(entry.grandTotal),
     }));
 
-    // const lastEntry = tableData[tableData.length - 1];
-    // const achieveNestEggBy = lastEntry ? lastEntry.month : 'TBC';
+    const lastEntry = tableData[tableData.length - 1];
+    const achieveNestEggBy = lastEntry ? lastEntry.month : 'TBC';
+
+    console.log('Achieve nest egg by: ', achieveNestEggBy);
 
     return (
         <div className="App">
@@ -209,7 +211,7 @@ const App = () => {
                 }
                 handleTargetNestEggChange={handleTargetNestEggChange}
                 handleAgeChange={handleAgeChange}
-                // achieveNestEggBy={achieveNestEggBy}
+                achieveNestEggBy={achieveNestEggBy}
             />
             <TableComponent
                 data={formattedTableData}
