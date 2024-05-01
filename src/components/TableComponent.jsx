@@ -6,6 +6,8 @@ const TableComponent = ({ data, onFieldChange }) => {
         onFieldChange(index, field, value);
     };
 
+    const formatNumberDisplay = (num) => parseFloat(num).toFixed(2);
+
     return (
         <table>
             <thead>
@@ -68,8 +70,34 @@ const TableComponent = ({ data, onFieldChange }) => {
                                 }
                             />
                         </td>
-                        <td>{row.totalSavingsFormatted}</td>
-                        <td>{row.totalInvestmentsFormatted}</td>
+                        <td>
+                            <input
+                                type="number"
+                                value={formatNumberDisplay(row.totalSavings)}
+                                onChange={(e) =>
+                                    handleChange(
+                                        index,
+                                        'totalSavings',
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="number"
+                                value={formatNumberDisplay(
+                                    row.totalInvestments
+                                )}
+                                onChange={(e) =>
+                                    handleChange(
+                                        index,
+                                        'totalInvestments',
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </td>
                         <td>{row.totalSavedFormatted}</td>
                         <td>{row.interestReturnFormatted}</td>
                         <td>{row.investmentReturnFormatted}</td>

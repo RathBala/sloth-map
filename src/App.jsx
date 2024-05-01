@@ -72,8 +72,17 @@ const App = () => {
                 runningTotalInvestments += data[i - 1].investmentReturn;
             }
 
-            runningTotalSavings += entry.depositSavings - entry.withdrawals;
-            runningTotalInvestments += entry.depositInvestments;
+            if (!entry.isTotalSavingsManual) {
+                runningTotalSavings += entry.depositSavings - entry.withdrawals;
+            } else {
+                runningTotalSavings = entry.totalSavings;
+            }
+
+            if (!entry.isTotalInvestmentsManual) {
+                runningTotalInvestments += entry.depositInvestments;
+            } else {
+                runningTotalInvestments = entry.totalInvestments;
+            }
 
             if (runningTotalSavings < 0) {
                 runningTotalInvestments += runningTotalSavings;
@@ -107,36 +116,38 @@ const App = () => {
     }
 
     const handleFieldChange = (index, field, value) => {
-        console.log(
-            `Field change - Index: ${index}, Field: ${field}, Value: ${value}`
-        );
-
         setTableData((currentData) => {
             const newData = [...currentData];
-            console.log('Before update:', newData[index]);
+            const newValue = parseFloat(value);
 
-            newData[index] = { ...newData[index], [field]: parseFloat(value) };
-
-            if (
-                [
-                    'withdrawals',
-                    'depositSavings',
-                    'depositInvestments',
-                ].includes(field)
-            ) {
-                for (let i = index + 1; i < newData.length; i++) {
-                    newData[i] = { ...newData[i], [field]: parseFloat(value) };
+            if (field === 'totalSavings' || field === 'totalInvestments') {
+                newData[index][field] = newValue;
+                if (field === 'totalSavings') {
+                    newData[index].isTotalSavingsManual = true;
+                } else if (field === 'totalInvestments') {
+                    newData[index].isTotalInvestmentsManual = true;
+                }
+            } else if (field === 'withdrawals') {
+                newData[index][field] = newValue;
+            } else {
+                for (let i = index; i < newData.length; i++) {
+                    if (
+                        (field === 'depositSavings' &&
+                            !newData[i].isTotalSavingsManual) ||
+                        (field === 'depositInvestments' &&
+                            !newData[i].isTotalInvestmentsManual)
+                    ) {
+                        newData[i][field] = newValue;
+                    }
                 }
             }
 
-            console.log('After field update:', newData[index]);
             const updatedData = recalculateFromIndex(
                 newData,
                 index,
                 interestRate,
                 investmentReturnRate
             );
-
             console.log('After recalculation:', updatedData);
 
             return updatedData;
@@ -144,41 +155,6 @@ const App = () => {
 
         setRecalcTrigger((prev) => prev + 1);
     };
-
-    // const handleFieldChange = (index, field, value) => {
-    //     console.log(
-    //         `Field change - Index: ${index}, Field: ${field}, Value: ${value}`
-    //     );
-
-    //     setTableData((currentData) => {
-    //         const newData = [...currentData];
-    //         console.log('Before update:', newData[index]);
-
-    //         newData[index] = { ...newData[index], [field]: parseFloat(value) };
-
-    //         if (
-    //             field === 'withdrawals' ||
-    //             field === 'depositSavings' ||
-    //             field === 'depositInvestments'
-    //         ) {
-    //             for (let i = index + 1; i < newData.length; i++) {
-    //                 newData[i] = { ...newData[i], [field]: parseFloat(value) };
-    //             }
-    //         }
-
-    //         console.log('After field update:', newData[index]);
-
-    //         const updatedData = recalculateFromIndex(
-    //             newData,
-    //             index,
-    //             interestRate,
-    //             investmentReturnRate
-    //         );
-    //         console.log('After recalculation:', updatedData);
-
-    //         return updatedData;
-    //     });
-    // };
 
     const formattedTableData = tableData.map((entry) => ({
         ...entry,
@@ -231,11 +207,13 @@ function generateData() {
     return [
         {
             month: currentMonth,
-            depositSavings: 100, // Set default deposit for savings
-            depositInvestments: 100, // Set default deposit for investments
+            depositSavings: 100,
+            depositInvestments: 100,
             withdrawals: 0,
             totalSavings: 0,
             totalInvestments: 0,
+            isTotalSavingsManual: false,
+            isTotalInvestmentsManual: false,
             totalSaved: 0,
             interestReturn: 0,
             investmentReturn: 0,
