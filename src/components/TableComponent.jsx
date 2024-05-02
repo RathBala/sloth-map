@@ -1,12 +1,31 @@
 /* eslint-disable react/prop-types */
 
+import { useState } from 'react';
+import { formatNumber } from '../utils/formatUtils';
+
 const TableComponent = ({ data, onFieldChange }) => {
+    const [focusedIndex, setFocusedIndex] = useState(null);
+    const [focusedField, setFocusedField] = useState(null);
+
+    const handleFocus = (index, field) => {
+        setFocusedIndex(index);
+        setFocusedField(field);
+    };
+
+    const handleBlur = (index, field, value) => {
+        onFieldChange(
+            index,
+            field,
+            parseFloat(value.replace(/,/g, '').replace(/^\$/, ''))
+        );
+        setFocusedIndex(null);
+        setFocusedField(null);
+    };
+
     console.log('Data received by TableComponent:', data);
     const handleChange = (index, field, value) => {
         onFieldChange(index, field, value);
     };
-
-    const formatNumberDisplay = (num) => parseFloat(num).toFixed(2);
 
     return (
         <table>
@@ -72,8 +91,23 @@ const TableComponent = ({ data, onFieldChange }) => {
                         </td>
                         <td>
                             <input
-                                type="number"
-                                value={formatNumberDisplay(row.totalSavings)}
+                                type="text"
+                                value={
+                                    focusedIndex === index &&
+                                    focusedField === 'totalSavings'
+                                        ? row.totalSavings.toString()
+                                        : formatNumber(row.totalSavings)
+                                }
+                                onFocus={() =>
+                                    handleFocus(index, 'totalSavings')
+                                }
+                                onBlur={(e) =>
+                                    handleBlur(
+                                        index,
+                                        'totalSavings',
+                                        e.target.value
+                                    )
+                                }
                                 onChange={(e) =>
                                     handleChange(
                                         index,
@@ -85,10 +119,23 @@ const TableComponent = ({ data, onFieldChange }) => {
                         </td>
                         <td>
                             <input
-                                type="number"
-                                value={formatNumberDisplay(
-                                    row.totalInvestments
-                                )}
+                                type="text"
+                                value={
+                                    focusedIndex === index &&
+                                    focusedField === 'totalInvestments'
+                                        ? row.totalInvestments.toString()
+                                        : formatNumber(row.totalInvestments)
+                                }
+                                onFocus={() =>
+                                    handleFocus(index, 'totalInvestments')
+                                }
+                                onBlur={(e) =>
+                                    handleBlur(
+                                        index,
+                                        'totalInvestments',
+                                        e.target.value
+                                    )
+                                }
                                 onChange={(e) =>
                                     handleChange(
                                         index,

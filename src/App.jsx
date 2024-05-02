@@ -1,17 +1,8 @@
 import { useState, useEffect } from 'react';
 import TableComponent from './components/TableComponent';
 import InputFields from './components/InputFields';
+import { formatNumber } from './utils/formatUtils';
 import './App.css';
-
-const numberFormatter = new Intl.NumberFormat('en-US', {
-    style: 'decimal',
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 2,
-});
-
-function formatNumber(num) {
-    return numberFormatter.format(num);
-}
 
 const App = () => {
     const [interestRate, setInterestRate] = useState(5);
