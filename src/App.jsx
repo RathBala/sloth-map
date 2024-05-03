@@ -107,19 +107,28 @@ const App = () => {
     }
 
     const handleFieldChange = (index, field, value) => {
+        console.log(
+            `handleFieldChange called for field: ${field} with value: ${value}`
+        );
+
         setTableData((currentData) => {
             const newData = [...currentData];
-            const newValue = parseFloat(value);
+            let shouldRecalculate = false;
 
             if (field === 'totalSavings' || field === 'totalInvestments') {
+                const newValue = parseFloat(value);
                 newData[index][field] = newValue;
+                shouldRecalculate = true;
                 if (field === 'totalSavings') {
                     newData[index].isTotalSavingsManual = true;
                 } else if (field === 'totalInvestments') {
                     newData[index].isTotalInvestmentsManual = true;
                 }
             } else if (field === 'withdrawals') {
-                newData[index][field] = newValue;
+                newData[index][field] = parseFloat(value);
+                shouldRecalculate = true;
+            } else if (field === 'commentary') {
+                newData[index][field] = value;
             } else {
                 for (let i = index; i < newData.length; i++) {
                     if (
@@ -128,23 +137,29 @@ const App = () => {
                         (field === 'depositInvestments' &&
                             !newData[i].isTotalInvestmentsManual)
                     ) {
-                        newData[i][field] = newValue;
+                        newData[i][field] = parseFloat(value);
                     }
                 }
+                shouldRecalculate = true;
             }
 
-            const updatedData = recalculateFromIndex(
-                newData,
-                index,
-                interestRate,
-                investmentReturnRate
-            );
-            console.log('After recalculation:', updatedData);
-
-            return updatedData;
+            if (shouldRecalculate) {
+                const updatedData = recalculateFromIndex(
+                    newData,
+                    index,
+                    interestRate,
+                    investmentReturnRate
+                );
+                console.log('After recalculation:', updatedData);
+                return updatedData;
+            } else {
+                console.log('Data updated without recalculation:', newData);
+                return newData;
+            }
         });
 
         setRecalcTrigger((prev) => prev + 1);
+        console.log('RecalcTrigger incremented');
     };
 
     const formattedTableData = tableData.map((entry) => ({
