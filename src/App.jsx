@@ -117,6 +117,11 @@ const App = () => {
 
             if (field === 'totalSavings' || field === 'totalInvestments') {
                 const newValue = parseFloat(value);
+                console.log(`Parsed new value:`, parseFloat(value));
+                console.log(
+                    `Current data at index ${index}:`,
+                    newData[index][field]
+                );
                 newData[index][field] = newValue;
                 shouldRecalculate = true;
                 if (field === 'totalSavings') {
@@ -286,9 +291,9 @@ function ensureNestEgg(
                 investmentReturnRate
             );
             lastTotal = data[data.length - 1].grandTotal;
-            console.log(
-                `New entry added, recalculated lastTotal: ${lastTotal}`
-            );
+            // console.log(
+            //     `New entry added, recalculated lastTotal: ${lastTotal}`
+            // );
             iterations++;
         }
         console.log(

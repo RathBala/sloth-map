@@ -13,16 +13,19 @@ const TableComponent = ({ data, onFieldChange }) => {
     };
 
     const handleBlur = (index, field, value) => {
-        onFieldChange(
-            index,
-            field,
-            parseFloat(value.replace(/,/g, '').replace(/^\$/, ''))
+        const numericValue = parseFloat(
+            value.replace(/,/g, '').replace(/^\$/, '')
         );
+        console.log(
+            `Updating on blur with cleaned numeric value:`,
+            numericValue
+        );
+        onFieldChange(index, field, numericValue); // Now updates with cleaned, parsed value
         setFocusedIndex(null);
         setFocusedField(null);
     };
 
-    console.log('Data received by TableComponent:', data);
+    // console.log('Data received by TableComponent:', data);
     const handleChange = (index, field, value) => {
         onFieldChange(index, field, value);
     };
@@ -53,10 +56,10 @@ const TableComponent = ({ data, onFieldChange }) => {
                             <input
                                 type="number"
                                 value={row.depositSavings}
-                                onChange={(e) =>
-                                    handleChange(
+                                onBlur={(e) =>
+                                    handleBlur(
                                         index,
-                                        'depositSavings',
+                                        'totalSavings',
                                         e.target.value
                                     )
                                 }
@@ -66,10 +69,10 @@ const TableComponent = ({ data, onFieldChange }) => {
                             <input
                                 type="number"
                                 value={row.depositInvestments}
-                                onChange={(e) =>
-                                    handleChange(
+                                onBlur={(e) =>
+                                    handleBlur(
                                         index,
-                                        'depositInvestments',
+                                        'totalSavings',
                                         e.target.value
                                     )
                                 }
@@ -80,10 +83,10 @@ const TableComponent = ({ data, onFieldChange }) => {
                             <input
                                 type="number"
                                 value={row.withdrawals}
-                                onChange={(e) =>
-                                    handleChange(
+                                onBlur={(e) =>
+                                    handleBlur(
                                         index,
-                                        'withdrawals',
+                                        'totalSavings',
                                         e.target.value
                                     )
                                 }
@@ -108,13 +111,18 @@ const TableComponent = ({ data, onFieldChange }) => {
                                         e.target.value
                                     )
                                 }
-                                onChange={(e) =>
-                                    handleChange(
-                                        index,
-                                        'totalSavings',
-                                        e.target.value
-                                    )
-                                }
+                                // onChange={(e) => {
+                                //     console.log('Full Event Object:', e);
+                                //     console.log(
+                                //         'Current Input:',
+                                //         e.target.value
+                                //     );
+                                //     handleChange(
+                                //         index,
+                                //         'totalSavings',
+                                //         e.target.value
+                                //     );
+                                // }}
                             />
                         </td>
                         <td>
@@ -136,13 +144,13 @@ const TableComponent = ({ data, onFieldChange }) => {
                                         e.target.value
                                     )
                                 }
-                                onChange={(e) =>
-                                    handleChange(
-                                        index,
-                                        'totalInvestments',
-                                        e.target.value
-                                    )
-                                }
+                                // onChange={(e) =>
+                                //     handleChange(
+                                //         index,
+                                //         'totalInvestments',
+                                //         e.target.value
+                                //     )
+                                // }
                             />
                         </td>
                         <td>{row.totalSavedFormatted}</td>
