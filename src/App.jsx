@@ -180,6 +180,8 @@ const App = () => {
         grandTotalFormatted: formatNumber(entry.grandTotal),
     }));
 
+    console.log('Formatted Table Data:', formattedTableData);
+
     const lastEntry = tableData[tableData.length - 1];
     const achieveNestEggBy = lastEntry ? lastEntry.month : 'TBC';
 

@@ -7,27 +7,48 @@ const TableComponent = ({ data, onFieldChange }) => {
     const [focusedIndex, setFocusedIndex] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
 
+    const [inputValues, setInputValues] = useState(() =>
+        data.map((row) => ({
+            ...row,
+            totalSavings: row.totalSavings.toString(), // Convert to string if necessary
+            totalInvestments: row.totalInvestments.toString(),
+            depositSavings: row.depositSavings.toString(),
+            depositInvestments: row.depositInvestments.toString(),
+            withdrawals: row.withdrawals.toString(),
+            commentary: row.commentary, // Assuming it's already in the correct format
+        }))
+    );
+
     const handleFocus = (index, field) => {
         setFocusedIndex(index);
         setFocusedField(field);
     };
 
     const handleBlur = (index, field, value) => {
-        const numericValue = parseFloat(
-            value.replace(/,/g, '').replace(/^\$/, '')
-        );
+        const numericValue =
+            field === 'commentary'
+                ? value
+                : parseFloat(value.replace(/,/g, '').replace(/^\$/, ''));
         console.log(
             `Updating on blur with cleaned numeric value:`,
             numericValue
         );
-        onFieldChange(index, field, numericValue); // Now updates with cleaned, parsed value
+        onFieldChange(index, field, numericValue);
+        setInputValues((current) =>
+            current.map((item, idx) =>
+                idx === index ? { ...item, [field]: numericValue } : item
+            )
+        );
         setFocusedIndex(null);
         setFocusedField(null);
     };
 
-    // console.log('Data received by TableComponent:', data);
     const handleChange = (index, field, value) => {
-        onFieldChange(index, field, value);
+        setInputValues((current) =>
+            current.map((item, idx) =>
+                idx === index ? { ...item, [field]: value } : item
+            )
+        );
     };
 
     return (
@@ -49,17 +70,24 @@ const TableComponent = ({ data, onFieldChange }) => {
                 </tr>
             </thead>
             <tbody>
-                {data.map((row, index) => (
+                {inputValues.map((row, index) => (
                     <tr key={index}>
                         <td>{row.month}</td>
                         <td>
                             <input
                                 type="number"
                                 value={row.depositSavings}
+                                onChange={(e) =>
+                                    handleChange(
+                                        index,
+                                        'depositSavings',
+                                        e.target.value
+                                    )
+                                }
                                 onBlur={(e) =>
                                     handleBlur(
                                         index,
-                                        'totalSavings',
+                                        'depositSavings',
                                         e.target.value
                                     )
                                 }
@@ -69,10 +97,17 @@ const TableComponent = ({ data, onFieldChange }) => {
                             <input
                                 type="number"
                                 value={row.depositInvestments}
+                                onChange={(e) =>
+                                    handleChange(
+                                        index,
+                                        'depositInvestments',
+                                        e.target.value
+                                    )
+                                }
                                 onBlur={(e) =>
                                     handleBlur(
                                         index,
-                                        'totalSavings',
+                                        'depositInvestments',
                                         e.target.value
                                     )
                                 }
@@ -83,10 +118,17 @@ const TableComponent = ({ data, onFieldChange }) => {
                             <input
                                 type="number"
                                 value={row.withdrawals}
+                                onChange={(e) =>
+                                    handleChange(
+                                        index,
+                                        'withdrawals',
+                                        e.target.value
+                                    )
+                                }
                                 onBlur={(e) =>
                                     handleBlur(
                                         index,
-                                        'totalSavings',
+                                        'withdrawals',
                                         e.target.value
                                     )
                                 }
@@ -104,6 +146,13 @@ const TableComponent = ({ data, onFieldChange }) => {
                                 onFocus={() =>
                                     handleFocus(index, 'totalSavings')
                                 }
+                                onChange={(e) =>
+                                    handleChange(
+                                        index,
+                                        'totalSavings',
+                                        e.target.value
+                                    )
+                                }
                                 onBlur={(e) =>
                                     handleBlur(
                                         index,
@@ -111,18 +160,6 @@ const TableComponent = ({ data, onFieldChange }) => {
                                         e.target.value
                                     )
                                 }
-                                // onChange={(e) => {
-                                //     console.log('Full Event Object:', e);
-                                //     console.log(
-                                //         'Current Input:',
-                                //         e.target.value
-                                //     );
-                                //     handleChange(
-                                //         index,
-                                //         'totalSavings',
-                                //         e.target.value
-                                //     );
-                                // }}
                             />
                         </td>
                         <td>
@@ -137,6 +174,13 @@ const TableComponent = ({ data, onFieldChange }) => {
                                 onFocus={() =>
                                     handleFocus(index, 'totalInvestments')
                                 }
+                                onChange={(e) =>
+                                    handleChange(
+                                        index,
+                                        'totalInvestments',
+                                        e.target.value
+                                    )
+                                }
                                 onBlur={(e) =>
                                     handleBlur(
                                         index,
@@ -144,13 +188,6 @@ const TableComponent = ({ data, onFieldChange }) => {
                                         e.target.value
                                     )
                                 }
-                                // onChange={(e) =>
-                                //     handleChange(
-                                //         index,
-                                //         'totalInvestments',
-                                //         e.target.value
-                                //     )
-                                // }
                             />
                         </td>
                         <td>{row.totalSavedFormatted}</td>
@@ -163,6 +200,13 @@ const TableComponent = ({ data, onFieldChange }) => {
                                 value={row.commentary}
                                 onChange={(e) =>
                                     handleChange(
+                                        index,
+                                        'commentary',
+                                        e.target.value
+                                    )
+                                }
+                                onBlur={(e) =>
+                                    handleBlur(
                                         index,
                                         'commentary',
                                         e.target.value
