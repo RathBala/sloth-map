@@ -1,9 +1,11 @@
 /* eslint-disable react/prop-types */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatNumber } from '../utils/formatUtils';
 
 const TableComponent = ({ data, onFieldChange }) => {
+    console.log('Received data in TableComponent:', data);
+
     const [focusedIndex, setFocusedIndex] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
 
@@ -18,6 +20,20 @@ const TableComponent = ({ data, onFieldChange }) => {
             commentary: row.commentary, // Assuming it's already in the correct format
         }))
     );
+
+    useEffect(() => {
+        setInputValues(
+            data.map((row) => ({
+                ...row,
+                totalSavings: row.totalSavings.toString(),
+                totalInvestments: row.totalInvestments.toString(),
+                depositSavings: row.depositSavings.toString(),
+                depositInvestments: row.depositInvestments.toString(),
+                withdrawals: row.withdrawals.toString(),
+                commentary: row.commentary,
+            }))
+        );
+    }, [data]); // Dependency array includes data to re-run the effect when data changes
 
     const handleFocus = (index, field) => {
         setFocusedIndex(index);
