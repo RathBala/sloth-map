@@ -91,8 +91,16 @@ const TableComponent = ({ data, onFieldChange }) => {
                         <td>{row.month}</td>
                         <td>
                             <input
-                                type="number"
-                                value={row.depositSavings}
+                                type="text"
+                                value={
+                                    focusedIndex === index &&
+                                    focusedField === 'depositSavings'
+                                        ? row.depositSavings
+                                        : formatNumber(row.depositSavings)
+                                }
+                                onFocus={() =>
+                                    handleFocus(index, 'depositSavings')
+                                }
                                 onChange={(e) =>
                                     handleChange(
                                         index,
@@ -111,8 +119,16 @@ const TableComponent = ({ data, onFieldChange }) => {
                         </td>
                         <td>
                             <input
-                                type="number"
-                                value={row.depositInvestments}
+                                type="text"
+                                value={
+                                    focusedIndex === index &&
+                                    focusedField === 'depositInvestments'
+                                        ? row.depositInvestments
+                                        : formatNumber(row.depositInvestments)
+                                }
+                                onFocus={() =>
+                                    handleFocus(index, 'depositInvestments')
+                                }
                                 onChange={(e) =>
                                     handleChange(
                                         index,
@@ -132,8 +148,16 @@ const TableComponent = ({ data, onFieldChange }) => {
                         <td>{row.totalDepositFormatted}</td>
                         <td>
                             <input
-                                type="number"
-                                value={row.withdrawals}
+                                type="text"
+                                value={
+                                    focusedIndex === index &&
+                                    focusedField === 'withdrawals'
+                                        ? row.withdrawals
+                                        : formatNumber(row.withdrawals)
+                                }
+                                onFocus={() =>
+                                    handleFocus(index, 'withdrawals')
+                                }
                                 onChange={(e) =>
                                     handleChange(
                                         index,
