@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import TableComponent from './components/TableComponent';
 import InputFields from './components/InputFields';
+import Register from './components/Register';
 import { formatNumber } from './utils/formatUtils';
+import { auth } from './firebase-config';
+import { onAuthStateChanged } from 'firebase/auth';
 import './App.css';
 
 const App = () => {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
     const [interestRate, setInterestRate] = useState(5);
     const [investmentReturnRate, setInvestmentReturnRate] = useState(10);
     const [tableData, setTableData] = useState(() =>
@@ -15,8 +20,20 @@ const App = () => {
     const [recalcTrigger, setRecalcTrigger] = useState(0); // New state to trigger recalculation
 
     useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setIsLoggedIn(true);
+            } else {
+                setIsLoggedIn(false);
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
         recalculateData();
-    }, [interestRate, investmentReturnRate, targetNestEgg, recalcTrigger]); // Added recalcTrigger here
+    }, [interestRate, investmentReturnRate, targetNestEgg, recalcTrigger]);
 
     const recalculateData = () => {
         let updatedData = [...tableData];
@@ -35,6 +52,10 @@ const App = () => {
         );
         setTableData(updatedData);
     };
+
+    if (!isLoggedIn) {
+        return <Register />;
+    }
 
     const handleInterestRateChange = (e) =>
         setInterestRate(parseFloat(e.target.value));
