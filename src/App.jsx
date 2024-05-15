@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import TableComponent from './components/TableComponent';
 import InputFields from './components/InputFields';
-import Register from './components/Register';
+import Authentication from './components/Auth';
 import { formatNumber } from './utils/formatUtils';
 import { auth } from './firebase-config';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import './App.css';
 
 const App = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [user, setUser] = useState(null);
 
     const [interestRate, setInterestRate] = useState(5);
     const [investmentReturnRate, setInvestmentReturnRate] = useState(10);
@@ -20,16 +21,22 @@ const App = () => {
     const [recalcTrigger, setRecalcTrigger] = useState(0); // New state to trigger recalculation
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
                 setIsLoggedIn(true);
+                setUser(currentUser);
             } else {
                 setIsLoggedIn(false);
+                setUser(null);
             }
         });
 
         return () => unsubscribe();
     }, []);
+
+    const logout = async () => {
+        await signOut(auth);
+    };
 
     useEffect(() => {
         recalculateData();
@@ -54,7 +61,7 @@ const App = () => {
     };
 
     if (!isLoggedIn) {
-        return <Register />;
+        return <Authentication />;
     }
 
     const handleInterestRateChange = (e) =>
@@ -210,6 +217,13 @@ const App = () => {
 
     return (
         <div className="App">
+            <div className="top-nav">
+                <div className="welcome">
+                    <h4>Welcome</h4>
+                    <span>{user && user.email}</span>
+                </div>
+                <button onClick={logout}>Log out</button>
+            </div>
             <InputFields
                 interestRate={interestRate}
                 investmentReturnRate={investmentReturnRate}
