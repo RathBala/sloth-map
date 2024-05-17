@@ -3,8 +3,9 @@ import TableComponent from './components/TableComponent';
 import InputFields from './components/InputFields';
 import Authentication from './components/Auth';
 import { formatNumber } from './utils/formatUtils';
-import { auth } from './firebase-config';
+import { auth, db } from './firebase-config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import './App.css';
 
 const App = () => {
@@ -18,7 +19,7 @@ const App = () => {
     );
     const [targetNestEgg, setTargetNestEgg] = useState(5000000);
     const [age, setAge] = useState(38);
-    const [recalcTrigger, setRecalcTrigger] = useState(0); // New state to trigger recalculation
+    const [recalcTrigger, setRecalcTrigger] = useState(0);
 
     const [userDocument, setUserDocument] = useState(null);
 
