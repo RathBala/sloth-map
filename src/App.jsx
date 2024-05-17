@@ -20,19 +20,27 @@ const App = () => {
     const [age, setAge] = useState(38);
     const [recalcTrigger, setRecalcTrigger] = useState(0); // New state to trigger recalculation
 
+    const [userDocument, setUserDocument] = useState(null);
+
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
-                setIsLoggedIn(true);
-                setUser(currentUser);
-            } else {
-                setIsLoggedIn(false);
-                setUser(null);
+                const userRef = doc(db, 'users', currentUser.uid);
+                const userDoc = await getDoc(userRef);
+                setUserDocument(userDoc.data());
             }
         });
 
         return () => unsubscribe();
     }, []);
+
+    if (userDocument) {
+        setIsLoggedIn(true);
+        setUser(userDocument);
+    } else {
+        setIsLoggedIn(false);
+        setUser(null);
+    }
 
     const logout = async () => {
         await signOut(auth);
@@ -222,6 +230,7 @@ const App = () => {
                     <h4>Welcome</h4>
                     <span>{user && user.email}</span>
                 </div>
+                <button type="button">Save</button>
                 <button onClick={logout}>Log out</button>
             </div>
             <InputFields

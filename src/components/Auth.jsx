@@ -34,6 +34,7 @@ function Authentication() {
             console.log(user);
         } catch (error) {
             console.log(error.message);
+            alert(error.message);
         }
     };
 
