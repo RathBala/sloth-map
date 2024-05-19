@@ -12,12 +12,10 @@ const App = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
 
-    const [interestRate, setInterestRate] = useState(5);
-    const [investmentReturnRate, setInvestmentReturnRate] = useState(10);
-    const [tableData, setTableData] = useState(() =>
-        generateData(interestRate, investmentReturnRate, 500, 300, 0)
-    );
-    const [targetNestEgg, setTargetNestEgg] = useState(5000000);
+    const [interestRate, setInterestRate] = useState(null);
+    const [investmentReturnRate, setInvestmentReturnRate] = useState(null);
+    const [targetNestEgg, setTargetNestEgg] = useState(null);
+    const [tableData, setTableData] = useState([]);
     const [age, setAge] = useState(38);
     const [recalcTrigger, setRecalcTrigger] = useState(0);
 
@@ -28,20 +26,50 @@ const App = () => {
             if (currentUser) {
                 const userRef = doc(db, 'users', currentUser.uid);
                 const userDoc = await getDoc(userRef);
-                setUserDocument(userDoc.data());
+                const userData = userDoc.data();
+                setUserDocument({
+                    ...userData,
+                    email: currentUser.email,
+                });
+
+                if (userData) {
+                    setInterestRate(userData.interestRate || 5);
+                    setInvestmentReturnRate(
+                        userData.investmentReturnRate || 10
+                    );
+                    setTargetNestEgg(userData.targetNestEgg || 5000000);
+                }
+            } else {
+                setUserDocument(null);
             }
         });
 
         return () => unsubscribe();
     }, []);
 
-    if (userDocument) {
-        setIsLoggedIn(true);
-        setUser(userDocument);
-    } else {
-        setIsLoggedIn(false);
-        setUser(null);
-    }
+    useEffect(() => {
+        if (userDocument) {
+            setIsLoggedIn(true);
+            setUser(userDocument);
+            console.log('User document set:', userDocument);
+        } else {
+            setIsLoggedIn(false);
+            setUser(null);
+            console.log('User document is null.');
+        }
+    }, [userDocument]);
+
+    useEffect(() => {
+        if (
+            interestRate !== null &&
+            investmentReturnRate !== null &&
+            targetNestEgg !== null
+        ) {
+            setTableData(
+                generateData(interestRate, investmentReturnRate, 500, 300, 0)
+            );
+        }
+    }, [interestRate, investmentReturnRate, targetNestEgg]);
 
     const logout = async () => {
         await signOut(auth);
@@ -229,7 +257,9 @@ const App = () => {
             <div className="top-nav">
                 <div className="welcome">
                     <h4>Welcome</h4>
-                    <span>{user && user.email}</span>
+                    <span>
+                        {user && user.email ? user.email : 'No user logged in'}
+                    </span>
                 </div>
                 <button type="button">Save</button>
                 <button onClick={logout}>Log out</button>
