@@ -8,7 +8,6 @@ const InputFields = ({
     handleInterestRateChange,
     handleInvestmentReturnRateChange,
     handleTargetNestEggChange,
-    handleAgeChange,
     achieveNestEggBy,
 }) => {
     const calculateYearsRemainingToNestEgg = () => {
@@ -50,11 +49,7 @@ const InputFields = ({
                     onChange={handleTargetNestEggChange}
                 />
             </label>
-            <label>
-                Age:
-                <input type="number" value={age} onChange={handleAgeChange} />
-            </label>
-
+            <p>Current Age: {age}</p>
             <p>Achieve Nest Egg By: {achieveNestEggBy}</p>
             <p>
                 Years Remaining To Nest Egg:{' '}

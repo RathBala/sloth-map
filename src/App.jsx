@@ -15,11 +15,20 @@ const App = () => {
     const [interestRate, setInterestRate] = useState(null);
     const [investmentReturnRate, setInvestmentReturnRate] = useState(null);
     const [targetNestEgg, setTargetNestEgg] = useState(null);
-    const [tableData, setTableData] = useState([]);
-    const [age, setAge] = useState(38);
+    const [tableData, setTableData] = useState(() =>
+        generateData(5, 10, 500, 300, 0)
+    );
+    const [age, setAge] = useState(null);
     const [recalcTrigger, setRecalcTrigger] = useState(0);
 
     const [userDocument, setUserDocument] = useState(null);
+
+    const calculateAge = (dateOfBirth) => {
+        const dob = new Date(dateOfBirth.seconds * 1000);
+        const ageDifMs = Date.now() - dob.getTime();
+        const ageDate = new Date(ageDifMs);
+        return Math.abs(ageDate.getUTCFullYear() - 1970);
+    };
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -37,7 +46,7 @@ const App = () => {
                     setInvestmentReturnRate(
                         userData.investmentReturnRate || 10
                     );
-                    setTargetNestEgg(userData.targetNestEgg || 5000000);
+                    setAge(calculateAge(userData.dateOfBirth));
                 }
             } else {
                 setUserDocument(null);
