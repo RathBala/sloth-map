@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-
 import { useState, useEffect } from 'react';
 import { formatNumber } from '../utils/formatUtils';
 

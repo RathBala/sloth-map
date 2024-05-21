@@ -3,70 +3,32 @@ import TableComponent from './components/TableComponent';
 import InputFields from './components/InputFields';
 import Authentication from './components/Auth';
 import { formatNumber } from './utils/formatUtils';
-import { auth, db } from './firebase-config';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import useUserData from './utils/useUserData';
+import {
+    generateData,
+    recalculateFromIndex,
+    ensureNestEgg,
+} from './utils/calculations';
 import './App.css';
 
 const App = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [user, setUser] = useState(null);
+    const {
+        isLoggedIn,
+        user,
+        interestRate,
+        setInterestRate,
+        investmentReturnRate,
+        setInvestmentReturnRate,
+        targetNestEgg,
+        setTargetNestEgg,
+        age,
+        setAge,
+        saveUserData,
+        logout,
+    } = useUserData();
 
-    const [interestRate, setInterestRate] = useState(null);
-    const [investmentReturnRate, setInvestmentReturnRate] = useState(null);
-    const [targetNestEgg, setTargetNestEgg] = useState(null);
-    const [tableData, setTableData] = useState(() =>
-        generateData(5, 10, 500, 300, 0)
-    );
-    const [age, setAge] = useState(null);
+    const [tableData, setTableData] = useState(() => generateData(500, 300, 0));
     const [recalcTrigger, setRecalcTrigger] = useState(0);
-
-    const [userDocument, setUserDocument] = useState(null);
-
-    const calculateAge = (dateOfBirth) => {
-        const dob = new Date(dateOfBirth.seconds * 1000);
-        const ageDifMs = Date.now() - dob.getTime();
-        const ageDate = new Date(ageDifMs);
-        return Math.abs(ageDate.getUTCFullYear() - 1970);
-    };
-
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                const userRef = doc(db, 'users', currentUser.uid);
-                const userDoc = await getDoc(userRef);
-                const userData = userDoc.data();
-                setUserDocument({
-                    ...userData,
-                    email: currentUser.email,
-                });
-
-                if (userData) {
-                    setInterestRate(userData.interestRate || 5);
-                    setInvestmentReturnRate(
-                        userData.investmentReturnRate || 10
-                    );
-                    setAge(calculateAge(userData.dateOfBirth));
-                }
-            } else {
-                setUserDocument(null);
-            }
-        });
-
-        return () => unsubscribe();
-    }, []);
-
-    useEffect(() => {
-        if (userDocument) {
-            setIsLoggedIn(true);
-            setUser(userDocument);
-            console.log('User document set:', userDocument);
-        } else {
-            setIsLoggedIn(false);
-            setUser(null);
-            console.log('User document is null.');
-        }
-    }, [userDocument]);
 
     useEffect(() => {
         if (
@@ -74,15 +36,9 @@ const App = () => {
             investmentReturnRate !== null &&
             targetNestEgg !== null
         ) {
-            setTableData(
-                generateData(interestRate, investmentReturnRate, 500, 300, 0)
-            );
+            setTableData(generateData(500, 300, 0));
         }
     }, [interestRate, investmentReturnRate, targetNestEgg]);
-
-    const logout = async () => {
-        await signOut(auth);
-    };
 
     useEffect(() => {
         recalculateData();
@@ -111,74 +67,19 @@ const App = () => {
     }
 
     const handleInterestRateChange = (e) =>
-        setInterestRate(parseFloat(e.target.value));
+        setInterestRate(
+            e.target.value === '' ? '' : parseFloat(e.target.value)
+        );
     const handleInvestmentReturnRateChange = (e) =>
-        setInvestmentReturnRate(parseFloat(e.target.value));
+        setInvestmentReturnRate(
+            e.target.value === '' ? '' : parseFloat(e.target.value)
+        );
     const handleTargetNestEggChange = (e) =>
-        setTargetNestEgg(parseFloat(e.target.value));
-    const handleAgeChange = (e) => setAge(parseFloat(e.target.value));
-
-    function recalculateFromIndex(
-        data,
-        startIndex,
-        interestRate,
-        investmentReturnRate
-    ) {
-        let runningTotalSavings =
-            startIndex === 0 ? 0 : data[startIndex - 1].totalSavings;
-        let runningTotalInvestments =
-            startIndex === 0 ? 0 : data[startIndex - 1].totalInvestments;
-
-        for (let i = startIndex; i < data.length; i++) {
-            const entry = data[i];
-
-            if (i > 0) {
-                runningTotalSavings += data[i - 1].interestReturn;
-                runningTotalInvestments += data[i - 1].investmentReturn;
-            }
-
-            if (!entry.isTotalSavingsManual) {
-                runningTotalSavings += entry.depositSavings - entry.withdrawals;
-            } else {
-                runningTotalSavings = entry.totalSavings;
-            }
-
-            if (!entry.isTotalInvestmentsManual) {
-                runningTotalInvestments += entry.depositInvestments;
-            } else {
-                runningTotalInvestments = entry.totalInvestments;
-            }
-
-            if (runningTotalSavings < 0) {
-                runningTotalInvestments += runningTotalSavings;
-                runningTotalSavings = 0;
-            }
-
-            runningTotalInvestments = Math.max(0, runningTotalInvestments);
-
-            const interestReturn =
-                runningTotalSavings * (interestRate / 12 / 100);
-            const investmentReturn =
-                runningTotalInvestments * (investmentReturnRate / 12 / 100);
-
-            data[i] = {
-                ...entry,
-                totalSavings: runningTotalSavings,
-                totalInvestments: runningTotalInvestments,
-                interestReturn,
-                investmentReturn,
-                totalSaved: runningTotalSavings + runningTotalInvestments,
-                grandTotal:
-                    runningTotalSavings +
-                    runningTotalInvestments +
-                    interestReturn +
-                    investmentReturn,
-                commentary: entry.commentary,
-            };
-        }
-
-        return data;
-    }
+        setTargetNestEgg(
+            e.target.value === '' ? '' : parseFloat(e.target.value)
+        );
+    const handleAgeChange = (e) =>
+        setAge(e.target.value === '' ? '' : parseFloat(e.target.value));
 
     const handleFieldChange = (index, field, value) => {
         console.log(
@@ -270,14 +171,16 @@ const App = () => {
                         {user && user.email ? user.email : 'No user logged in'}
                     </span>
                 </div>
-                <button type="button">Save</button>
+                <button type="button" onClick={saveUserData}>
+                    Save
+                </button>
                 <button onClick={logout}>Log out</button>
             </div>
             <InputFields
-                interestRate={interestRate}
-                investmentReturnRate={investmentReturnRate}
-                targetNestEgg={targetNestEgg}
-                age={age}
+                interestRate={interestRate || ''}
+                investmentReturnRate={investmentReturnRate || ''}
+                targetNestEgg={targetNestEgg || ''}
+                age={age || ''}
                 handleInterestRateChange={handleInterestRateChange}
                 handleInvestmentReturnRateChange={
                     handleInvestmentReturnRateChange
@@ -293,125 +196,5 @@ const App = () => {
         </div>
     );
 };
-
-function generateData() {
-    const today = new Date();
-    const currentMonth =
-        today.toLocaleString('default', { month: 'long' }) +
-        ' ' +
-        today.getFullYear();
-
-    return [
-        {
-            month: currentMonth,
-            depositSavings: 100,
-            depositInvestments: 100,
-            withdrawals: 0,
-            totalSavings: 0,
-            totalInvestments: 0,
-            isTotalSavingsManual: false,
-            isTotalInvestmentsManual: false,
-            totalSaved: 0,
-            interestReturn: 0,
-            investmentReturn: 0,
-            grandTotal: 0,
-            commentary: '',
-        },
-    ];
-}
-
-function getNextMonth(currentMonth) {
-    const dateParts = currentMonth.split(' ');
-    const month = dateParts[0];
-    const year = parseInt(dateParts[1], 10);
-
-    const date = new Date(`${month} 1, ${year}`);
-    date.setMonth(date.getMonth() + 1);
-    return (
-        date.toLocaleString('default', { month: 'long' }) +
-        ' ' +
-        date.getFullYear()
-    );
-}
-
-function ensureNestEgg(
-    target,
-    data,
-    interestRate,
-    investmentReturnRate,
-    recalculate
-) {
-    let lastTotal = data.length ? data[data.length - 1].grandTotal : 0;
-
-    console.log(
-        `Starting ensureNestEgg with lastTotal: ${lastTotal} and target: ${target}`
-    );
-
-    if (lastTotal >= target) {
-        while (data.length > 1 && data[data.length - 1].grandTotal >= target) {
-            data.pop();
-            lastTotal = data[data.length - 1].grandTotal;
-            console.log(`Row removed, new lastTotal: ${lastTotal}`);
-        }
-    } else {
-        let iterations = 0;
-        while (lastTotal < target && iterations < 1000) {
-            const newEntry = {
-                month: getNextMonth(data[data.length - 1].month),
-                depositSavings: data[data.length - 1].depositSavings,
-                depositInvestments: data[data.length - 1].depositInvestments,
-                withdrawals: data[data.length - 1].withdrawals,
-                totalSavings: 0,
-                totalInvestments: 0,
-                totalSaved: 0,
-                interestReturn: 0,
-                investmentReturn: 0,
-                grandTotal: 0,
-                commentary: '',
-            };
-            data = [...data, newEntry];
-            data = recalculate(
-                data,
-                data.length - 1,
-                interestRate,
-                investmentReturnRate
-            );
-            lastTotal = data[data.length - 1].grandTotal;
-            // console.log(
-            //     `New entry added, recalculated lastTotal: ${lastTotal}`
-            // );
-            iterations++;
-        }
-        console.log(
-            `Iteration stopped at ${iterations} iterations. 
-            Target was ${lastTotal >= target ? 'met' : 'not met'}.`
-        );
-    }
-
-    if (data.length > 1 && data[data.length - 1].grandTotal < target) {
-        const newEntry = {
-            month: getNextMonth(data[data.length - 1].month),
-            depositSavings: data[data.length - 1].depositSavings,
-            depositInvestments: data[data.length - 1].depositInvestments,
-            withdrawals: data[data.length - 1].withdrawals,
-            totalSavings: 0,
-            totalInvestments: 0,
-            totalSaved: 0,
-            interestReturn: 0,
-            investmentReturn: 0,
-            grandTotal: 0,
-            commentary: '',
-        };
-        data.push(newEntry);
-        data = recalculate(
-            data,
-            data.length - 1,
-            interestRate,
-            investmentReturnRate
-        );
-    }
-
-    return data;
-}
 
 export default App;

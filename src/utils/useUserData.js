@@ -7,6 +7,7 @@ const useUserData = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
     const [userDocument, setUserDocument] = useState(null);
+
     const [interestRate, setInterestRate] = useState(null);
     const [investmentReturnRate, setInvestmentReturnRate] = useState(null);
     const [targetNestEgg, setTargetNestEgg] = useState(null);
@@ -49,9 +50,11 @@ const useUserData = () => {
         if (userDocument) {
             setIsLoggedIn(true);
             setUser(userDocument);
+            console.log('User document set:', userDocument);
         } else {
             setIsLoggedIn(false);
             setUser(null);
+            console.log('User document is null.');
         }
     }, [userDocument]);
 
@@ -62,7 +65,7 @@ const useUserData = () => {
                 await updateDoc(userRef, {
                     interestRate: interestRate,
                 });
-                console.log('User document updated successfully');
+                console.log('Interest rate updated successfully');
             } catch (error) {
                 console.error('Error updating user document:', error);
             }
