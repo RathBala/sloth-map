@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { auth, db } from '../firebase-config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 
 const useUserData = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -26,9 +26,12 @@ const useUserData = () => {
                 const userRef = doc(db, 'users', currentUser.uid);
                 const userDoc = await getDoc(userRef);
                 const userData = userDoc.data();
+                console.log('User data from Firestore:', userData);
+
                 setUserDocument({
                     ...userData,
                     email: currentUser.email,
+                    uid: currentUser.uid,
                 });
 
                 if (userData) {
@@ -36,6 +39,7 @@ const useUserData = () => {
                     setInvestmentReturnRate(
                         userData.investmentReturnRate || 10
                     );
+                    setTargetNestEgg(userData.targetNestEgg || 0);
                     setAge(calculateAge(userData.dateOfBirth));
                 }
             } else {
@@ -61,14 +65,22 @@ const useUserData = () => {
     const saveUserData = async () => {
         if (user && user.uid) {
             const userRef = doc(db, 'users', user.uid);
+            console.log('Saving user data for user:', user.uid);
+            console.log('Interest Rate:', interestRate);
+            console.log('Investment Return Rate:', investmentReturnRate);
+            console.log('Target Nest Egg:', targetNestEgg);
             try {
                 await updateDoc(userRef, {
                     interestRate: interestRate,
+                    investmentReturnRate: investmentReturnRate,
+                    targetNestEgg: targetNestEgg,
                 });
-                console.log('Interest rate updated successfully');
+                alert('Input fields updated successfully');
             } catch (error) {
-                console.error('Error updating user document:', error);
+                alert('Error updating user document:', error);
             }
+        } else {
+            console.log('User is null or missing uid.');
         }
     };
 

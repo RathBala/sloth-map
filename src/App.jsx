@@ -162,6 +162,11 @@ const App = () => {
 
     console.log('Achieve nest egg by: ', achieveNestEggBy);
 
+    const handleSaveClick = () => {
+        console.log('Save button clicked');
+        saveUserData();
+    };
+
     return (
         <div className="App">
             <div className="top-nav">
@@ -171,7 +176,7 @@ const App = () => {
                         {user && user.email ? user.email : 'No user logged in'}
                     </span>
                 </div>
-                <button type="button" onClick={saveUserData}>
+                <button type="button" onClick={handleSaveClick}>
                     Save
                 </button>
                 <button onClick={logout}>Log out</button>
