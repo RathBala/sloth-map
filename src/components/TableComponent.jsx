@@ -10,12 +10,12 @@ const TableComponent = ({ data, onFieldChange }) => {
     const [inputValues, setInputValues] = useState(() =>
         data.map((row) => ({
             ...row,
-            totalSavings: row.totalSavings.toString(), // Convert to string if necessary
+            totalSavings: row.totalSavings.toString(),
             totalInvestments: row.totalInvestments.toString(),
             depositSavings: row.depositSavings.toString(),
             depositInvestments: row.depositInvestments.toString(),
             withdrawals: row.withdrawals.toString(),
-            commentary: row.commentary, // Assuming it's already in the correct format
+            commentary: row.commentary,
         }))
     );
 
@@ -31,7 +31,7 @@ const TableComponent = ({ data, onFieldChange }) => {
                 commentary: row.commentary,
             }))
         );
-    }, [data]); // Dependency array includes data to re-run the effect when data changes
+    }, [data]);
 
     const handleFocus = (index, field) => {
         setFocusedIndex(index);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { auth, db } from '../firebase-config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 
 const useUserData = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -12,6 +12,7 @@ const useUserData = () => {
     const [investmentReturnRate, setInvestmentReturnRate] = useState(null);
     const [targetNestEgg, setTargetNestEgg] = useState(null);
     const [age, setAge] = useState(null);
+    const [manualChanges, setManualChanges] = useState({});
 
     const calculateAge = (dateOfBirth) => {
         const dob = new Date(dateOfBirth.seconds * 1000);
@@ -42,6 +43,14 @@ const useUserData = () => {
                     setTargetNestEgg(userData.targetNestEgg || 0);
                     setAge(calculateAge(userData.dateOfBirth));
                 }
+
+                const tableDataRef = collection(userRef, 'tableData');
+                const manualChangesSnapshot = await getDocs(tableDataRef);
+                const manualChanges = {};
+                manualChangesSnapshot.forEach((doc) => {
+                    manualChanges[doc.id] = doc.data();
+                });
+                setManualChanges(manualChanges);
             } else {
                 setUserDocument(null);
             }
@@ -62,7 +71,7 @@ const useUserData = () => {
         }
     }, [userDocument]);
 
-    const saveUserData = async () => {
+    const saveInputFields = async () => {
         if (user && user.uid) {
             const userRef = doc(db, 'users', user.uid);
             console.log('Saving user data for user:', user.uid);
@@ -70,14 +79,37 @@ const useUserData = () => {
             console.log('Investment Return Rate:', investmentReturnRate);
             console.log('Target Nest Egg:', targetNestEgg);
             try {
-                await updateDoc(userRef, {
-                    interestRate: interestRate,
-                    investmentReturnRate: investmentReturnRate,
-                    targetNestEgg: targetNestEgg,
-                });
+                await setDoc(
+                    userRef,
+                    {
+                        interestRate: interestRate,
+                        investmentReturnRate: investmentReturnRate,
+                        targetNestEgg: targetNestEgg,
+                    },
+                    { merge: true }
+                );
                 alert('Input fields updated successfully');
             } catch (error) {
                 alert('Error updating user document:', error);
+            }
+        } else {
+            console.log('User is null or missing uid.');
+        }
+    };
+
+    const saveTableData = async () => {
+        if (user && user.uid) {
+            const userRef = doc(db, 'users', user.uid);
+            const tableDataRef = collection(userRef, 'tableData');
+
+            try {
+                for (const [month, fields] of Object.entries(manualChanges)) {
+                    const tableDataDocRef = doc(tableDataRef, month);
+                    await setDoc(tableDataDocRef, fields, { merge: true });
+                }
+                console.log('Table data saved successfully');
+            } catch (error) {
+                console.error('Error saving table data:', error);
             }
         } else {
             console.log('User is null or missing uid.');
@@ -99,7 +131,10 @@ const useUserData = () => {
         setTargetNestEgg,
         age,
         setAge,
-        saveUserData,
+        manualChanges,
+        setManualChanges,
+        saveInputFields,
+        saveTableData,
         logout,
     };
 };

@@ -23,7 +23,10 @@ const App = () => {
         setTargetNestEgg,
         age,
         setAge,
-        saveUserData,
+        manualChanges,
+        setManualChanges,
+        saveInputFields,
+        saveTableData,
         logout,
     } = useUserData();
 
@@ -46,12 +49,37 @@ const App = () => {
 
     const recalculateData = () => {
         let updatedData = [...tableData];
+
         updatedData = recalculateFromIndex(
             updatedData,
             0,
             interestRate,
             investmentReturnRate
         );
+
+        for (const [monthId, changes] of Object.entries(manualChanges)) {
+            const monthIndex = updatedData.findIndex((row) => {
+                const [monthName, year] = row.month.split(' ');
+                const monthNumber =
+                    new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
+                const rowMonthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
+                return rowMonthId === monthId;
+            });
+
+            if (monthIndex !== -1) {
+                for (const [field, value] of Object.entries(changes)) {
+                    updatedData[monthIndex][field] = value;
+
+                    updatedData = handleFieldChange(
+                        monthIndex,
+                        field,
+                        value,
+                        updatedData
+                    );
+                }
+            }
+        }
+
         updatedData = ensureNestEgg(
             targetNestEgg,
             updatedData,
@@ -81,65 +109,90 @@ const App = () => {
     const handleAgeChange = (e) =>
         setAge(e.target.value === '' ? '' : parseFloat(e.target.value));
 
-    const handleFieldChange = (index, field, value) => {
+    const handleFieldChange = (index, field, value, data) => {
         console.log(
             `handleFieldChange called for field: ${field} with value: ${value}`
         );
 
-        setTableData((currentData) => {
-            const newData = [...currentData];
-            let shouldRecalculate = false;
+        let newData = data ? [...data] : [...tableData];
+        let shouldRecalculate = false;
 
-            if (field === 'totalSavings' || field === 'totalInvestments') {
-                const newValue = parseFloat(value);
-                console.log(`Parsed new value:`, parseFloat(value));
-                console.log(
-                    `Current data at index ${index}:`,
-                    newData[index][field]
-                );
-                newData[index][field] = newValue;
-                shouldRecalculate = true;
-                if (field === 'totalSavings') {
-                    newData[index].isTotalSavingsManual = true;
-                } else if (field === 'totalInvestments') {
-                    newData[index].isTotalInvestmentsManual = true;
+        if (field === 'totalSavings' || field === 'totalInvestments') {
+            const newValue = parseFloat(value);
+            console.log(`Parsed new value:`, parseFloat(value));
+            console.log(
+                `Current data at index ${index}:`,
+                newData[index][field]
+            );
+            newData[index][field] = newValue;
+            shouldRecalculate = true;
+            if (field === 'totalSavings') {
+                newData[index].isTotalSavingsManual = true;
+            } else if (field === 'totalInvestments') {
+                newData[index].isTotalInvestmentsManual = true;
+            }
+        } else if (field === 'withdrawals') {
+            newData[index][field] = parseFloat(value);
+            shouldRecalculate = true;
+        } else if (field === 'commentary') {
+            newData[index][field] = value;
+        } else {
+            for (let i = index; i < newData.length; i++) {
+                if (
+                    (field === 'depositSavings' &&
+                        !newData[i].isTotalSavingsManual) ||
+                    (field === 'depositInvestments' &&
+                        !newData[i].isTotalInvestmentsManual)
+                ) {
+                    newData[i][field] = parseFloat(value);
                 }
-            } else if (field === 'withdrawals') {
-                newData[index][field] = parseFloat(value);
-                shouldRecalculate = true;
-            } else if (field === 'commentary') {
-                newData[index][field] = value;
-            } else {
-                for (let i = index; i < newData.length; i++) {
-                    if (
-                        (field === 'depositSavings' &&
-                            !newData[i].isTotalSavingsManual) ||
-                        (field === 'depositInvestments' &&
-                            !newData[i].isTotalInvestmentsManual)
-                    ) {
-                        newData[i][field] = parseFloat(value);
-                    }
-                }
-                shouldRecalculate = true;
+            }
+            shouldRecalculate = true;
+        }
+
+        if (shouldRecalculate) {
+            newData = recalculateFromIndex(
+                newData,
+                index,
+                interestRate,
+                investmentReturnRate
+            );
+            console.log('After recalculation:', newData);
+        } else {
+            console.log('Data updated without recalculation:', newData);
+        }
+
+        setTableData(newData);
+
+        setManualChanges((prevChanges) => {
+            const newChanges = { ...prevChanges };
+            const [monthName, year] = tableData[index].month.split(' ');
+            const monthNumber =
+                new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
+            const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
+
+            if (!newChanges[monthId]) {
+                newChanges[monthId] = {};
             }
 
-            if (shouldRecalculate) {
-                const updatedData = recalculateFromIndex(
-                    newData,
-                    index,
-                    interestRate,
-                    investmentReturnRate
-                );
-                console.log('After recalculation:', updatedData);
-                return updatedData;
-            } else {
-                console.log('Data updated without recalculation:', newData);
-                return newData;
-            }
+            newChanges[monthId][field] = value;
+
+            return newChanges;
         });
 
-        setRecalcTrigger((prev) => prev + 1);
-        console.log('RecalcTrigger incremented');
+        if (!data) {
+            setRecalcTrigger((prev) => prev + 1);
+            console.log('RecalcTrigger incremented');
+        }
+
+        return newData;
+    };
+
+    const handleSaveClick = async () => {
+        console.log('Save button clicked');
+        await saveInputFields();
+        await saveTableData();
+        setManualChanges({});
     };
 
     const formattedTableData = tableData.map((entry) => ({
@@ -161,11 +214,6 @@ const App = () => {
     const achieveNestEggBy = lastEntry ? lastEntry.month : 'TBC';
 
     console.log('Achieve nest egg by: ', achieveNestEggBy);
-
-    const handleSaveClick = () => {
-        console.log('Save button clicked');
-        saveUserData();
-    };
 
     return (
         <div className="App">
