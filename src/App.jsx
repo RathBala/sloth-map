@@ -47,6 +47,12 @@ const App = () => {
         recalculateData();
     }, [interestRate, investmentReturnRate, targetNestEgg, recalcTrigger]);
 
+    useEffect(() => {
+        if (Object.keys(manualChanges).length > 0) {
+            recalculateData();
+        }
+    }, [manualChanges]);
+
     const recalculateData = () => {
         let updatedData = [...tableData];
 
@@ -70,13 +76,50 @@ const App = () => {
                 for (const [field, value] of Object.entries(changes)) {
                     updatedData[monthIndex][field] = value;
 
-                    updatedData = handleFieldChange(
-                        monthIndex,
-                        field,
-                        value,
-                        updatedData
-                    );
+                    if (
+                        field === 'depositSavings' ||
+                        field === 'depositInvestments'
+                    ) {
+                        for (
+                            let i = monthIndex + 1;
+                            i < updatedData.length;
+                            i++
+                        ) {
+                            if (
+                                (field === 'depositSavings' &&
+                                    !updatedData[i].isTotalSavingsManual) ||
+                                (field === 'depositInvestments' &&
+                                    !updatedData[i].isTotalInvestmentsManual)
+                            ) {
+                                updatedData[i][field] = value;
+                            }
+                        }
+                    }
                 }
+
+                if (
+                    Object.prototype.hasOwnProperty.call(
+                        changes,
+                        'totalSavings'
+                    )
+                ) {
+                    updatedData[monthIndex].isTotalSavingsManual = true;
+                }
+                if (
+                    Object.prototype.hasOwnProperty.call(
+                        changes,
+                        'totalInvestments'
+                    )
+                ) {
+                    updatedData[monthIndex].isTotalInvestmentsManual = true;
+                }
+
+                updatedData = recalculateFromIndex(
+                    updatedData,
+                    monthIndex,
+                    interestRate,
+                    investmentReturnRate
+                );
             }
         }
 
@@ -87,6 +130,7 @@ const App = () => {
             investmentReturnRate,
             recalculateFromIndex
         );
+
         setTableData(updatedData);
     };
 

@@ -23,6 +23,8 @@ const useUserData = () => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            console.log('Auth state changed:', currentUser);
+
             if (currentUser) {
                 const userRef = doc(db, 'users', currentUser.uid);
                 const userDoc = await getDoc(userRef);
@@ -46,10 +48,12 @@ const useUserData = () => {
 
                 const tableDataRef = collection(userRef, 'tableData');
                 const manualChangesSnapshot = await getDocs(tableDataRef);
+                console.log('Manual changes snapshot:', manualChangesSnapshot);
                 const manualChanges = {};
                 manualChangesSnapshot.forEach((doc) => {
                     manualChanges[doc.id] = doc.data();
                 });
+                console.log('Manual changes from Firestore:', manualChanges);
                 setManualChanges(manualChanges);
             } else {
                 setUserDocument(null);
