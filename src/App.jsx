@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import TableComponent from './components/TableComponent';
 import InputFields from './components/InputFields';
 import Authentication from './components/Auth';
+import SlothMap from './components/SlothMap';
 import { formatNumber } from './utils/formatUtils';
 import useUserData from './utils/useUserData';
 import {
@@ -260,37 +262,63 @@ const App = () => {
     console.log('Achieve nest egg by: ', achieveNestEggBy);
 
     return (
-        <div className="App">
-            <div className="top-nav">
-                <div className="welcome">
-                    <h4>Welcome</h4>
-                    <span>
-                        {user && user.email ? user.email : 'No user logged in'}
-                    </span>
+        <Router>
+            <div className="App">
+                <div className="top-nav">
+                    <div className="welcome">
+                        <h4>Welcome</h4>
+                        <span>
+                            {user && user.email
+                                ? user.email
+                                : 'No user logged in'}
+                        </span>
+                    </div>
+                    <button type="button" onClick={handleSaveClick}>
+                        Save
+                    </button>
+                    <Link to="/map">
+                        <button type="button">Show Sloth Map</button>
+                    </Link>
+                    <button onClick={logout}>Log out</button>
                 </div>
-                <button type="button" onClick={handleSaveClick}>
-                    Save
-                </button>
-                <button onClick={logout}>Log out</button>
+                <Routes>
+                    <Route
+                        path="/map"
+                        element={<SlothMap data={formattedTableData} />}
+                    />
+                    <Route
+                        path="/"
+                        element={
+                            <>
+                                <InputFields
+                                    interestRate={interestRate || ''}
+                                    investmentReturnRate={
+                                        investmentReturnRate || ''
+                                    }
+                                    targetNestEgg={targetNestEgg || ''}
+                                    age={age || ''}
+                                    handleInterestRateChange={
+                                        handleInterestRateChange
+                                    }
+                                    handleInvestmentReturnRateChange={
+                                        handleInvestmentReturnRateChange
+                                    }
+                                    handleTargetNestEggChange={
+                                        handleTargetNestEggChange
+                                    }
+                                    handleAgeChange={handleAgeChange}
+                                    achieveNestEggBy={achieveNestEggBy}
+                                />
+                                <TableComponent
+                                    data={formattedTableData}
+                                    onFieldChange={handleFieldChange}
+                                />
+                            </>
+                        }
+                    />
+                </Routes>
             </div>
-            <InputFields
-                interestRate={interestRate || ''}
-                investmentReturnRate={investmentReturnRate || ''}
-                targetNestEgg={targetNestEgg || ''}
-                age={age || ''}
-                handleInterestRateChange={handleInterestRateChange}
-                handleInvestmentReturnRateChange={
-                    handleInvestmentReturnRateChange
-                }
-                handleTargetNestEggChange={handleTargetNestEggChange}
-                handleAgeChange={handleAgeChange}
-                achieveNestEggBy={achieveNestEggBy}
-            />
-            <TableComponent
-                data={formattedTableData}
-                onFieldChange={handleFieldChange}
-            />
-        </div>
+        </Router>
     );
 };
 

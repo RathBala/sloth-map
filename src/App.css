@@ -34,3 +34,8 @@ tr:nth-child(even) {
     align-items: center;
     gap: 8px;
 }
+
+.slothmap-container {
+    height: 100vh;
+    width: 100%;
+}
