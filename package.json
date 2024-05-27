@@ -14,8 +14,8 @@
         "firebase": "^10.11.1",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-flow-renderer": "^10.3.17",
-        "react-router-dom": "^6.23.1"
+        "react-router-dom": "^6.23.1",
+        "reactflow": "^11.11.3"
     },
     "devDependencies": {
         "@types/react": "^18.2.66",

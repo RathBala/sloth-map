@@ -283,9 +283,14 @@ const App = () => {
                 </div>
                 <Routes>
                     <Route
+                        path="*"
+                        element={<div>No match for this route</div>}
+                    />
+                    {/* <Route
                         path="/map"
                         element={<SlothMap data={formattedTableData} />}
-                    />
+                    /> */}
+                    <Route path="/map" element={<SlothMap />} />
                     <Route
                         path="/"
                         element={
