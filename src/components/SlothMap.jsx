@@ -25,7 +25,7 @@ const SlothMap = () => {
             .data(nodes)
             .enter()
             .append('g')
-            .attr('transform', (d, i) => `translate(${200 * i + 100}, 100)`);
+            .attr('transform', (d, i) => `translate(${200 * i + 50}, 100)`);
 
         nodeElements
             .filter((d) => d.type === 'rect')
@@ -55,14 +55,13 @@ const SlothMap = () => {
             .filter((_, i) => i < nodes.length - 1)
             .append('path')
             .attr('d', (d, i) => {
-                const startX = 200 * i + 100; // 100 for the translation and 100 for the rectangle's width
-                let endX = 200 * i + 100 + 100; // Center of the next node group
-                const centerY = 25; // Vertical center of the shapes
-
-                // If the next node is a circle, adjust the endX to stop at the circle's edge
-                if (nodes[i + 1] && nodes[i + 1].type === 'circle') {
-                    endX = 200 * (i + 1) + 100 - 25; // Adjust endX to account for the circle's radius
+                const startX = 100;
+                let endX = 200;
+                if (nodes[i + 1].type === 'circle') {
+                    endX += 25;
                 }
+
+                const centerY = 25;
 
                 return `M ${startX},${centerY} L ${endX},${centerY}`;
             })
