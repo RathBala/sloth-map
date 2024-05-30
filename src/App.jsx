@@ -256,6 +256,8 @@ const App = () => {
 
     console.log('Formatted Table Data:', formattedTableData);
 
+    const slothMapData = processDataForSlothMap(formattedTableData);
+
     const lastEntry = tableData[tableData.length - 1];
     const achieveNestEggBy = lastEntry ? lastEntry.month : 'TBC';
 
@@ -286,11 +288,10 @@ const App = () => {
                         path="*"
                         element={<div>No match for this route</div>}
                     />
-                    {/* <Route
+                    <Route
                         path="/map"
-                        element={<SlothMap data={formattedTableData} />}
-                    /> */}
-                    <Route path="/map" element={<SlothMap />} />
+                        element={<SlothMap data={slothMapData} />}
+                    />
                     <Route
                         path="/"
                         element={
@@ -325,6 +326,37 @@ const App = () => {
             </div>
         </Router>
     );
+};
+
+const processDataForSlothMap = (data) => {
+    const nodes = [];
+    for (let i = 0; i < data.length; i++) {
+        const current = data[i];
+        const previous = data[i - 1] || {};
+
+        if (
+            current.depositInvestments !== previous.depositInvestments ||
+            current.depositSavings !== previous.depositSavings
+        ) {
+            nodes.push({
+                id: current.month,
+                type: 'rect',
+                text: `Save £${current.depositSavings} in savings; Save £${current.depositInvestments} in investments`,
+                date: current.month,
+                grandTotal: current.grandTotal,
+            });
+        }
+        if (current.withdrawals > 0) {
+            nodes.push({
+                id: current.month,
+                type: 'circle',
+                text: `${current.commentary || 'Withdrawal'} for £${current.withdrawals}`,
+                date: current.month,
+                grandTotal: current.grandTotal,
+            });
+        }
+    }
+    return nodes;
 };
 
 export default App;
