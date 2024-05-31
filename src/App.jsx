@@ -283,46 +283,53 @@ const App = () => {
                     </Link>
                     <button onClick={logout}>Log out</button>
                 </div>
-                <Routes>
-                    <Route
-                        path="*"
-                        element={<div>No match for this route</div>}
-                    />
-                    <Route
-                        path="/map"
-                        element={<SlothMap data={slothMapData} />}
-                    />
-                    <Route
-                        path="/"
-                        element={
-                            <>
-                                <InputFields
-                                    interestRate={interestRate || ''}
-                                    investmentReturnRate={
-                                        investmentReturnRate || ''
-                                    }
-                                    targetNestEgg={targetNestEgg || ''}
-                                    age={age || ''}
-                                    handleInterestRateChange={
-                                        handleInterestRateChange
-                                    }
-                                    handleInvestmentReturnRateChange={
-                                        handleInvestmentReturnRateChange
-                                    }
-                                    handleTargetNestEggChange={
-                                        handleTargetNestEggChange
-                                    }
-                                    handleAgeChange={handleAgeChange}
-                                    achieveNestEggBy={achieveNestEggBy}
-                                />
-                                <TableComponent
-                                    data={formattedTableData}
-                                    onFieldChange={handleFieldChange}
-                                />
-                            </>
-                        }
-                    />
-                </Routes>
+                <div className="content">
+                    <Routes>
+                        <Route
+                            path="*"
+                            element={<div>No match for this route</div>}
+                        />
+                        <Route
+                            path="/map"
+                            element={
+                                <div className="slothmap-container">
+                                    {' '}
+                                    <SlothMap data={slothMapData} />
+                                </div>
+                            }
+                        />
+                        <Route
+                            path="/"
+                            element={
+                                <>
+                                    <InputFields
+                                        interestRate={interestRate || ''}
+                                        investmentReturnRate={
+                                            investmentReturnRate || ''
+                                        }
+                                        targetNestEgg={targetNestEgg || ''}
+                                        age={age || ''}
+                                        handleInterestRateChange={
+                                            handleInterestRateChange
+                                        }
+                                        handleInvestmentReturnRateChange={
+                                            handleInvestmentReturnRateChange
+                                        }
+                                        handleTargetNestEggChange={
+                                            handleTargetNestEggChange
+                                        }
+                                        handleAgeChange={handleAgeChange}
+                                        achieveNestEggBy={achieveNestEggBy}
+                                    />
+                                    <TableComponent
+                                        data={formattedTableData}
+                                        onFieldChange={handleFieldChange}
+                                    />
+                                </>
+                            }
+                        />
+                    </Routes>
+                </div>
             </div>
         </Router>
     );

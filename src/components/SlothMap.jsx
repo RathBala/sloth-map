@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
+import { formatNumber } from '../utils/formatUtils';
 
 const SlothMap = ({ data }) => {
     const ref = useRef();
@@ -11,8 +12,10 @@ const SlothMap = ({ data }) => {
     const drawChart = () => {
         const svg = d3
             .select(ref.current)
-            .attr('width', 1000)
-            .attr('height', 300);
+            .attr('width', 1500)
+            .attr('height', 300)
+            .attr('viewBox', '0 0 1000 300')
+            .attr('preserveAspectRatio', 'xMidYMid meet');
 
         const nodeElements = svg
             .selectAll('g')
@@ -42,21 +45,22 @@ const SlothMap = ({ data }) => {
             .append('text')
             .attr('text-anchor', 'middle')
             .attr('x', 75)
-            .attr('y', -20)
+            .attr('y', -50)
             .text((d) => d.date);
 
         nodeElements
             .append('text')
             .attr('text-anchor', 'middle')
             .attr('x', 75)
-            .attr('y', -5)
-            .text((d) => `£${d.grandTotal.toFixed(2)}`);
+            .attr('y', -35)
+            .text((d) => `£${formatNumber(d.grandTotal)}`);
 
         nodeElements
             .append('foreignObject')
-            .attr('x', (d) => (d.type === 'circle' ? 35 : 15)) // Adjust x position for circles
-            .attr('y', (d) => (d.type === 'circle' ? 10 : 15)) // Adjust y position for circles
-            .attr('width', (d) => (d.type === 'circle' ? 80 : 120)) // Adjust width for circles
+            .attr('class', (d, i) => `foreignObject-${i}`)
+            .attr('x', (d) => (d.type === 'circle' ? 35 : 10))
+            .attr('y', (d) => (d.type === 'circle' ? 10 : 15))
+            .attr('width', (d) => (d.type === 'circle' ? 80 : 130))
             .attr('height', 50)
             .append('xhtml:div')
             .style('text-align', 'center')

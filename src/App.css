@@ -23,9 +23,18 @@ tr:nth-child(even) {
 }
 
 .top-nav {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
 }
 
 .welcome {
@@ -35,7 +44,16 @@ tr:nth-child(even) {
     gap: 8px;
 }
 
+.content {
+    margin-top: 180px;
+}
+
 .slothmap-container {
-    height: 100vh;
+    margin-top: 70px;
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
 }
