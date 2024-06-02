@@ -15,7 +15,7 @@ const TableComponent = ({ data, onFieldChange }) => {
             depositSavings: row.depositSavings.toString(),
             depositInvestments: row.depositInvestments.toString(),
             withdrawals: row.withdrawals.toString(),
-            commentary: row.commentary,
+            goal: row.goal,
         }))
     );
 
@@ -28,7 +28,7 @@ const TableComponent = ({ data, onFieldChange }) => {
                 depositSavings: row.depositSavings.toString(),
                 depositInvestments: row.depositInvestments.toString(),
                 withdrawals: row.withdrawals.toString(),
-                commentary: row.commentary,
+                goal: row.goal,
             }))
         );
     }, [data]);
@@ -40,7 +40,7 @@ const TableComponent = ({ data, onFieldChange }) => {
 
     const handleBlur = (index, field, value) => {
         const numericValue =
-            field === 'commentary'
+            field === 'goal'
                 ? value
                 : parseFloat(value.replace(/,/g, '').replace(/^\$/, ''));
         console.log(
@@ -80,7 +80,7 @@ const TableComponent = ({ data, onFieldChange }) => {
                     <th>Interest Return</th>
                     <th>Investment Return</th>
                     <th>Grand Total</th>
-                    <th>Commentary</th>
+                    <th>Goal</th>
                 </tr>
             </thead>
             <tbody>
@@ -235,20 +235,12 @@ const TableComponent = ({ data, onFieldChange }) => {
                         <td>
                             <input
                                 type="text"
-                                value={row.commentary}
+                                value={row.goal}
                                 onChange={(e) =>
-                                    handleChange(
-                                        index,
-                                        'commentary',
-                                        e.target.value
-                                    )
+                                    handleChange(index, 'goal', e.target.value)
                                 }
                                 onBlur={(e) =>
-                                    handleBlur(
-                                        index,
-                                        'commentary',
-                                        e.target.value
-                                    )
+                                    handleBlur(index, 'goal', e.target.value)
                                 }
                             />
                         </td>

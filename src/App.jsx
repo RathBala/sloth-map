@@ -55,6 +55,38 @@ const App = () => {
         }
     }, [manualChanges]);
 
+    // const adjustGoals = (data) => {
+    //     let updatedData = [...data];
+
+    //     updatedData.forEach((entry, index) => {
+    //         if (entry.withdrawals > 0 && entry.goal) {
+    //             let withdrawalAmount = entry.withdrawals;
+    //             let sufficientFundsIndex = index;
+
+    //             while (
+    //                 sufficientFundsIndex < updatedData.length &&
+    //                 updatedData[sufficientFundsIndex].grandTotal <
+    //                     withdrawalAmount
+    //             ) {
+    //                 sufficientFundsIndex++;
+    //             }
+
+    //             if (
+    //                 sufficientFundsIndex !== index &&
+    //                 sufficientFundsIndex < updatedData.length
+    //             ) {
+    //                 updatedData[sufficientFundsIndex].goal = entry.goal;
+    //                 updatedData[sufficientFundsIndex].withdrawals =
+    //                     entry.withdrawals;
+    //                 updatedData[index].goal = null;
+    //                 updatedData[index].withdrawals = 0;
+    //             }
+    //         }
+    //     });
+
+    //     return updatedData;
+    // };
+
     const recalculateData = () => {
         let updatedData = [...tableData];
 
@@ -125,6 +157,8 @@ const App = () => {
             }
         }
 
+        // updatedData = adjustGoals(updatedData);
+
         updatedData = ensureNestEgg(
             targetNestEgg,
             updatedData,
@@ -180,7 +214,7 @@ const App = () => {
         } else if (field === 'withdrawals') {
             newData[index][field] = parseFloat(value);
             shouldRecalculate = true;
-        } else if (field === 'commentary') {
+        } else if (field === 'goal') {
             newData[index][field] = value;
         } else {
             for (let i = index; i < newData.length; i++) {
@@ -357,7 +391,7 @@ const processDataForSlothMap = (data) => {
             nodes.push({
                 id: current.month,
                 type: 'circle',
-                text: `${current.commentary || 'Withdrawal'} for £${current.withdrawals}`,
+                text: `${current.goal || 'Withdrawal'} for £${current.withdrawals}`,
                 date: current.month,
                 grandTotal: current.grandTotal,
             });

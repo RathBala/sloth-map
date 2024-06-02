@@ -12,7 +12,7 @@ const SlothMap = ({ data }) => {
     const drawChart = () => {
         const svg = d3
             .select(ref.current)
-            .attr('width', 1500)
+            .attr('width', 2500)
             .attr('height', 300)
             .attr('viewBox', '0 0 1000 300')
             .attr('preserveAspectRatio', 'xMidYMid meet');
