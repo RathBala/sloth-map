@@ -55,37 +55,84 @@ const App = () => {
         }
     }, [manualChanges]);
 
-    // const adjustGoals = (data) => {
-    //     let updatedData = [...data];
+    const adjustGoals = (data) => {
+        let updatedData = JSON.parse(JSON.stringify(data)); // Deep copy to avoid modifying the original data
+        let goals = [];
 
-    //     updatedData.forEach((entry, index) => {
-    //         if (entry.withdrawals > 0 && entry.goal) {
-    //             let withdrawalAmount = entry.withdrawals;
-    //             let sufficientFundsIndex = index;
+        // Extract all goals into an array
+        updatedData.forEach((entry, index) => {
+            if (entry.withdrawals > 0 && entry.goal) {
+                goals.push({
+                    goal: entry.goal,
+                    withdrawals: entry.withdrawals,
+                    originalIndex: index,
+                    month: entry.month,
+                    commentary: entry.commentary,
+                });
+                // Temporarily remove the goal, withdrawals, and commentary for accurate recalculations
+                entry.goal = null;
+                entry.withdrawals = 0;
+                entry.commentary = '';
+            }
+        });
 
-    //             while (
-    //                 sufficientFundsIndex < updatedData.length &&
-    //                 updatedData[sufficientFundsIndex].grandTotal <
-    //                     withdrawalAmount
-    //             ) {
-    //                 sufficientFundsIndex++;
-    //             }
+        // Process each goal from the earliest to the latest
+        goals.sort((a, b) => new Date(a.month) - new Date(b.month));
 
-    //             if (
-    //                 sufficientFundsIndex !== index &&
-    //                 sufficientFundsIndex < updatedData.length
-    //             ) {
-    //                 updatedData[sufficientFundsIndex].goal = entry.goal;
-    //                 updatedData[sufficientFundsIndex].withdrawals =
-    //                     entry.withdrawals;
-    //                 updatedData[index].goal = null;
-    //                 updatedData[index].withdrawals = 0;
-    //             }
-    //         }
-    //     });
+        goals.forEach((goal) => {
+            let withdrawalAmount = goal.withdrawals;
+            let sufficientFundsIndex = goal.originalIndex;
+            let simulatedData = JSON.parse(JSON.stringify(updatedData));
 
-    //     return updatedData;
-    // };
+            // Recalculate grandTotal after removing withdrawals
+            simulatedData = recalculateFromIndex(
+                simulatedData,
+                0,
+                interestRate,
+                investmentReturnRate
+            );
+
+            console.log(
+                `Checking goal: ${goal.goal} due in month: ${goal.month}`
+            );
+            console.log(
+                `Initial sufficientFundsIndex: ${sufficientFundsIndex}`
+            );
+            console.log(`Initial withdrawalAmount: ${withdrawalAmount}`);
+
+            while (
+                sufficientFundsIndex < simulatedData.length &&
+                simulatedData[sufficientFundsIndex].grandTotal <
+                    withdrawalAmount
+            ) {
+                console.log(
+                    `Month: ${simulatedData[sufficientFundsIndex].month}, Grand Total: ${simulatedData[sufficientFundsIndex].grandTotal}`
+                );
+                sufficientFundsIndex++;
+            }
+
+            if (sufficientFundsIndex < simulatedData.length) {
+                console.log(
+                    `Goal ${goal.goal} was due ${goal.month}, but is now due ${simulatedData[sufficientFundsIndex].month}`
+                );
+
+                // Update the goal, withdrawals, and commentary in the new month
+                simulatedData[sufficientFundsIndex].goal = goal.goal;
+                simulatedData[sufficientFundsIndex].withdrawals =
+                    goal.withdrawals;
+                simulatedData[sufficientFundsIndex].commentary =
+                    goal.commentary;
+
+                // Reflect the simulated changes back to the updatedData
+                updatedData = JSON.parse(JSON.stringify(simulatedData));
+
+                // Explicitly clear the commentary from the original month
+                updatedData[goal.originalIndex].commentary = '';
+            }
+        });
+
+        return updatedData;
+    };
 
     const recalculateData = () => {
         let updatedData = [...tableData];
@@ -157,7 +204,7 @@ const App = () => {
             }
         }
 
-        // updatedData = adjustGoals(updatedData);
+        updatedData = adjustGoals(updatedData);
 
         updatedData = ensureNestEgg(
             targetNestEgg,
