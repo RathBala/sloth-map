@@ -59,7 +59,17 @@ const App = () => {
         let updatedData = JSON.parse(JSON.stringify(data)); // Deep copy to avoid modifying the original data
         let goals = [];
 
-        // Extract all goals into an array
+        // Log the initial state of the goal text
+        console.log('Initial goals in data:');
+        updatedData.forEach((entry, index) => {
+            if (entry.goal) {
+                console.log(
+                    `Month ${entry.month} (Index ${index}): ${entry.goal}`
+                );
+            }
+        });
+
+        // Extract all goals into an array and clear them in the updated data
         updatedData.forEach((entry, index) => {
             if (entry.withdrawals > 0 && entry.goal) {
                 goals.push({
@@ -67,13 +77,35 @@ const App = () => {
                     withdrawals: entry.withdrawals,
                     originalIndex: index,
                     month: entry.month,
-                    commentary: entry.commentary,
                 });
-                // Temporarily remove the goal, withdrawals, and commentary for accurate recalculations
+
+                // Clear the goal and withdrawals in the original entry
+                console.log(
+                    `Clearing goal and withdrawals for month ${entry.month} (Index ${index}): ${entry.goal}`
+                );
                 entry.goal = null;
                 entry.withdrawals = 0;
-                entry.commentary = '';
             }
+        });
+
+        // Log data after clearing goals and withdrawals
+        console.log('Data after clearing goals:');
+        updatedData.forEach((entry, index) => {
+            console.log(`Month ${entry.month} (Index ${index}): ${entry.goal}`);
+        });
+
+        // Recalculate data after clearing the goals and withdrawals
+        updatedData = recalculateFromIndex(
+            updatedData,
+            0,
+            interestRate,
+            investmentReturnRate
+        );
+
+        // Log data after initial recalculation
+        console.log('Data after initial recalculation:');
+        updatedData.forEach((entry, index) => {
+            console.log(`Month ${entry.month} (Index ${index}): ${entry.goal}`);
         });
 
         // Process each goal from the earliest to the latest
@@ -82,52 +114,36 @@ const App = () => {
         goals.forEach((goal) => {
             let withdrawalAmount = goal.withdrawals;
             let sufficientFundsIndex = goal.originalIndex;
-            let simulatedData = JSON.parse(JSON.stringify(updatedData));
 
-            // Recalculate grandTotal after removing withdrawals
-            simulatedData = recalculateFromIndex(
-                simulatedData,
-                0,
-                interestRate,
-                investmentReturnRate
-            );
-
-            console.log(
-                `Checking goal: ${goal.goal} due in month: ${goal.month}`
-            );
-            console.log(
-                `Initial sufficientFundsIndex: ${sufficientFundsIndex}`
-            );
-            console.log(`Initial withdrawalAmount: ${withdrawalAmount}`);
-
+            // Find the sufficient funds index in the updated data
             while (
-                sufficientFundsIndex < simulatedData.length &&
-                simulatedData[sufficientFundsIndex].grandTotal <
-                    withdrawalAmount
+                sufficientFundsIndex < updatedData.length &&
+                updatedData[sufficientFundsIndex].grandTotal < withdrawalAmount
             ) {
-                console.log(
-                    `Month: ${simulatedData[sufficientFundsIndex].month}, Grand Total: ${simulatedData[sufficientFundsIndex].grandTotal}`
-                );
                 sufficientFundsIndex++;
             }
 
-            if (sufficientFundsIndex < simulatedData.length) {
+            if (sufficientFundsIndex < updatedData.length) {
+                // Update the goal and withdrawals in the new month in the updated data
                 console.log(
-                    `Goal ${goal.goal} was due ${goal.month}, but is now due ${simulatedData[sufficientFundsIndex].month}`
+                    `Moving goal ${goal.goal} from month ${goal.month} (Index ${goal.originalIndex}) to month ${updatedData[sufficientFundsIndex].month} (Index ${sufficientFundsIndex})`
+                );
+                updatedData[sufficientFundsIndex].goal = goal.goal;
+                updatedData[sufficientFundsIndex].withdrawals =
+                    goal.withdrawals;
+
+                // Recalculate data after moving the goal and withdrawals
+                updatedData = recalculateFromIndex(
+                    updatedData,
+                    0,
+                    interestRate,
+                    investmentReturnRate
                 );
 
-                // Update the goal, withdrawals, and commentary in the new month
-                simulatedData[sufficientFundsIndex].goal = goal.goal;
-                simulatedData[sufficientFundsIndex].withdrawals =
-                    goal.withdrawals;
-                simulatedData[sufficientFundsIndex].commentary =
-                    goal.commentary;
-
-                // Reflect the simulated changes back to the updatedData
-                updatedData = JSON.parse(JSON.stringify(simulatedData));
-
-                // Explicitly clear the commentary from the original month
-                updatedData[goal.originalIndex].commentary = '';
+                // Log the state of the old goal's month after the second recalculation
+                console.log(
+                    `State of old goal's month ${goal.month} (Index ${goal.originalIndex}) after recalculation: ${updatedData[goal.originalIndex].goal}`
+                );
             }
         });
 
