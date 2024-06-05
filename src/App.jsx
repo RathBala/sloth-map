@@ -36,6 +36,9 @@ const App = () => {
     const [recalcTrigger, setRecalcTrigger] = useState(0);
 
     useEffect(() => {
+        console.log(
+            'Recalculating data due to change in interest rate, investment return rate, or target nest egg'
+        );
         if (
             interestRate !== null &&
             investmentReturnRate !== null &&
@@ -46,30 +49,45 @@ const App = () => {
     }, [interestRate, investmentReturnRate, targetNestEgg]);
 
     useEffect(() => {
+        console.log(
+            'Recalculating data due to change in table data or manual changes'
+        );
         recalculateData();
     }, [interestRate, investmentReturnRate, targetNestEgg, recalcTrigger]);
 
     useEffect(() => {
+        console.log('Manual changes detected, recalculating data');
         if (Object.keys(manualChanges).length > 0) {
             recalculateData();
         }
     }, [manualChanges]);
 
-    const adjustGoals = (data) => {
-        let updatedData = JSON.parse(JSON.stringify(data)); // Deep copy to avoid modifying the original data
-        let goals = [];
+    const updateField = (data, index, field, value) => {
+        const updatedData = [...data];
+        updatedData[index] = { ...updatedData[index], [field]: value };
 
-        // Log the initial state of the goal text
-        console.log('Initial goals in data:');
-        updatedData.forEach((entry, index) => {
-            if (entry.goal) {
-                console.log(
-                    `Month ${entry.month} (Index ${index}): ${entry.goal}`
-                );
+        // Track the change
+        const [monthName, year] = updatedData[index].month.split(' ');
+        const monthNumber =
+            new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
+        const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
+
+        setManualChanges((prevChanges) => {
+            const newChanges = { ...prevChanges };
+            if (!newChanges[monthId]) {
+                newChanges[monthId] = {};
             }
+            newChanges[monthId][field] = value;
+            return newChanges;
         });
 
-        // Extract all goals into an array and clear them in the updated data
+        return updatedData;
+    };
+
+    const adjustGoals = (data) => {
+        let updatedData = JSON.parse(JSON.stringify(data));
+        let goals = [];
+
         updatedData.forEach((entry, index) => {
             if (entry.withdrawals > 0 && entry.goal) {
                 goals.push({
@@ -79,22 +97,12 @@ const App = () => {
                     month: entry.month,
                 });
 
-                // Clear the goal and withdrawals in the original entry
-                console.log(
-                    `Clearing goal and withdrawals for month ${entry.month} (Index ${index}): ${entry.goal}`
-                );
-                entry.goal = null;
-                entry.withdrawals = 0;
+                // Track original location change using updateField
+                updatedData = updateField(updatedData, index, 'goal', '');
+                updatedData = updateField(updatedData, index, 'withdrawals', 0);
             }
         });
 
-        // Log data after clearing goals and withdrawals
-        console.log('Data after clearing goals:');
-        updatedData.forEach((entry, index) => {
-            console.log(`Month ${entry.month} (Index ${index}): ${entry.goal}`);
-        });
-
-        // Recalculate data after clearing the goals and withdrawals
         updatedData = recalculateFromIndex(
             updatedData,
             0,
@@ -102,48 +110,49 @@ const App = () => {
             investmentReturnRate
         );
 
-        // Log data after initial recalculation
-        console.log('Data after initial recalculation:');
-        updatedData.forEach((entry, index) => {
-            console.log(`Month ${entry.month} (Index ${index}): ${entry.goal}`);
-        });
-
-        // Process each goal from the earliest to the latest
         goals.sort((a, b) => new Date(a.month) - new Date(b.month));
 
         goals.forEach((goal) => {
             let withdrawalAmount = goal.withdrawals;
             let sufficientFundsIndex = goal.originalIndex;
 
-            // Find the sufficient funds index in the updated data
-            while (
-                sufficientFundsIndex < updatedData.length &&
-                updatedData[sufficientFundsIndex].grandTotal < withdrawalAmount
-            ) {
+            while (sufficientFundsIndex < updatedData.length) {
+                let hypotheticalSavings =
+                    updatedData[sufficientFundsIndex].totalSavings -
+                    withdrawalAmount;
+                let hypotheticalInvestments =
+                    updatedData[sufficientFundsIndex].totalInvestments;
+
+                if (hypotheticalSavings < 0) {
+                    hypotheticalInvestments += hypotheticalSavings;
+                    hypotheticalSavings = 0;
+                }
+
+                if (hypotheticalInvestments >= 0) {
+                    // Track new location change using updateField
+                    updatedData = updateField(
+                        updatedData,
+                        sufficientFundsIndex,
+                        'goal',
+                        goal.goal
+                    );
+                    updatedData = updateField(
+                        updatedData,
+                        sufficientFundsIndex,
+                        'withdrawals',
+                        goal.withdrawals
+                    );
+
+                    updatedData = recalculateFromIndex(
+                        updatedData,
+                        0,
+                        interestRate,
+                        investmentReturnRate
+                    );
+                    break;
+                }
+
                 sufficientFundsIndex++;
-            }
-
-            if (sufficientFundsIndex < updatedData.length) {
-                // Update the goal and withdrawals in the new month in the updated data
-                console.log(
-                    `Moving goal ${goal.goal} from month ${goal.month} (Index ${goal.originalIndex}) to month ${updatedData[sufficientFundsIndex].month} (Index ${sufficientFundsIndex})`
-                );
-                updatedData[sufficientFundsIndex].goal = goal.goal;
-                updatedData[sufficientFundsIndex].withdrawals =
-                    goal.withdrawals;
-
-                // Recalculate data after moving the goal and withdrawals
-                updatedData = recalculateFromIndex(
-                    updatedData,
-                    0,
-                    interestRate,
-                    investmentReturnRate
-                );
-
-                // Log the state of the old goal's month after the second recalculation
-                console.log(
-                    `State of old goal's month ${goal.month} (Index ${goal.originalIndex}) after recalculation: ${updatedData[goal.originalIndex].goal}`
-                );
             }
         });
 
@@ -262,12 +271,7 @@ const App = () => {
 
         if (field === 'totalSavings' || field === 'totalInvestments') {
             const newValue = parseFloat(value);
-            console.log(`Parsed new value:`, parseFloat(value));
-            console.log(
-                `Current data at index ${index}:`,
-                newData[index][field]
-            );
-            newData[index][field] = newValue;
+            newData = updateField(newData, index, field, newValue);
             shouldRecalculate = true;
             if (field === 'totalSavings') {
                 newData[index].isTotalSavingsManual = true;
@@ -275,10 +279,10 @@ const App = () => {
                 newData[index].isTotalInvestmentsManual = true;
             }
         } else if (field === 'withdrawals') {
-            newData[index][field] = parseFloat(value);
+            newData = updateField(newData, index, field, parseFloat(value));
             shouldRecalculate = true;
         } else if (field === 'goal') {
-            newData[index][field] = value;
+            newData = updateField(newData, index, field, value);
         } else {
             for (let i = index; i < newData.length; i++) {
                 if (
@@ -287,7 +291,7 @@ const App = () => {
                     (field === 'depositInvestments' &&
                         !newData[i].isTotalInvestmentsManual)
                 ) {
-                    newData[i][field] = parseFloat(value);
+                    newData = updateField(newData, i, field, parseFloat(value));
                 }
             }
             shouldRecalculate = true;
@@ -306,27 +310,8 @@ const App = () => {
         }
 
         setTableData(newData);
-
-        setManualChanges((prevChanges) => {
-            const newChanges = { ...prevChanges };
-            const [monthName, year] = tableData[index].month.split(' ');
-            const monthNumber =
-                new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
-            const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
-
-            if (!newChanges[monthId]) {
-                newChanges[monthId] = {};
-            }
-
-            newChanges[monthId][field] = value;
-
-            return newChanges;
-        });
-
-        if (!data) {
-            setRecalcTrigger((prev) => prev + 1);
-            console.log('RecalcTrigger incremented');
-        }
+        setRecalcTrigger((prev) => prev + 1);
+        console.log('RecalcTrigger incremented');
 
         return newData;
     };
