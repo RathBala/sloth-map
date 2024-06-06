@@ -62,24 +62,45 @@ const App = () => {
         }
     }, [manualChanges]);
 
-    const updateField = (data, index, field, value) => {
+    const updateField = (
+        data,
+        index,
+        field,
+        value,
+        trackChange = true,
+        isManual = false
+    ) => {
+        console.log(
+            `updateField called for index: ${index}, field: ${field}, value: ${value}, trackChange: ${trackChange}, isManual: ${isManual}`
+        );
         const updatedData = [...data];
         updatedData[index] = { ...updatedData[index], [field]: value };
 
-        // Track the change
-        const [monthName, year] = updatedData[index].month.split(' ');
-        const monthNumber =
-            new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
-        const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
+        if (trackChange) {
+            const [monthName, year] = updatedData[index].month.split(' ');
+            const monthNumber =
+                new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
+            const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
 
-        setManualChanges((prevChanges) => {
-            const newChanges = { ...prevChanges };
-            if (!newChanges[monthId]) {
-                newChanges[monthId] = {};
-            }
-            newChanges[monthId][field] = value;
-            return newChanges;
-        });
+            setManualChanges((prevChanges) => {
+                const newChanges = { ...prevChanges };
+                const existingChange =
+                    prevChanges[monthId] && prevChanges[monthId][field];
+
+                if (!newChanges[monthId]) {
+                    newChanges[monthId] = {};
+                }
+
+                // Only update if there's a real change
+                if (isManual && (!existingChange || existingChange !== value)) {
+                    newChanges[monthId][field] = value;
+                    return newChanges;
+                }
+
+                // If no change, return previous state to avoid unnecessary updates
+                return prevChanges;
+            });
+        }
 
         return updatedData;
     };
@@ -97,9 +118,22 @@ const App = () => {
                     month: entry.month,
                 });
 
-                // Track original location change using updateField
-                updatedData = updateField(updatedData, index, 'goal', '');
-                updatedData = updateField(updatedData, index, 'withdrawals', 0);
+                updatedData = updateField(
+                    updatedData,
+                    index,
+                    'goal',
+                    '',
+                    true,
+                    false
+                );
+                updatedData = updateField(
+                    updatedData,
+                    index,
+                    'withdrawals',
+                    0,
+                    true,
+                    false
+                );
             }
         });
 
@@ -129,23 +163,31 @@ const App = () => {
                 }
 
                 if (hypotheticalInvestments >= 0) {
+                    // Determine if the goal is being moved to a new month
+                    let isManualChange =
+                        goal.month !== updatedData[sufficientFundsIndex].month;
+
                     // Track new location change using updateField
                     updatedData = updateField(
                         updatedData,
                         sufficientFundsIndex,
                         'goal',
-                        goal.goal
+                        goal.goal,
+                        true,
+                        isManualChange // Set based on whether the month has changed
                     );
                     updatedData = updateField(
                         updatedData,
                         sufficientFundsIndex,
                         'withdrawals',
-                        goal.withdrawals
+                        goal.withdrawals,
+                        true,
+                        isManualChange // Set based on whether the month has changed
                     );
 
                     updatedData = recalculateFromIndex(
                         updatedData,
-                        0,
+                        sufficientFundsIndex,
                         interestRate,
                         investmentReturnRate
                     );

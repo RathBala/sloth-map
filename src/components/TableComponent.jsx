@@ -7,28 +7,28 @@ const TableComponent = ({ data, onFieldChange }) => {
     const [focusedIndex, setFocusedIndex] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
 
-    const [inputValues, setInputValues] = useState(() =>
-        data.map((row) => ({
-            ...row,
-            totalSavings: row.totalSavings.toString(),
-            totalInvestments: row.totalInvestments.toString(),
-            depositSavings: row.depositSavings.toString(),
-            depositInvestments: row.depositInvestments.toString(),
-            withdrawals: row.withdrawals.toString(),
-            goal: row.goal,
-        }))
-    );
+    const initialState = data.map((row) => ({
+        ...row,
+        totalSavings: row.totalSavings?.toString() || '', // CHANGE! Fallback to empty string if undefined
+        totalInvestments: row.totalInvestments?.toString() || '', // CHANGE! Fallback to empty string if undefined
+        depositSavings: row.depositSavings?.toString() || '', // CHANGE! Fallback to empty string if undefined
+        depositInvestments: row.depositInvestments?.toString() || '', // CHANGE! Fallback to empty string if undefined
+        withdrawals: row.withdrawals?.toString() || '', // CHANGE! Fallback to empty string if undefined
+        goal: row.goal || '', // CHANGE! Fallback to empty string if undefined
+    }));
+
+    const [inputValues, setInputValues] = useState(initialState); // CHANGE! Use initialState
 
     useEffect(() => {
         setInputValues(
             data.map((row) => ({
                 ...row,
-                totalSavings: row.totalSavings.toString(),
-                totalInvestments: row.totalInvestments.toString(),
-                depositSavings: row.depositSavings.toString(),
-                depositInvestments: row.depositInvestments.toString(),
-                withdrawals: row.withdrawals.toString(),
-                goal: row.goal,
+                totalSavings: row.totalSavings?.toString() || '', // CHANGE! Fallback to empty string if undefined
+                totalInvestments: row.totalInvestments?.toString() || '', // CHANGE! Fallback to empty string if undefined
+                depositSavings: row.depositSavings?.toString() || '', // CHANGE! Fallback to empty string if undefined
+                depositInvestments: row.depositInvestments?.toString() || '', // CHANGE! Fallback to empty string if undefined
+                withdrawals: row.withdrawals?.toString() || '', // CHANGE! Fallback to empty string if undefined
+                goal: row.goal || '', // CHANGE! Fallback to empty string if undefined
             }))
         );
     }, [data]);
@@ -94,7 +94,7 @@ const TableComponent = ({ data, onFieldChange }) => {
                                     focusedIndex === index &&
                                     focusedField === 'depositSavings'
                                         ? row.depositSavings
-                                        : formatNumber(row.depositSavings)
+                                        : formatNumber(row.depositSavings || '')
                                 }
                                 onFocus={() =>
                                     handleFocus(index, 'depositSavings')
@@ -122,7 +122,9 @@ const TableComponent = ({ data, onFieldChange }) => {
                                     focusedIndex === index &&
                                     focusedField === 'depositInvestments'
                                         ? row.depositInvestments
-                                        : formatNumber(row.depositInvestments)
+                                        : formatNumber(
+                                              row.depositInvestments || ''
+                                          )
                                 }
                                 onFocus={() =>
                                     handleFocus(index, 'depositInvestments')
@@ -151,7 +153,7 @@ const TableComponent = ({ data, onFieldChange }) => {
                                     focusedIndex === index &&
                                     focusedField === 'withdrawals'
                                         ? row.withdrawals
-                                        : formatNumber(row.withdrawals)
+                                        : formatNumber(row.withdrawals || '')
                                 }
                                 onFocus={() =>
                                     handleFocus(index, 'withdrawals')
@@ -179,7 +181,7 @@ const TableComponent = ({ data, onFieldChange }) => {
                                     focusedIndex === index &&
                                     focusedField === 'totalSavings'
                                         ? row.totalSavings.toString()
-                                        : formatNumber(row.totalSavings)
+                                        : formatNumber(row.totalSavings || '')
                                 }
                                 onFocus={() =>
                                     handleFocus(index, 'totalSavings')
@@ -207,7 +209,9 @@ const TableComponent = ({ data, onFieldChange }) => {
                                     focusedIndex === index &&
                                     focusedField === 'totalInvestments'
                                         ? row.totalInvestments.toString()
-                                        : formatNumber(row.totalInvestments)
+                                        : formatNumber(
+                                              row.totalInvestments || ''
+                                          )
                                 }
                                 onFocus={() =>
                                     handleFocus(index, 'totalInvestments')
@@ -235,7 +239,7 @@ const TableComponent = ({ data, onFieldChange }) => {
                         <td>
                             <input
                                 type="text"
-                                value={row.goal}
+                                value={row.goal || ''}
                                 onChange={(e) =>
                                     handleChange(index, 'goal', e.target.value)
                                 }
