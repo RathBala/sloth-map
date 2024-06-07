@@ -1,8 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { formatNumber } from '../utils/formatUtils';
 
 const TableComponent = ({ data, onFieldChange }) => {
-    console.log('Received data in TableComponent:', data);
+    const prevDataRef = useRef();
+
+    useEffect(() => {
+        if (prevDataRef.current) {
+            const prevData = prevDataRef.current;
+            if (JSON.stringify(prevData) !== JSON.stringify(data)) {
+                console.log(
+                    'TableComponent received data:',
+                    JSON.stringify(data, null, 2)
+                );
+            }
+        }
+        prevDataRef.current = data;
+    }, [data]);
 
     const [focusedIndex, setFocusedIndex] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
@@ -23,12 +36,12 @@ const TableComponent = ({ data, onFieldChange }) => {
         setInputValues(
             data.map((row) => ({
                 ...row,
-                totalSavings: row.totalSavings?.toString() || '', // CHANGE! Fallback to empty string if undefined
-                totalInvestments: row.totalInvestments?.toString() || '', // CHANGE! Fallback to empty string if undefined
-                depositSavings: row.depositSavings?.toString() || '', // CHANGE! Fallback to empty string if undefined
-                depositInvestments: row.depositInvestments?.toString() || '', // CHANGE! Fallback to empty string if undefined
-                withdrawals: row.withdrawals?.toString() || '', // CHANGE! Fallback to empty string if undefined
-                goal: row.goal || '', // CHANGE! Fallback to empty string if undefined
+                totalSavings: row.totalSavings?.toString() || '',
+                totalInvestments: row.totalInvestments?.toString() || '',
+                depositSavings: row.depositSavings?.toString() || '',
+                depositInvestments: row.depositInvestments?.toString() || '',
+                withdrawals: row.withdrawals?.toString() || '',
+                goal: row.goal || '',
             }))
         );
     }, [data]);

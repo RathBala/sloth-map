@@ -62,6 +62,16 @@ const App = () => {
         }
     }, [manualChanges]);
 
+    const bulkUpdateFields = (data, startIndex, field, value) => {
+        const updatedData = [...data];
+
+        for (let i = startIndex; i < updatedData.length; i++) {
+            updatedData[i] = { ...updatedData[i], [field]: value };
+        }
+
+        return updatedData;
+    };
+
     const updateField = (
         data,
         index,
@@ -73,8 +83,20 @@ const App = () => {
         console.log(
             `updateField called for index: ${index}, field: ${field}, value: ${value}, trackChange: ${trackChange}, isManual: ${isManual}`
         );
-        const updatedData = [...data];
-        updatedData[index] = { ...updatedData[index], [field]: value };
+        console.log('Data before update:', JSON.stringify(data, null, 2));
+
+        let updatedData;
+        if (field === 'depositSavings' || field === 'depositInvestments') {
+            updatedData = bulkUpdateFields(data, index, field, value);
+        } else {
+            updatedData = [...data];
+            updatedData[index] = { ...updatedData[index], [field]: value };
+        }
+
+        console.log(
+            'Data after field update:',
+            JSON.stringify(updatedData, null, 2)
+        );
 
         if (trackChange) {
             const [monthName, year] = updatedData[index].month.split(' ');
@@ -91,13 +113,15 @@ const App = () => {
                     newChanges[monthId] = {};
                 }
 
-                // Only update if there's a real change
                 if (isManual && (!existingChange || existingChange !== value)) {
                     newChanges[monthId][field] = value;
+                    console.log(
+                        'Manual changes updated:',
+                        JSON.stringify(newChanges, null, 2)
+                    );
                     return newChanges;
                 }
 
-                // If no change, return previous state to avoid unnecessary updates
                 return prevChanges;
             });
         }
@@ -281,6 +305,11 @@ const App = () => {
             recalculateFromIndex
         );
 
+        console.log(
+            'Final updated data:',
+            JSON.stringify(updatedData, null, 2)
+        );
+
         setTableData(updatedData);
     };
 
@@ -378,7 +407,7 @@ const App = () => {
         grandTotalFormatted: formatNumber(entry.grandTotal),
     }));
 
-    console.log('Formatted Table Data:', formattedTableData);
+    // console.log('Formatted Table Data:', formattedTableData);
 
     const slothMapData = processDataForSlothMap(formattedTableData);
 
