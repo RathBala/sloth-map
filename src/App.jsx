@@ -228,11 +228,21 @@ const App = () => {
     const recalculateData = () => {
         let updatedData = [...tableData];
 
+        console.log(
+            'Data before recalculation:',
+            JSON.stringify(updatedData, null, 2)
+        );
+
         updatedData = recalculateFromIndex(
             updatedData,
             0,
             interestRate,
             investmentReturnRate
+        );
+
+        console.log(
+            'Data after first recalculateFromIndex:',
+            JSON.stringify(updatedData, null, 2)
         );
 
         for (const [monthId, changes] of Object.entries(manualChanges)) {
@@ -292,6 +302,11 @@ const App = () => {
                     interestRate,
                     investmentReturnRate
                 );
+
+                console.log(
+                    'Data after second recalculateFromIndex:',
+                    JSON.stringify(updatedData, null, 2)
+                );
             }
         }
 
@@ -306,7 +321,7 @@ const App = () => {
         );
 
         console.log(
-            'Final updated data:',
+            'Final updated data after recalculation:',
             JSON.stringify(updatedData, null, 2)
         );
 
