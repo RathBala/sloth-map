@@ -62,15 +62,15 @@ const App = () => {
         }
     }, [manualChanges]);
 
-    const bulkUpdateFields = (data, startIndex, field, value) => {
-        const updatedData = [...data];
+    // const bulkUpdateFields = (data, startIndex, field, value) => {
+    //     const updatedData = [...data];
 
-        for (let i = startIndex; i < updatedData.length; i++) {
-            updatedData[i] = { ...updatedData[i], [field]: value };
-        }
+    //     for (let i = startIndex; i < updatedData.length; i++) {
+    //         updatedData[i] = { ...updatedData[i], [field]: value };
+    //     }
 
-        return updatedData;
-    };
+    //     return updatedData;
+    // };
 
     const updateField = (
         data,
@@ -85,12 +85,25 @@ const App = () => {
         );
         console.log('Data before update:', JSON.stringify(data, null, 2));
 
-        let updatedData;
+        let updatedData = [...data];
+
+        // Update the specific field for the given index
+        updatedData[index] = { ...updatedData[index], [field]: value };
+
         if (field === 'depositSavings' || field === 'depositInvestments') {
-            updatedData = bulkUpdateFields(data, index, field, value);
-        } else {
-            updatedData = [...data];
-            updatedData[index] = { ...updatedData[index], [field]: value };
+            for (let i = index + 1; i < updatedData.length; i++) {
+                if (
+                    (field === 'depositSavings' &&
+                        !updatedData[i].isTotalSavingsManual) ||
+                    (field === 'depositInvestments' &&
+                        !updatedData[i].isTotalInvestmentsManual)
+                ) {
+                    updatedData[i][field] = value;
+                    // console.log(
+                    //     `Propagated ${field} to index ${i}: ${JSON.stringify(updatedData[i], null, 2)}`
+                    // );
+                }
+            }
         }
 
         console.log(
@@ -228,10 +241,10 @@ const App = () => {
     const recalculateData = () => {
         let updatedData = [...tableData];
 
-        console.log(
-            'Data before recalculation:',
-            JSON.stringify(updatedData, null, 2)
-        );
+        // console.log(
+        //     'Data before recalculation:',
+        //     JSON.stringify(updatedData, null, 2)
+        // );
 
         updatedData = recalculateFromIndex(
             updatedData,
@@ -240,14 +253,14 @@ const App = () => {
             investmentReturnRate
         );
 
-        console.log(
-            'Data after first recalculateFromIndex:',
-            JSON.stringify(updatedData, null, 2)
-        );
-        console.log(
-            'Manual changes being applied:',
-            JSON.stringify(manualChanges, null, 2)
-        );
+        // console.log(
+        //     'Data after first recalculateFromIndex:',
+        //     JSON.stringify(updatedData, null, 2)
+        // );
+        // console.log(
+        //     'Manual changes being applied:',
+        //     JSON.stringify(manualChanges, null, 2)
+        // );
 
         for (const [monthId, changes] of Object.entries(manualChanges)) {
             const monthIndex = updatedData.findIndex((row) => {
@@ -259,16 +272,16 @@ const App = () => {
             });
 
             if (monthIndex !== -1) {
-                console.log(
-                    `Applying changes for monthId: ${monthId}, at index: ${monthIndex}`
-                );
+                // console.log(
+                //     `Applying changes for monthId: ${monthId}, at index: ${monthIndex}`
+                // );
 
                 for (const [field, value] of Object.entries(changes)) {
                     updatedData[monthIndex][field] = value;
 
-                    console.log(
-                        `Updated ${field} at index ${monthIndex}: ${JSON.stringify(updatedData[monthIndex], null, 2)}`
-                    );
+                    // console.log(
+                    //     `Updated ${field} at index ${monthIndex}: ${JSON.stringify(updatedData[monthIndex], null, 2)}`
+                    // );
 
                     if (
                         field === 'depositSavings' ||
@@ -280,9 +293,9 @@ const App = () => {
                             i++
                         ) {
                             updatedData[i][field] = value;
-                            console.log(
-                                `Propagated ${field} to index ${i}: ${JSON.stringify(updatedData[i], null, 2)}`
-                            );
+                            // console.log(
+                            //     `Propagated ${field} to index ${i}: ${JSON.stringify(updatedData[i], null, 2)}`
+                            // );
                         }
                     }
                 }
@@ -304,10 +317,10 @@ const App = () => {
                     updatedData[monthIndex].isTotalInvestmentsManual = true;
                 }
 
-                console.log(
-                    'Data before second recalculateFromIndex:',
-                    JSON.stringify(updatedData, null, 2)
-                );
+                // console.log(
+                //     'Data before second recalculateFromIndex:',
+                //     JSON.stringify(updatedData, null, 2)
+                // );
 
                 updatedData = recalculateFromIndex(
                     updatedData,
@@ -316,10 +329,10 @@ const App = () => {
                     investmentReturnRate
                 );
 
-                console.log(
-                    'Data after second recalculateFromIndex:',
-                    JSON.stringify(updatedData, null, 2)
-                );
+                // console.log(
+                //     'Data after second recalculateFromIndex:',
+                //     JSON.stringify(updatedData, null, 2)
+                // );
             }
         }
 
@@ -333,10 +346,10 @@ const App = () => {
             recalculateFromIndex
         );
 
-        console.log(
-            'Final updated data after recalculation:',
-            JSON.stringify(updatedData, null, 2)
-        );
+        // console.log(
+        //     'Final updated data after recalculation:',
+        //     JSON.stringify(updatedData, null, 2)
+        // );
 
         setTableData(updatedData);
     };
@@ -415,6 +428,7 @@ const App = () => {
         }
 
         if (shouldRecalculate) {
+            console.log('handleFieldChange calling recalculateFromIndex');
             newData = recalculateFromIndex(
                 newData,
                 index,

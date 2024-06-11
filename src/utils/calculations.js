@@ -35,12 +35,20 @@ export const recalculateFromIndex = (
     let runningTotalInvestments =
         startIndex === 0 ? 0 : data[startIndex - 1].totalInvestments;
 
+    console.log(`Initial data at index 0: ${JSON.stringify(data[0], null, 2)}`);
+
     for (let i = startIndex; i < data.length; i++) {
         const entry = data[i];
 
         if (i > 0) {
             runningTotalSavings += data[i - 1].interestReturn;
             runningTotalInvestments += data[i - 1].investmentReturn;
+        }
+
+        if (i === 0) {
+            console.log(
+                `Before manual check - Index ${i}: runningTotalSavings: ${runningTotalSavings}, runningTotalInvestments: ${runningTotalInvestments}`
+            );
         }
 
         if (!entry.isTotalSavingsManual) {
@@ -53,6 +61,12 @@ export const recalculateFromIndex = (
             runningTotalInvestments += entry.depositInvestments;
         } else {
             runningTotalInvestments = entry.totalInvestments;
+        }
+
+        if (i === 0) {
+            console.log(
+                `After manual check - Index ${i}: runningTotalSavings: ${runningTotalSavings}, runningTotalInvestments: ${runningTotalInvestments}`
+            );
         }
 
         if (runningTotalSavings < 0) {
@@ -80,7 +94,15 @@ export const recalculateFromIndex = (
                 investmentReturn,
             commentary: entry.commentary,
         };
+
+        if (i === 0) {
+            console.log(
+                `Updated data at index 0: ${JSON.stringify(data[0], null, 2)}`
+            );
+        }
     }
+
+    console.log(`Final data at index 0: ${JSON.stringify(data[0], null, 2)}`);
 
     return data;
 };
