@@ -408,12 +408,20 @@ const App = () => {
             field === 'depositInvestments'
         ) {
             for (let i = index; i < newData.length; i++) {
+                // if (
+                //     (field === 'depositSavings' &&
+                //         !newData[i].isTotalSavingsManual) ||
+                //     (field === 'depositInvestments' &&
+                //         !newData[i].isTotalInvestmentsManual)
+                // ) {
                 if (
-                    (field === 'depositSavings' &&
-                        !newData[i].isTotalSavingsManual) ||
-                    (field === 'depositInvestments' &&
-                        !newData[i].isTotalInvestmentsManual)
+                    field === 'depositSavings' ||
+                    field === 'depositInvestments'
                 ) {
+                    console.log(
+                        `Before updateField - Index ${i}, field: ${field}, value: ${value}`
+                    );
+
                     newData = updateField(
                         newData,
                         i,
@@ -421,6 +429,9 @@ const App = () => {
                         parseFloat(value),
                         true,
                         isManual
+                    );
+                    console.log(
+                        `After updateField - Index ${i}, updated data: ${JSON.stringify(newData[i], null, 2)}`
                     );
                 }
             }
