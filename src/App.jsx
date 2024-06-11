@@ -244,6 +244,10 @@ const App = () => {
             'Data after first recalculateFromIndex:',
             JSON.stringify(updatedData, null, 2)
         );
+        console.log(
+            'Manual changes being applied:',
+            JSON.stringify(manualChanges, null, 2)
+        );
 
         for (const [monthId, changes] of Object.entries(manualChanges)) {
             const monthIndex = updatedData.findIndex((row) => {
@@ -255,8 +259,16 @@ const App = () => {
             });
 
             if (monthIndex !== -1) {
+                console.log(
+                    `Applying changes for monthId: ${monthId}, at index: ${monthIndex}`
+                );
+
                 for (const [field, value] of Object.entries(changes)) {
                     updatedData[monthIndex][field] = value;
+
+                    console.log(
+                        `Updated ${field} at index ${monthIndex}: ${JSON.stringify(updatedData[monthIndex], null, 2)}`
+                    );
 
                     if (
                         field === 'depositSavings' ||
@@ -267,14 +279,10 @@ const App = () => {
                             i < updatedData.length;
                             i++
                         ) {
-                            if (
-                                (field === 'depositSavings' &&
-                                    !updatedData[i].isTotalSavingsManual) ||
-                                (field === 'depositInvestments' &&
-                                    !updatedData[i].isTotalInvestmentsManual)
-                            ) {
-                                updatedData[i][field] = value;
-                            }
+                            updatedData[i][field] = value;
+                            console.log(
+                                `Propagated ${field} to index ${i}: ${JSON.stringify(updatedData[i], null, 2)}`
+                            );
                         }
                     }
                 }
@@ -295,6 +303,11 @@ const App = () => {
                 ) {
                     updatedData[monthIndex].isTotalInvestmentsManual = true;
                 }
+
+                console.log(
+                    'Data before second recalculateFromIndex:',
+                    JSON.stringify(updatedData, null, 2)
+                );
 
                 updatedData = recalculateFromIndex(
                     updatedData,
@@ -354,6 +367,7 @@ const App = () => {
 
         let newData = data ? [...data] : [...tableData];
         let shouldRecalculate = false;
+        let isManual = true; // Assuming all changes from UI are manual
 
         if (field === 'totalSavings' || field === 'totalInvestments') {
             const newValue = parseFloat(value);
@@ -365,11 +379,21 @@ const App = () => {
                 newData[index].isTotalInvestmentsManual = true;
             }
         } else if (field === 'withdrawals') {
-            newData = updateField(newData, index, field, parseFloat(value));
+            newData = updateField(
+                newData,
+                index,
+                field,
+                parseFloat(value),
+                true,
+                isManual
+            );
             shouldRecalculate = true;
         } else if (field === 'goal') {
-            newData = updateField(newData, index, field, value);
-        } else {
+            newData = updateField(newData, index, field, value, true, isManual);
+        } else if (
+            field === 'depositSavings' ||
+            field === 'depositInvestments'
+        ) {
             for (let i = index; i < newData.length; i++) {
                 if (
                     (field === 'depositSavings' &&
@@ -377,7 +401,14 @@ const App = () => {
                     (field === 'depositInvestments' &&
                         !newData[i].isTotalInvestmentsManual)
                 ) {
-                    newData = updateField(newData, i, field, parseFloat(value));
+                    newData = updateField(
+                        newData,
+                        i,
+                        field,
+                        parseFloat(value),
+                        true,
+                        isManual
+                    );
                 }
             }
             shouldRecalculate = true;
