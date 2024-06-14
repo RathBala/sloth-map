@@ -22,6 +22,32 @@ tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
+.add-column,
+.add-column-header {
+    background-color: white !important;
+    border: none !important;
+}
+
+.add-icon {
+    opacity: 0.2;
+    width: 3vw; /* Use viewport width units for responsiveness */
+    height: 3vw; /* Ensure the aspect ratio is maintained */
+    max-width: 40px; /* Max size to prevent excessive scaling */
+    max-height: 40px; /* Max size to prevent excessive scaling */
+    min-width: 30px; /* Minimum size */
+    min-height: 30px; /* Minimum size */
+    cursor: pointer;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.add-column:hover .add-icon {
+    opacity: 1;
+}
+
+.add-icon:active {
+    animation: click-animation 0.2s forwards;
+}
+
 .top-nav {
     width: 100%;
     position: fixed;
@@ -56,4 +82,16 @@ tr:nth-child(even) {
     align-items: center;
     padding: 20px;
     box-sizing: border-box;
+}
+
+@keyframes click-animation {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
 }

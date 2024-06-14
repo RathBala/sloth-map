@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { formatNumber } from '../utils/formatUtils';
+import addIcon from '../assets/add.svg';
 
 const TableComponent = ({ data, onFieldChange }) => {
     const prevDataRef = useRef();
@@ -22,15 +23,15 @@ const TableComponent = ({ data, onFieldChange }) => {
 
     const initialState = data.map((row) => ({
         ...row,
-        totalSavings: row.totalSavings?.toString() || '', // CHANGE! Fallback to empty string if undefined
-        totalInvestments: row.totalInvestments?.toString() || '', // CHANGE! Fallback to empty string if undefined
-        depositSavings: row.depositSavings?.toString() || '', // CHANGE! Fallback to empty string if undefined
-        depositInvestments: row.depositInvestments?.toString() || '', // CHANGE! Fallback to empty string if undefined
-        withdrawals: row.withdrawals?.toString() || '', // CHANGE! Fallback to empty string if undefined
-        goal: row.goal || '', // CHANGE! Fallback to empty string if undefined
+        totalSavings: row.totalSavings?.toString() || '',
+        totalInvestments: row.totalInvestments?.toString() || '',
+        depositSavings: row.depositSavings?.toString() || '',
+        depositInvestments: row.depositInvestments?.toString() || '',
+        withdrawals: row.withdrawals?.toString() || '',
+        goal: row.goal || '',
     }));
 
-    const [inputValues, setInputValues] = useState(initialState); // CHANGE! Use initialState
+    const [inputValues, setInputValues] = useState(initialState);
 
     useEffect(() => {
         setInputValues(
@@ -82,6 +83,7 @@ const TableComponent = ({ data, onFieldChange }) => {
         <table>
             <thead>
                 <tr>
+                    <th className="add-column-header"></th>
                     <th>Month</th>
                     <th>Deposit in Savings</th>
                     <th>Deposit in Investments</th>
@@ -99,6 +101,14 @@ const TableComponent = ({ data, onFieldChange }) => {
             <tbody>
                 {inputValues.map((row, index) => (
                     <tr key={index}>
+                        <td className="add-column">
+                            <img
+                                src={addIcon}
+                                alt="add icon"
+                                className="add-icon"
+                            />{' '}
+                        </td>
+                        <td>{row.month}</td>
                         <td>{row.month}</td>
                         <td>
                             <input

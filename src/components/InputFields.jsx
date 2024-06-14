@@ -22,7 +22,7 @@ const InputFields = ({
     };
 
     return (
-        <div>
+        <div className="input-fields">
             <label>
                 Interest Rate (%):
                 <input
