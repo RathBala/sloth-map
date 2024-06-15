@@ -380,7 +380,7 @@ const App = () => {
 
         let newData = data ? [...data] : [...tableData];
         let shouldRecalculate = false;
-        let isManual = true; // Assuming all changes from UI are manual
+        let isManual = true;
 
         if (field === 'totalSavings' || field === 'totalInvestments') {
             const newValue = parseFloat(value);

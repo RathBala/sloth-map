@@ -89,8 +89,8 @@ const TableComponent = ({ data, onFieldChange }) => {
                     <th>Deposit in Investments</th>
                     <th>Total Deposit</th>
                     <th>Withdrawals</th>
-                    <th>Total in Savings Account</th>
-                    <th>Total in Investments Account</th>
+                    <th>Total in Savings Account (monzo)</th>
+                    <th>Total in Investments Account (HL, SJP ISA, bitcoin)</th>
                     <th>Total Saved</th>
                     <th>Interest Return</th>
                     <th>Investment Return</th>
@@ -108,7 +108,6 @@ const TableComponent = ({ data, onFieldChange }) => {
                                 className="add-icon"
                             />{' '}
                         </td>
-                        <td>{row.month}</td>
                         <td>{row.month}</td>
                         <td>
                             <input
