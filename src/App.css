@@ -26,6 +26,18 @@ tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
+.alt-scenario {
+    background-color: #fff3cd;
+}
+
+.alt-scenario.inactive {
+    opacity: 0.3;
+}
+
+.alt-scenario.active {
+    opacity: 1;
+}
+
 .add-column,
 .add-column-header {
     background-color: white !important;

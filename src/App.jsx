@@ -34,6 +34,7 @@ const App = () => {
 
     const [tableData, setTableData] = useState(() => generateData(500, 300, 0));
     const [recalcTrigger, setRecalcTrigger] = useState(0);
+    const [activeRow, setActiveRow] = useState(null);
 
     useEffect(() => {
         console.log(
@@ -487,6 +488,21 @@ const App = () => {
 
     console.log('Achieve nest egg by: ', achieveNestEggBy);
 
+    const addAltScenario = (index) => {
+        const newRow = { ...tableData[index], isAlt: true, isActive: true };
+        const updatedTableData = [
+            ...tableData.slice(0, index + 1),
+            newRow,
+            ...tableData.slice(index + 1),
+        ];
+        setTableData(
+            updatedTableData.map((row, i) =>
+                i === index ? { ...row, isActive: false } : row
+            )
+        );
+        setActiveRow(index + 1);
+    };
+
     return (
         <Router>
             <div className="App">
@@ -548,6 +564,9 @@ const App = () => {
                                     <TableComponent
                                         data={formattedTableData}
                                         onFieldChange={handleFieldChange}
+                                        onAltScenario={addAltScenario}
+                                        activeRow={activeRow}
+                                        setActiveRow={setActiveRow}
                                     />
                                 </>
                             }

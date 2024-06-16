@@ -2,7 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { formatNumber } from '../utils/formatUtils';
 import addIcon from '../assets/add.svg';
 
-const TableComponent = ({ data, onFieldChange }) => {
+const TableComponent = ({
+    data,
+    onFieldChange,
+    onAltScenario,
+    activeRow,
+    setActiveRow,
+}) => {
     const prevDataRef = useRef();
 
     useEffect(() => {
@@ -47,7 +53,8 @@ const TableComponent = ({ data, onFieldChange }) => {
         );
     }, [data]);
 
-    const handleFocus = (index, field) => {
+    const handleFocus = (index, field, e) => {
+        e.stopPropagation();
         setFocusedIndex(index);
         setFocusedField(field);
     };
@@ -79,6 +86,18 @@ const TableComponent = ({ data, onFieldChange }) => {
         );
     };
 
+    const handleRowClick = (index) => {
+        if (inputValues[index].isAlt || inputValues[index].isActive) {
+            setActiveRow(index);
+            setInputValues((current) =>
+                current.map((item, idx) => ({
+                    ...item,
+                    isActive: idx === index,
+                }))
+            );
+        }
+    };
+
     return (
         <table>
             <thead>
@@ -100,12 +119,26 @@ const TableComponent = ({ data, onFieldChange }) => {
             </thead>
             <tbody>
                 {inputValues.map((row, index) => (
-                    <tr key={index}>
+                    <tr
+                        key={index}
+                        className={
+                            row.isAlt
+                                ? activeRow === index
+                                    ? 'alt-scenario active'
+                                    : 'alt-scenario inactive'
+                                : ''
+                        }
+                        onClick={() => handleRowClick(index)}
+                    >
                         <td className="add-column">
                             <img
                                 src={addIcon}
                                 alt="add icon"
                                 className="add-icon"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onAltScenario(index);
+                                }}
                             />{' '}
                         </td>
                         <td>{row.month}</td>
@@ -118,8 +151,8 @@ const TableComponent = ({ data, onFieldChange }) => {
                                         ? row.depositSavings
                                         : formatNumber(row.depositSavings || '')
                                 }
-                                onFocus={() =>
-                                    handleFocus(index, 'depositSavings')
+                                onFocus={(e) =>
+                                    handleFocus(index, 'depositSavings', e)
                                 }
                                 onChange={(e) =>
                                     handleChange(
@@ -148,8 +181,8 @@ const TableComponent = ({ data, onFieldChange }) => {
                                               row.depositInvestments || ''
                                           )
                                 }
-                                onFocus={() =>
-                                    handleFocus(index, 'depositInvestments')
+                                onFocus={(e) =>
+                                    handleFocus(index, 'depositInvestments', e)
                                 }
                                 onChange={(e) =>
                                     handleChange(
@@ -177,8 +210,8 @@ const TableComponent = ({ data, onFieldChange }) => {
                                         ? row.withdrawals
                                         : formatNumber(row.withdrawals || '')
                                 }
-                                onFocus={() =>
-                                    handleFocus(index, 'withdrawals')
+                                onFocus={(e) =>
+                                    handleFocus(index, 'withdrawals', e)
                                 }
                                 onChange={(e) =>
                                     handleChange(
@@ -205,8 +238,8 @@ const TableComponent = ({ data, onFieldChange }) => {
                                         ? row.totalSavings.toString()
                                         : formatNumber(row.totalSavings || '')
                                 }
-                                onFocus={() =>
-                                    handleFocus(index, 'totalSavings')
+                                onFocus={(e) =>
+                                    handleFocus(index, 'totalSavings', e)
                                 }
                                 onChange={(e) =>
                                     handleChange(
@@ -235,8 +268,8 @@ const TableComponent = ({ data, onFieldChange }) => {
                                               row.totalInvestments || ''
                                           )
                                 }
-                                onFocus={() =>
-                                    handleFocus(index, 'totalInvestments')
+                                onFocus={(e) =>
+                                    handleFocus(index, 'totalInvestments', e)
                                 }
                                 onChange={(e) =>
                                     handleChange(
