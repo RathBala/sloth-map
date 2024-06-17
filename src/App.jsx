@@ -489,18 +489,63 @@ const App = () => {
     console.log('Achieve nest egg by: ', achieveNestEggBy);
 
     const addAltScenario = (index) => {
-        const newRow = { ...tableData[index], isAlt: true, isActive: true };
-        const updatedTableData = [
-            ...tableData.slice(0, index + 1),
-            newRow,
-            ...tableData.slice(index + 1),
-        ];
-        setTableData(
-            updatedTableData.map((row, i) =>
-                i === index ? { ...row, isActive: false } : row
-            )
+        const clickedMonth = tableData[index].month; // Getting the month of the original row
+        console.log(
+            `Adding new altScenario for month: ${clickedMonth}, based on row index: ${index}`
         );
-        setActiveRow(index + 1);
+
+        const newRow = { ...tableData[index], isAlt: true, isActive: true }; // Create new alt scenario from original
+        console.log(`New altScenario row created from index ${index}:`, newRow);
+
+        let updatedTableData = [
+            ...tableData.slice(0, index + 1), // Include up to the original row
+            newRow, // Add new alt scenario row
+            ...tableData.slice(index + 1), // Include the rest of the rows
+        ];
+
+        // Set the original row as inactive explicitly and ensure that no other rows in the same month are active
+        updatedTableData[index] = {
+            ...updatedTableData[index],
+            isActive: false,
+        }; // Deactivate the original row
+        console.log(`Original row at index ${index} set to inactive.`);
+
+        console.log(`Updated states for month ${clickedMonth}:`);
+        updatedTableData
+            .filter((row) => row.month === clickedMonth)
+            .forEach((row) => {
+                console.log(
+                    `Row index ${updatedTableData.indexOf(row)}: isActive = ${row.isActive}`
+                );
+            });
+
+        setTableData(updatedTableData);
+        setActiveRow(index + 1); // Set the newly added altScenario row as active in the UI
+    };
+
+    const handleRowClick = (index) => {
+        const clickedMonth = tableData[index].month;
+        console.log(`Row clicked: Index ${index}, Month: ${clickedMonth}`);
+
+        const updatedTableData = tableData.map((row, idx) => {
+            if (row.month === clickedMonth) {
+                console.log(
+                    `Toggling isActive for index ${idx}: currently ${row.isActive}`
+                );
+                return { ...row, isActive: idx === index };
+            }
+            return row;
+        });
+
+        console.log(
+            'Updated table data:',
+            updatedTableData.map((row) => ({
+                month: row.month,
+                isActive: row.isActive,
+            }))
+        );
+        setTableData(updatedTableData);
+        setActiveRow(index);
     };
 
     return (
@@ -566,7 +611,7 @@ const App = () => {
                                         onFieldChange={handleFieldChange}
                                         onAltScenario={addAltScenario}
                                         activeRow={activeRow}
-                                        setActiveRow={setActiveRow}
+                                        handleRowClick={handleRowClick}
                                     />
                                 </>
                             }

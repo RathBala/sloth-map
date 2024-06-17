@@ -7,7 +7,7 @@ const TableComponent = ({
     onFieldChange,
     onAltScenario,
     activeRow,
-    setActiveRow,
+    handleRowClick,
 }) => {
     const prevDataRef = useRef();
 
@@ -84,18 +84,6 @@ const TableComponent = ({
                 idx === index ? { ...item, [field]: value } : item
             )
         );
-    };
-
-    const handleRowClick = (index) => {
-        if (inputValues[index].isAlt || inputValues[index].isActive) {
-            setActiveRow(index);
-            setInputValues((current) =>
-                current.map((item, idx) => ({
-                    ...item,
-                    isActive: idx === index,
-                }))
-            );
-        }
     };
 
     return (
