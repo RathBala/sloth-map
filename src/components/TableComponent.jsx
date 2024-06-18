@@ -4,9 +4,9 @@ import addIcon from '../assets/add.svg';
 
 const TableComponent = ({
     data,
+    tableData,
     onFieldChange,
     onAltScenario,
-    activeRow,
     handleRowClick,
 }) => {
     const prevDataRef = useRef();
@@ -111,10 +111,19 @@ const TableComponent = ({
                         key={index}
                         className={
                             row.isAlt
-                                ? activeRow === index
+                                ? row.isActive // Use isActive directly for alt-scenario rows
                                     ? 'alt-scenario active'
                                     : 'alt-scenario inactive'
-                                : ''
+                                : row.isActive // Use isActive directly for original rows
+                                  ? 'active'
+                                  : tableData.some(
+                                          (r) =>
+                                              r.isAlt &&
+                                              r.month === row.month &&
+                                              r.isActive
+                                      )
+                                    ? 'inactive'
+                                    : 'active'
                         }
                         onClick={() => handleRowClick(index)}
                     >

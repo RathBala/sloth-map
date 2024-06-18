@@ -34,7 +34,7 @@ const App = () => {
 
     const [tableData, setTableData] = useState(() => generateData(500, 300, 0));
     const [recalcTrigger, setRecalcTrigger] = useState(0);
-    const [activeRow, setActiveRow] = useState(null);
+    // const [activeRow, setActiveRow] = useState(null);
 
     useEffect(() => {
         console.log(
@@ -504,11 +504,11 @@ const App = () => {
         ];
 
         // Set the original row as inactive explicitly and ensure that no other rows in the same month are active
-        updatedTableData[index] = {
-            ...updatedTableData[index],
-            isActive: false,
-        }; // Deactivate the original row
-        console.log(`Original row at index ${index} set to inactive.`);
+        updatedTableData = updatedTableData.map((row, i) => ({
+            ...row,
+            isActive:
+                row.month === clickedMonth ? i === index + 1 : row.isActive, // Set only the new row as active, keep other rows' isActive state unchanged
+        }));
 
         console.log(`Updated states for month ${clickedMonth}:`);
         updatedTableData
@@ -520,13 +520,19 @@ const App = () => {
             });
 
         setTableData(updatedTableData);
-        setActiveRow(index + 1); // Set the newly added altScenario row as active in the UI
+        // setActiveRow(index + 1); // Set the newly added altScenario row as active in the UI
     };
 
     const handleRowClick = (index) => {
         const clickedMonth = tableData[index].month;
         console.log(`Row clicked: Index ${index}, Month: ${clickedMonth}`);
 
+        console.log('Current state of all rows before update:');
+        tableData.forEach((row, idx) => {
+            console.log(
+                `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
+            );
+        });
         const updatedTableData = tableData.map((row, idx) => {
             if (row.month === clickedMonth) {
                 console.log(
@@ -537,15 +543,15 @@ const App = () => {
             return row;
         });
 
-        console.log(
-            'Updated table data:',
-            updatedTableData.map((row) => ({
-                month: row.month,
-                isActive: row.isActive,
-            }))
-        );
+        console.log('Updated state of all rows after update:');
+        updatedTableData.forEach((row, idx) => {
+            console.log(
+                `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
+            );
+        });
+
         setTableData(updatedTableData);
-        setActiveRow(index);
+        // setActiveRow(index);
     };
 
     return (
@@ -608,9 +614,9 @@ const App = () => {
                                     />
                                     <TableComponent
                                         data={formattedTableData}
+                                        tableData={tableData}
                                         onFieldChange={handleFieldChange}
                                         onAltScenario={addAltScenario}
-                                        activeRow={activeRow}
                                         handleRowClick={handleRowClick}
                                     />
                                 </>
