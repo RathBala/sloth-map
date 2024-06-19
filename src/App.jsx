@@ -240,7 +240,7 @@ const App = () => {
     };
 
     const recalculateData = () => {
-        let updatedData = [...tableData];
+        let updatedData = tableData.filter((row) => row.isActive); // Use only this condition
 
         // console.log(
         //     'Data before recalculation:',
@@ -551,7 +551,7 @@ const App = () => {
         });
 
         setTableData(updatedTableData);
-        // setActiveRow(index);
+        recalculateData(); // ADDED line at the end of handleRowClick
     };
 
     return (
