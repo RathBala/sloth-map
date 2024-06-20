@@ -20,6 +20,7 @@ export const generateData = (savings, investments, withdrawals) => {
             investmentReturn: 0,
             grandTotal: 0,
             commentary: '',
+            isActive: true,
         },
     ];
 };

@@ -48,13 +48,13 @@ const useUserData = () => {
 
                 const tableDataRef = collection(userRef, 'tableData');
                 const snapshot = await getDocs(tableDataRef);
-                console.log('Saved changes snapshot:', snapshot);
-                const savedChanges = {};
+                console.log('Manual changes snapshot:', snapshot);
+                const manualChanges = {};
                 snapshot.forEach((doc) => {
-                    savedChanges[doc.id] = doc.data();
+                    manualChanges[doc.id] = doc.data();
                 });
-                console.log('Saved changes from Firestore:', savedChanges);
-                setManualChanges(savedChanges);
+                console.log('Manual changes from Firestore:', manualChanges);
+                setManualChanges(manualChanges);
             } else {
                 setUserDocument(null);
             }

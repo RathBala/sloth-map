@@ -111,10 +111,10 @@ const TableComponent = ({
                         key={index}
                         className={
                             row.isAlt
-                                ? row.isActive // Use isActive directly for alt-scenario rows
+                                ? row.isActive
                                     ? 'alt-scenario active'
                                     : 'alt-scenario inactive'
-                                : row.isActive // Use isActive directly for original rows
+                                : row.isActive
                                   ? 'active'
                                   : tableData.some(
                                           (r) =>
