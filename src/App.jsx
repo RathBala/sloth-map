@@ -239,12 +239,17 @@ const App = () => {
     };
 
     const recalculateData = () => {
-        let updatedData = tableData.filter((row) => row.isActive);
+        // console.log('Data before filter:', JSON.stringify(tableData, null, 2));
 
-        console.log(
-            'Data before recalculation:',
-            JSON.stringify(updatedData, null, 2)
-        );
+        let updatedData = tableData.map((row) => ({
+            ...row,
+            isActive: row.isActive !== undefined ? row.isActive : true,
+        }));
+
+        // console.log(
+        //     'Data after filter, before recalculation:',
+        //     JSON.stringify(updatedData, null, 2)
+        // );
 
         updatedData = recalculateFromIndex(
             updatedData,
@@ -253,39 +258,42 @@ const App = () => {
             investmentReturnRate
         );
 
-        console.log(
-            'Data after first recalculateFromIndex:',
-            JSON.stringify(updatedData, null, 2)
-        );
-        console.log(
-            'Manual changes being applied:',
-            JSON.stringify(manualChanges, null, 2)
-        );
+        // console.log(
+        //     'Data after first recalculateFromIndex:',
+        //     JSON.stringify(updatedData, null, 2)
+        // );
+        // console.log(
+        //     'Manual changes being applied:',
+        //     JSON.stringify(manualChanges, null, 2)
+        // );
 
         for (const [monthId, changes] of Object.entries(manualChanges)) {
-            console.log(
-                `Processing changes for monthId: ${monthId}, changes: ${JSON.stringify(changes, null, 2)}`
-            );
+            // console.log(
+            //     `Processing changes for monthId: ${monthId}, changes: ${JSON.stringify(changes, null, 2)}`
+            // );
 
             const monthIndex = updatedData.findIndex((row) => {
                 const [monthName, year] = row.month.split(' ');
                 const monthNumber =
                     new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
                 const rowMonthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
+                // console.log(
+                //     `Checking rowMonthId: ${rowMonthId} against monthId: ${monthId}`
+                // );
                 return rowMonthId === monthId;
             });
 
             if (monthIndex !== -1) {
-                console.log(
-                    `Applying changes for monthId: ${monthId}, at index: ${monthIndex}`
-                );
+                // console.log(
+                //     `Applying changes for monthId: ${monthId}, at index: ${monthIndex}`
+                // );
 
                 for (const [field, value] of Object.entries(changes)) {
                     updatedData[monthIndex][field] = value;
 
-                    console.log(
-                        `Updated ${field} at index ${monthIndex}: ${JSON.stringify(updatedData[monthIndex], null, 2)}`
-                    );
+                    // console.log(
+                    //     `Updated ${field} at index ${monthIndex}: ${JSON.stringify(updatedData[monthIndex], null, 2)}`
+                    // );
 
                     if (
                         field === 'depositSavings' ||
@@ -297,9 +305,9 @@ const App = () => {
                             i++
                         ) {
                             updatedData[i][field] = value;
-                            console.log(
-                                `Propagated ${field} to index ${i}: ${JSON.stringify(updatedData[i], null, 2)}`
-                            );
+                            // console.log(
+                            //     `Propagated ${field} to index ${i}: ${JSON.stringify(updatedData[i], null, 2)}`
+                            // );
                         }
                     }
                 }
@@ -321,10 +329,10 @@ const App = () => {
                     updatedData[monthIndex].isTotalInvestmentsManual = true;
                 }
 
-                console.log(
-                    'Data before second recalculateFromIndex:',
-                    JSON.stringify(updatedData, null, 2)
-                );
+                // console.log(
+                //     'Data before second recalculateFromIndex:',
+                //     JSON.stringify(updatedData, null, 2)
+                // );
 
                 updatedData = recalculateFromIndex(
                     updatedData,
@@ -333,10 +341,10 @@ const App = () => {
                     investmentReturnRate
                 );
 
-                console.log(
-                    'Data after second recalculateFromIndex:',
-                    JSON.stringify(updatedData, null, 2)
-                );
+                // console.log(
+                //     'Data after second recalculateFromIndex:',
+                //     JSON.stringify(updatedData, null, 2)
+                // );
             }
         }
 
