@@ -62,6 +62,10 @@ const App = () => {
         }
     }, [manualChanges]);
 
+    useEffect(() => {
+        recalculateData();
+    }, [tableData]);
+
     // const bulkUpdateFields = (data, startIndex, field, value) => {
     //     const updatedData = [...data];
 
@@ -363,7 +367,9 @@ const App = () => {
             JSON.stringify(updatedData, null, 2)
         );
 
-        setTableData(updatedData);
+        if (JSON.stringify(tableData) !== JSON.stringify(updatedData)) {
+            setTableData(updatedData); // Only update state if there is a change
+        }
     };
 
     if (!isLoggedIn) {
@@ -500,12 +506,12 @@ const App = () => {
     console.log('Achieve nest egg by: ', achieveNestEggBy);
 
     const addAltScenario = (index) => {
-        const clickedMonth = tableData[index].month; // Getting the month of the original row
+        const clickedMonth = tableData[index].month;
         console.log(
             `Adding new altScenario for month: ${clickedMonth}, based on row index: ${index}`
         );
 
-        const newRow = { ...tableData[index], isAlt: true, isActive: true }; // Create new alt scenario from original
+        const newRow = { ...tableData[index], isAlt: true, isActive: true };
         console.log(`New altScenario row created from index ${index}:`, newRow);
 
         let updatedTableData = [
@@ -562,7 +568,7 @@ const App = () => {
         });
 
         setTableData(updatedTableData);
-        recalculateData(); // ADDED line at the end of handleRowClick
+        // recalculateData();
     };
 
     return (
