@@ -426,15 +426,10 @@ const App = () => {
             field === 'depositInvestments'
         ) {
             for (let i = index; i < newData.length; i++) {
-                // if (
-                //     (field === 'depositSavings' &&
-                //         !newData[i].isTotalSavingsManual) ||
-                //     (field === 'depositInvestments' &&
-                //         !newData[i].isTotalInvestmentsManual)
-                // ) {
                 if (
-                    field === 'depositSavings' ||
-                    field === 'depositInvestments'
+                    newData[i].isActive && // Only update rows that are active
+                    (field === 'depositSavings' ||
+                        field === 'depositInvestments')
                 ) {
                     console.log(
                         `Before updateField - Index ${i}, field: ${field}, value: ${value}`
