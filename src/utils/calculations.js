@@ -36,14 +36,18 @@ export const recalculateFromIndex = (
     let runningTotalInvestments =
         startIndex === 0 ? 0 : data[startIndex - 1].totalInvestments;
 
-    console.log(`Initial data at index 0: ${JSON.stringify(data[0], null, 2)}`);
+    const activeData = data.filter((row) => row.isActive);
 
-    for (let i = startIndex; i < data.length; i++) {
-        const entry = data[i];
+    console.log(
+        `Initial data at index 0: ${JSON.stringify(activeData[0], null, 2)}`
+    );
+
+    for (let i = startIndex; i < activeData.length; i++) {
+        const entry = activeData[i];
 
         if (i > 0) {
-            runningTotalSavings += data[i - 1].interestReturn;
-            runningTotalInvestments += data[i - 1].investmentReturn;
+            runningTotalSavings += activeData[i - 1].interestReturn;
+            runningTotalInvestments += activeData[i - 1].investmentReturn;
         }
 
         if (i === 0) {
@@ -81,7 +85,11 @@ export const recalculateFromIndex = (
         const investmentReturn =
             runningTotalInvestments * (investmentReturnRate / 12 / 100);
 
-        data[i] = {
+        const originalIndex = data.findIndex(
+            (row) => row.month === entry.month && row.isActive
+        );
+
+        data[originalIndex] = {
             ...entry,
             totalSavings: runningTotalSavings,
             totalInvestments: runningTotalInvestments,

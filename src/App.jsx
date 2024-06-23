@@ -515,16 +515,15 @@ const App = () => {
         console.log(`New altScenario row created from index ${index}:`, newRow);
 
         let updatedTableData = [
-            ...tableData.slice(0, index + 1), // Include up to the original row
-            newRow, // Add new alt scenario row
-            ...tableData.slice(index + 1), // Include the rest of the rows
+            ...tableData.slice(0, index + 1),
+            newRow,
+            ...tableData.slice(index + 1),
         ];
 
-        // Set the original row as inactive explicitly and ensure that no other rows in the same month are active
         updatedTableData = updatedTableData.map((row, i) => ({
             ...row,
             isActive:
-                row.month === clickedMonth ? i === index + 1 : row.isActive, // Set only the new row as active, keep other rows' isActive state unchanged
+                row.month === clickedMonth ? i === index + 1 : row.isActive,
         }));
 
         console.log(`Updated states for month ${clickedMonth}:`);
@@ -537,7 +536,15 @@ const App = () => {
             });
 
         setTableData(updatedTableData);
-        // setActiveRow(index + 1); // Set the newly added altScenario row as active in the UI
+        recalculateFromIndex(
+            updatedTableData,
+            index,
+            interestRate,
+            investmentReturnRate
+        );
+
+        setRecalcTrigger((prev) => prev + 1);
+        console.log('RecalcTrigger incremented');
     };
 
     const handleRowClick = (index) => {
@@ -550,6 +557,7 @@ const App = () => {
                 `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
             );
         });
+
         const updatedTableData = tableData.map((row, idx) => {
             if (row.month === clickedMonth) {
                 console.log(
@@ -568,7 +576,15 @@ const App = () => {
         });
 
         setTableData(updatedTableData);
-        // recalculateData();
+        recalculateFromIndex(
+            updatedTableData,
+            index,
+            interestRate,
+            investmentReturnRate
+        );
+
+        setRecalcTrigger((prev) => prev + 1);
+        console.log('RecalcTrigger incremented');
     };
 
     return (
