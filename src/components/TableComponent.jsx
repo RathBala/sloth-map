@@ -68,7 +68,21 @@ const TableComponent = ({
             `Updating on blur with cleaned numeric value:`,
             numericValue
         );
+
+        if (field === 'depositSavings') {
+            console.log(
+                `Before onBlur - depositSavings at index ${index}: ${inputValues[index][field]}`
+            );
+        }
+
         onFieldChange(index, field, numericValue);
+
+        if (field === 'depositSavings') {
+            console.log(
+                `After onBlur - depositSavings at index ${index}: ${inputValues[index][field]}`
+            );
+        }
+
         setInputValues((current) =>
             current.map((item, idx) =>
                 idx === index ? { ...item, [field]: numericValue } : item

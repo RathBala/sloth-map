@@ -38,9 +38,23 @@ export const recalculateFromIndex = (
 
     const activeData = data.filter((row) => row.isActive);
 
+    console.log('Logging all active data:');
+    activeData.forEach((item, index) => {
+        console.log(`Index ${index}: ${JSON.stringify(item, null, 2)}`);
+    });
+
+    const monthOfInterest =
+        activeData.length > 0
+            ? activeData[Math.max(startIndex, 0)].month
+            : 'No active data';
     console.log(
-        `Initial data at index 0: ${JSON.stringify(activeData[0], null, 2)}`
+        `Before recalculation: Logging 'depositSavings' for the month ${monthOfInterest}:`
     );
+    activeData.forEach((item, idx) => {
+        if (item.month === monthOfInterest) {
+            console.log(`Index ${idx}: depositSavings: ${item.depositSavings}`);
+        }
+    });
 
     for (let i = startIndex; i < activeData.length; i++) {
         const entry = activeData[i];
@@ -111,7 +125,16 @@ export const recalculateFromIndex = (
         }
     }
 
-    console.log(`Final data at index 0: ${JSON.stringify(data[0], null, 2)}`);
+    // console.log(`Final data at index 0: ${JSON.stringify(data[0], null, 2)}`);
+
+    // console.log(
+    //     `After recalculation: Logging 'depositSavings' for the month ${monthOfInterest}:`
+    // );
+    // activeData.forEach((item, idx) => {
+    //     if (item.month === monthOfInterest) {
+    //         console.log(`Index ${idx}: depositSavings: ${item.depositSavings}`);
+    //     }
+    // });
 
     return data;
 };

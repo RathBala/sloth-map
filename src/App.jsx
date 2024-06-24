@@ -66,16 +66,6 @@ const App = () => {
         recalculateData();
     }, [tableData]);
 
-    // const bulkUpdateFields = (data, startIndex, field, value) => {
-    //     const updatedData = [...data];
-
-    //     for (let i = startIndex; i < updatedData.length; i++) {
-    //         updatedData[i] = { ...updatedData[i], [field]: value };
-    //     }
-
-    //     return updatedData;
-    // };
-
     const updateField = (
         data,
         index,
@@ -84,14 +74,12 @@ const App = () => {
         trackChange = true,
         isManual = false
     ) => {
-        console.log(
-            `updateField called for index: ${index}, field: ${field}, value: ${value}, trackChange: ${trackChange}, isManual: ${isManual}`
-        );
-        console.log('Data before update:', JSON.stringify(data, null, 2));
+        // console.log(
+        //     `updateField called for index: ${index}, field: ${field}, value: ${value}, trackChange: ${trackChange}, isManual: ${isManual}`
+        // );
+        // console.log('Data before update:', JSON.stringify(data, null, 2));
 
         let updatedData = [...data];
-
-        // Update the specific field for the given index
         updatedData[index] = { ...updatedData[index], [field]: value };
 
         if (field === 'depositSavings' || field === 'depositInvestments') {
@@ -110,10 +98,23 @@ const App = () => {
             }
         }
 
-        console.log(
-            'Data after field update:',
-            JSON.stringify(updatedData, null, 2)
-        );
+        // if (field === 'depositSavings') {
+        //     // Log other scenarios in the same month
+        //     const monthOfInterest = updatedData[index].month;
+        //     console.log(
+        //         `Logging other 'depositSavings' for the month ${monthOfInterest}:`
+        //     );
+        //     updatedData.forEach((item, idx) => {
+        //         if (item.month === monthOfInterest && idx !== index) {
+        //             console.log(`Index ${idx}: ${item.depositSavings}`);
+        //         }
+        //     });
+        // }
+
+        // console.log(
+        //     'Data after field update:',
+        //     JSON.stringify(updatedData, null, 2)
+        // );
 
         if (trackChange) {
             const [monthName, year] = updatedData[index].month.split(' ');
@@ -427,7 +428,7 @@ const App = () => {
         ) {
             for (let i = index; i < newData.length; i++) {
                 if (
-                    newData[i].isActive && // Only update rows that are active
+                    newData[i].isActive &&
                     (field === 'depositSavings' ||
                         field === 'depositInvestments')
                 ) {
