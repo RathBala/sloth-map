@@ -36,11 +36,11 @@ export const recalculateFromIndex = (
     let runningTotalInvestments =
         startIndex === 0 ? 0 : data[startIndex - 1].totalInvestments;
 
+    console.log(`Logging ALL data length: ${data.length}`);
+
     const activeData = data.filter((row) => row.isActive);
 
-    console.log(
-        `Initial data at index 0: ${JSON.stringify(activeData[0], null, 2)}`
-    );
+    console.log(`Logging ACTIVE data length: ${activeData.length}`);
 
     for (let i = startIndex; i < activeData.length; i++) {
         const entry = activeData[i];

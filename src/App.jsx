@@ -66,16 +66,6 @@ const App = () => {
         recalculateData();
     }, [tableData]);
 
-    // const bulkUpdateFields = (data, startIndex, field, value) => {
-    //     const updatedData = [...data];
-
-    //     for (let i = startIndex; i < updatedData.length; i++) {
-    //         updatedData[i] = { ...updatedData[i], [field]: value };
-    //     }
-
-    //     return updatedData;
-    // };
-
     const updateField = (
         data,
         index,
@@ -91,21 +81,39 @@ const App = () => {
 
         let updatedData = [...data];
 
-        // Update the specific field for the given index
         updatedData[index] = { ...updatedData[index], [field]: value };
 
         if (field === 'depositSavings' || field === 'depositInvestments') {
-            for (let i = index + 1; i < updatedData.length; i++) {
-                if (
-                    (field === 'depositSavings' &&
-                        !updatedData[i].isTotalSavingsManual) ||
-                    (field === 'depositInvestments' &&
-                        !updatedData[i].isTotalInvestmentsManual)
-                ) {
-                    updatedData[i][field] = value;
-                    // console.log(
-                    //     `Propagated ${field} to index ${i}: ${JSON.stringify(updatedData[i], null, 2)}`
-                    // );
+            console.log(
+                `updateField - logging ALL data length: ${updatedData.length}`
+            );
+
+            const activeRows = updatedData.filter((row) => row.isActive);
+
+            console.log(
+                `updateField - logging ACTIVE data length: ${activeRows.length}`
+            );
+
+            const inactiveRows = updatedData.filter((row) => !row.isActive);
+
+            console.log(
+                `updateField - logging INACTIVE rows: ${JSON.stringify(inactiveRows, null, 2)}`
+            );
+
+            const nextActiveIndex = activeRows.findIndex(
+                (row) => updatedData.indexOf(row) > index
+            );
+
+            if (nextActiveIndex !== -1) {
+                for (let i = nextActiveIndex; i < activeRows.length; i++) {
+                    if (
+                        (field === 'depositSavings' &&
+                            !activeRows[i].isTotalSavingsManual) ||
+                        (field === 'depositInvestments' &&
+                            !activeRows[i].isTotalInvestmentsManual)
+                    ) {
+                        activeRows[i][field] = value;
+                    }
                 }
             }
         }
@@ -293,27 +301,14 @@ const App = () => {
                 // );
 
                 for (const [field, value] of Object.entries(changes)) {
-                    updatedData[monthIndex][field] = value;
-
-                    // console.log(
-                    //     `Updated ${field} at index ${monthIndex}: ${JSON.stringify(updatedData[monthIndex], null, 2)}`
-                    // );
-
-                    if (
-                        field === 'depositSavings' ||
-                        field === 'depositInvestments'
-                    ) {
-                        for (
-                            let i = monthIndex + 1;
-                            i < updatedData.length;
-                            i++
-                        ) {
-                            updatedData[i][field] = value;
-                            // console.log(
-                            //     `Propagated ${field} to index ${i}: ${JSON.stringify(updatedData[i], null, 2)}`
-                            // );
-                        }
-                    }
+                    updatedData = updateField(
+                        updatedData,
+                        monthIndex,
+                        field,
+                        value,
+                        false,
+                        true
+                    );
                 }
 
                 if (
@@ -409,7 +404,11 @@ const App = () => {
             } else if (field === 'totalInvestments') {
                 newData[index].isTotalInvestmentsManual = true;
             }
-        } else if (field === 'withdrawals') {
+        } else if (
+            field === 'withdrawals' ||
+            field === 'depositSavings' ||
+            field === 'depositInvestments'
+        ) {
             newData = updateField(
                 newData,
                 index,
@@ -421,34 +420,6 @@ const App = () => {
             shouldRecalculate = true;
         } else if (field === 'goal') {
             newData = updateField(newData, index, field, value, true, isManual);
-        } else if (
-            field === 'depositSavings' ||
-            field === 'depositInvestments'
-        ) {
-            for (let i = index; i < newData.length; i++) {
-                if (
-                    newData[i].isActive && // Only update rows that are active
-                    (field === 'depositSavings' ||
-                        field === 'depositInvestments')
-                ) {
-                    console.log(
-                        `Before updateField - Index ${i}, field: ${field}, value: ${value}`
-                    );
-
-                    newData = updateField(
-                        newData,
-                        i,
-                        field,
-                        parseFloat(value),
-                        true,
-                        isManual
-                    );
-                    console.log(
-                        `After updateField - Index ${i}, updated data: ${JSON.stringify(newData[i], null, 2)}`
-                    );
-                }
-            }
-            shouldRecalculate = true;
         }
 
         if (shouldRecalculate) {
