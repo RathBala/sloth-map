@@ -212,18 +212,16 @@ const App = () => {
                 }
 
                 if (hypotheticalInvestments >= 0) {
-                    // Determine if the goal is being moved to a new month
                     let isManualChange =
                         goal.month !== updatedData[sufficientFundsIndex].month;
 
-                    // Track new location change using updateField
                     updatedData = updateField(
                         updatedData,
                         sufficientFundsIndex,
                         'goal',
                         goal.goal,
                         true,
-                        isManualChange // Set based on whether the month has changed
+                        isManualChange
                     );
                     updatedData = updateField(
                         updatedData,
@@ -231,7 +229,7 @@ const App = () => {
                         'withdrawals',
                         goal.withdrawals,
                         true,
-                        isManualChange // Set based on whether the month has changed
+                        isManualChange
                     );
 
                     updatedData = recalculateFromIndex(
