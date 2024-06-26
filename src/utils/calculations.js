@@ -38,6 +38,11 @@ export const recalculateFromIndex = (
 
     console.log(`Logging ALL data length: ${data.length}`);
 
+    // console.log(`Recalculating from index: ${startIndex}`);
+    // console.log(`Initial runningTotalSavings: ${runningTotalSavings}`);
+    // console.log(`Initial runningTotalInvestments: ${runningTotalInvestments}`);
+    // console.log(`Data before recalculation:`, JSON.stringify(data, null, 2));
+
     const activeData = data.filter((row) => row.isActive);
 
     console.log(`Logging ACTIVE data length: ${activeData.length}`);
@@ -45,15 +50,11 @@ export const recalculateFromIndex = (
     for (let i = startIndex; i < activeData.length; i++) {
         const entry = activeData[i];
 
+        // console.log(`Processing row ${i}:`, JSON.stringify(entry, null, 2));
+
         if (i > 0) {
             runningTotalSavings += activeData[i - 1].interestReturn;
             runningTotalInvestments += activeData[i - 1].investmentReturn;
-        }
-
-        if (i === 0) {
-            console.log(
-                `Before manual check - Index ${i}: runningTotalSavings: ${runningTotalSavings}, runningTotalInvestments: ${runningTotalInvestments}`
-            );
         }
 
         if (!entry.isTotalSavingsManual) {
@@ -66,12 +67,6 @@ export const recalculateFromIndex = (
             runningTotalInvestments += entry.depositInvestments;
         } else {
             runningTotalInvestments = entry.totalInvestments;
-        }
-
-        if (i === 0) {
-            console.log(
-                `After manual check - Index ${i}: runningTotalSavings: ${runningTotalSavings}, runningTotalInvestments: ${runningTotalInvestments}`
-            );
         }
 
         if (runningTotalSavings < 0) {
@@ -104,14 +99,16 @@ export const recalculateFromIndex = (
             commentary: entry.commentary,
         };
 
-        if (i === 0) {
-            console.log(
-                `Updated data at index 0: ${JSON.stringify(data[0], null, 2)}`
-            );
-        }
+        // console.log(
+        //     `Updated row ${originalIndex} after recalculation:`,
+        //     JSON.stringify(data[originalIndex], null, 2)
+        // );
     }
 
-    console.log(`Final data at index 0: ${JSON.stringify(data[0], null, 2)}`);
+    console.log(
+        `Final data after recalculation:`,
+        JSON.stringify(data, null, 2)
+    );
 
     return data;
 };

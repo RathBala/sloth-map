@@ -104,7 +104,7 @@ const App = () => {
                     ) {
                         updatedData[i][field] = value;
                         console.log(
-                            `Propagated ${field}: ${value} to row ${i}`
+                            `Propagated ${field}: ${value} to row ${i}, month: ${updatedData[i].month}`
                         );
                     }
                 }
@@ -531,6 +531,26 @@ const App = () => {
                 `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
             );
         });
+
+        // const recalculatedData = recalculateFromIndex(
+        //     updatedTableData.filter((row) => row.isActive), // Filter for active rows
+        //     index,
+        //     interestRate,
+        //     investmentReturnRate
+        // );
+
+        // const finalData = updatedTableData.map((row) => {
+        //     if (row.isActive) {
+        //         return (
+        //             recalculatedData.find(
+        //                 (activeRow) => activeRow.month === row.month
+        //             ) || row
+        //         );
+        //     }
+        //     return row;
+        // });
+
+        // setTableData(finalData);
 
         setTableData(updatedTableData);
         recalculateFromIndex(
