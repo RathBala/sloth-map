@@ -83,36 +83,29 @@ const App = () => {
 
         updatedData[index] = { ...updatedData[index], [field]: value };
 
+        console.log(`Updated row ${index} with ${field}: ${value}`);
+        console.log(
+            `Data after immediate update of row ${index}:`,
+            JSON.stringify(updatedData, null, 2)
+        );
+
         if (field === 'depositSavings' || field === 'depositInvestments') {
-            console.log(
-                `updateField - logging ALL data length: ${updatedData.length}`
-            );
-
-            const activeRows = updatedData.filter((row) => row.isActive);
-
-            console.log(
-                `updateField - logging ACTIVE data length: ${activeRows.length}`
-            );
-
-            const inactiveRows = updatedData.filter((row) => !row.isActive);
-
-            console.log(
-                `updateField - logging INACTIVE rows: ${JSON.stringify(inactiveRows, null, 2)}`
-            );
-
-            const nextActiveIndex = activeRows.findIndex(
-                (row) => updatedData.indexOf(row) > index
+            const nextActiveIndex = updatedData.findIndex(
+                (row, idx) => idx > index && row.isActive
             );
 
             if (nextActiveIndex !== -1) {
-                for (let i = nextActiveIndex; i < activeRows.length; i++) {
+                for (let i = nextActiveIndex; i < updatedData.length; i++) {
                     if (
                         (field === 'depositSavings' &&
-                            !activeRows[i].isTotalSavingsManual) ||
+                            !updatedData[i].isTotalSavingsManual) ||
                         (field === 'depositInvestments' &&
-                            !activeRows[i].isTotalInvestmentsManual)
+                            !updatedData[i].isTotalInvestmentsManual)
                     ) {
-                        activeRows[i][field] = value;
+                        updatedData[i][field] = value;
+                        console.log(
+                            `Propagated ${field}: ${value} to row ${i}`
+                        );
                     }
                 }
             }
