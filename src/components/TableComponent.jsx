@@ -10,6 +10,11 @@ const TableComponent = ({
     handleRowClick,
 }) => {
     const prevDataRef = useRef();
+    const today = new Date();
+    const currentMonth =
+        today.toLocaleString('default', { month: 'long' }) +
+        ' ' +
+        today.getFullYear();
 
     useEffect(() => {
         if (prevDataRef.current) {
@@ -227,62 +232,76 @@ const TableComponent = ({
                             />
                         </td>
                         <td>
-                            <input
-                                type="text"
-                                value={
-                                    focusedIndex === index &&
-                                    focusedField === 'totalSavings'
-                                        ? row.totalSavings.toString()
-                                        : formatNumber(row.totalSavings || '')
-                                }
-                                onFocus={(e) =>
-                                    handleFocus(index, 'totalSavings', e)
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        index,
-                                        'totalSavings',
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={(e) =>
-                                    handleBlur(
-                                        index,
-                                        'totalSavings',
-                                        e.target.value
-                                    )
-                                }
-                            />
+                            {row.month === currentMonth ? (
+                                <input
+                                    type="text"
+                                    value={
+                                        focusedIndex === index &&
+                                        focusedField === 'totalSavings'
+                                            ? row.totalSavings.toString()
+                                            : formatNumber(
+                                                  row.totalSavings || ''
+                                              )
+                                    }
+                                    onFocus={(e) =>
+                                        handleFocus(index, 'totalSavings', e)
+                                    }
+                                    onChange={(e) =>
+                                        handleChange(
+                                            index,
+                                            'totalSavings',
+                                            e.target.value
+                                        )
+                                    }
+                                    onBlur={(e) =>
+                                        handleBlur(
+                                            index,
+                                            'totalSavings',
+                                            e.target.value
+                                        )
+                                    }
+                                />
+                            ) : (
+                                formatNumber(row.totalSavings || '')
+                            )}
                         </td>
                         <td>
-                            <input
-                                type="text"
-                                value={
-                                    focusedIndex === index &&
-                                    focusedField === 'totalInvestments'
-                                        ? row.totalInvestments.toString()
-                                        : formatNumber(
-                                              row.totalInvestments || ''
-                                          )
-                                }
-                                onFocus={(e) =>
-                                    handleFocus(index, 'totalInvestments', e)
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        index,
-                                        'totalInvestments',
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={(e) =>
-                                    handleBlur(
-                                        index,
-                                        'totalInvestments',
-                                        e.target.value
-                                    )
-                                }
-                            />
+                            {row.month === currentMonth ? (
+                                <input
+                                    type="text"
+                                    value={
+                                        focusedIndex === index &&
+                                        focusedField === 'totalInvestments'
+                                            ? row.totalInvestments.toString()
+                                            : formatNumber(
+                                                  row.totalInvestments || ''
+                                              )
+                                    }
+                                    onFocus={(e) =>
+                                        handleFocus(
+                                            index,
+                                            'totalInvestments',
+                                            e
+                                        )
+                                    }
+                                    onChange={(e) =>
+                                        handleChange(
+                                            index,
+                                            'totalInvestments',
+                                            e.target.value
+                                        )
+                                    }
+                                    onBlur={(e) =>
+                                        handleBlur(
+                                            index,
+                                            'totalInvestments',
+                                            e.target.value
+                                        )
+                                    }
+                                />
+                            ) : (
+                                formatNumber(row.totalInvestments || '')
+                            )}
                         </td>
                         <td>{row.totalSavedFormatted}</td>
                         <td>{row.interestReturnFormatted}</td>

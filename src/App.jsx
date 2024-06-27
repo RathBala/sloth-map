@@ -25,8 +25,8 @@ const App = () => {
         setTargetNestEgg,
         age,
         setAge,
-        manualChanges,
-        setManualChanges,
+        userInputs,
+        setUserInputs,
         saveInputFields,
         saveTableData,
         logout,
@@ -57,10 +57,10 @@ const App = () => {
 
     useEffect(() => {
         console.log('Manual changes detected, recalculating data');
-        if (Object.keys(manualChanges).length > 0) {
+        if (Object.keys(userInputs).length > 0) {
             recalculateData();
         }
-    }, [manualChanges]);
+    }, [userInputs]);
 
     useEffect(() => {
         recalculateData();
@@ -122,7 +122,7 @@ const App = () => {
                 new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
             const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
 
-            setManualChanges((prevChanges) => {
+            setUserInputs((prevChanges) => {
                 const newChanges = { ...prevChanges };
                 const existingChange =
                     prevChanges[monthId] && prevChanges[monthId][field];
@@ -270,7 +270,7 @@ const App = () => {
         // eslint-disable-next-line no-debugger
         debugger;
 
-        for (const [monthId, changes] of Object.entries(manualChanges)) {
+        for (const [monthId, changes] of Object.entries(userInputs)) {
             const monthIndex = updatedData.findIndex((row) => {
                 const [monthName, year] = row.month.split(' ');
                 const monthNumber =
@@ -431,7 +431,7 @@ const App = () => {
         console.log('Save button clicked');
         await saveInputFields();
         await saveTableData();
-        setManualChanges({});
+        setUserInputs({});
     };
 
     const formattedTableData = tableData.map((entry) => ({

@@ -12,7 +12,7 @@ const useUserData = () => {
     const [investmentReturnRate, setInvestmentReturnRate] = useState(null);
     const [targetNestEgg, setTargetNestEgg] = useState(null);
     const [age, setAge] = useState(null);
-    const [manualChanges, setManualChanges] = useState({});
+    const [userInputs, setUserInputs] = useState({});
 
     const calculateAge = (dateOfBirth) => {
         const dob = new Date(dateOfBirth.seconds * 1000);
@@ -49,12 +49,12 @@ const useUserData = () => {
                 const tableDataRef = collection(userRef, 'tableData');
                 const snapshot = await getDocs(tableDataRef);
                 console.log('Manual changes snapshot:', snapshot);
-                const manualChanges = {};
+                const userInputs = {};
                 snapshot.forEach((doc) => {
-                    manualChanges[doc.id] = doc.data();
+                    userInputs[doc.id] = doc.data();
                 });
-                console.log('Manual changes from Firestore:', manualChanges);
-                setManualChanges(manualChanges);
+                console.log('Manual changes from Firestore:', userInputs);
+                setUserInputs(userInputs);
             } else {
                 setUserDocument(null);
             }
@@ -107,7 +107,7 @@ const useUserData = () => {
             const tableDataRef = collection(userRef, 'tableData');
 
             try {
-                for (const [month, fields] of Object.entries(manualChanges)) {
+                for (const [month, fields] of Object.entries(userInputs)) {
                     const tableDataDocRef = doc(tableDataRef, month);
                     await setDoc(tableDataDocRef, fields, { merge: true });
                 }
@@ -135,8 +135,8 @@ const useUserData = () => {
         setTargetNestEgg,
         age,
         setAge,
-        manualChanges,
-        setManualChanges,
+        userInputs,
+        setUserInputs,
         saveInputFields,
         saveTableData,
         logout,
