@@ -242,12 +242,18 @@ const App = () => {
     };
 
     const recalculateData = () => {
+        // eslint-disable-next-line no-debugger
+        debugger;
+
         // console.log('Data before filter:', JSON.stringify(tableData, null, 2));
 
         let updatedData = tableData.map((row) => ({
             ...row,
             isActive: row.isActive !== undefined ? row.isActive : true,
         }));
+
+        // eslint-disable-next-line no-debugger
+        debugger;
 
         // console.log(
         //     'Data after filter, before recalculation:',
@@ -261,35 +267,21 @@ const App = () => {
             investmentReturnRate
         );
 
-        // console.log(
-        //     'Data after first recalculateFromIndex:',
-        //     JSON.stringify(updatedData, null, 2)
-        // );
-        // console.log(
-        //     'Manual changes being applied:',
-        //     JSON.stringify(manualChanges, null, 2)
-        // );
+        // eslint-disable-next-line no-debugger
+        debugger;
 
         for (const [monthId, changes] of Object.entries(manualChanges)) {
-            // console.log(
-            //     `Processing changes for monthId: ${monthId}, changes: ${JSON.stringify(changes, null, 2)}`
-            // );
-
             const monthIndex = updatedData.findIndex((row) => {
                 const [monthName, year] = row.month.split(' ');
                 const monthNumber =
                     new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
                 const rowMonthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
-                // console.log(
-                //     `Checking rowMonthId: ${rowMonthId} against monthId: ${monthId}`
-                // );
                 return rowMonthId === monthId;
             });
 
             if (monthIndex !== -1) {
-                // console.log(
-                //     `Applying changes for monthId: ${monthId}, at index: ${monthIndex}`
-                // );
+                // eslint-disable-next-line no-debugger
+                debugger;
 
                 for (const [field, value] of Object.entries(changes)) {
                     updatedData = updateField(
@@ -301,6 +293,9 @@ const App = () => {
                         true
                     );
                 }
+
+                // eslint-disable-next-line no-debugger
+                debugger;
 
                 if (
                     Object.prototype.hasOwnProperty.call(
@@ -319,26 +314,22 @@ const App = () => {
                     updatedData[monthIndex].isTotalInvestmentsManual = true;
                 }
 
-                // console.log(
-                //     'Data before second recalculateFromIndex:',
-                //     JSON.stringify(updatedData, null, 2)
-                // );
-
                 updatedData = recalculateFromIndex(
                     updatedData,
                     monthIndex,
                     interestRate,
                     investmentReturnRate
                 );
-
-                // console.log(
-                //     'Data after second recalculateFromIndex:',
-                //     JSON.stringify(updatedData, null, 2)
-                // );
             }
         }
 
+        // eslint-disable-next-line no-debugger
+        debugger;
+
         updatedData = adjustGoals(updatedData);
+
+        // eslint-disable-next-line no-debugger
+        debugger;
 
         updatedData = ensureNestEgg(
             targetNestEgg,
@@ -347,6 +338,9 @@ const App = () => {
             investmentReturnRate,
             recalculateFromIndex
         );
+
+        // eslint-disable-next-line no-debugger
+        debugger;
 
         console.log(
             'Final updated data after recalculation:',
@@ -561,6 +555,7 @@ const App = () => {
         );
 
         setRecalcTrigger((prev) => prev + 1);
+
         console.log('RecalcTrigger incremented');
     };
 
