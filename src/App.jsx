@@ -1,3 +1,4 @@
+/* eslint-disable no-debugger */
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import TableComponent from './components/TableComponent';
@@ -53,6 +54,7 @@ const App = () => {
             'Recalculating data due to change in table data or manual changes'
         );
         recalculateData();
+        debugger;
     }, [interestRate, investmentReturnRate, targetNestEgg, recalcTrigger]);
 
     useEffect(() => {
@@ -90,8 +92,10 @@ const App = () => {
         );
 
         if (field === 'depositSavings' || field === 'depositInvestments') {
+            const currentMonth = updatedData[index].month;
             const nextActiveIndex = updatedData.findIndex(
-                (row, idx) => idx > index && row.isActive
+                (row, idx) =>
+                    idx > index && row.isActive && row.month !== currentMonth
             );
 
             if (nextActiveIndex !== -1) {
@@ -242,23 +246,16 @@ const App = () => {
     };
 
     const recalculateData = () => {
-        // eslint-disable-next-line no-debugger
-        debugger;
+        console.log('recalculateData called');
 
-        // console.log('Data before filter:', JSON.stringify(tableData, null, 2));
+        debugger;
 
         let updatedData = tableData.map((row) => ({
             ...row,
             isActive: row.isActive !== undefined ? row.isActive : true,
         }));
 
-        // eslint-disable-next-line no-debugger
         debugger;
-
-        // console.log(
-        //     'Data after filter, before recalculation:',
-        //     JSON.stringify(updatedData, null, 2)
-        // );
 
         updatedData = recalculateFromIndex(
             updatedData,
@@ -267,7 +264,6 @@ const App = () => {
             investmentReturnRate
         );
 
-        // eslint-disable-next-line no-debugger
         debugger;
 
         for (const [monthId, changes] of Object.entries(userInputs)) {
@@ -280,8 +276,7 @@ const App = () => {
             });
 
             if (monthIndex !== -1) {
-                // eslint-disable-next-line no-debugger
-                debugger;
+                // debugger;
 
                 for (const [field, value] of Object.entries(changes)) {
                     updatedData = updateField(
@@ -294,8 +289,7 @@ const App = () => {
                     );
                 }
 
-                // eslint-disable-next-line no-debugger
-                debugger;
+                // debugger;
 
                 if (
                     Object.prototype.hasOwnProperty.call(
@@ -323,13 +317,11 @@ const App = () => {
             }
         }
 
-        // eslint-disable-next-line no-debugger
-        debugger;
+        // debugger;
 
         updatedData = adjustGoals(updatedData);
 
-        // eslint-disable-next-line no-debugger
-        debugger;
+        // debugger;
 
         updatedData = ensureNestEgg(
             targetNestEgg,
@@ -339,13 +331,12 @@ const App = () => {
             recalculateFromIndex
         );
 
-        // eslint-disable-next-line no-debugger
-        debugger;
+        // debugger;
 
-        console.log(
-            'Final updated data after recalculation:',
-            JSON.stringify(updatedData, null, 2)
-        );
+        // console.log(
+        //     'Final updated data after recalculation:',
+        //     JSON.stringify(updatedData, null, 2)
+        // );
 
         if (JSON.stringify(tableData) !== JSON.stringify(updatedData)) {
             setTableData(updatedData); // Only update state if there is a change
@@ -372,6 +363,7 @@ const App = () => {
         setAge(e.target.value === '' ? '' : parseFloat(e.target.value));
 
     const handleFieldChange = (index, field, value, data) => {
+        debugger;
         console.log(
             `handleFieldChange called for field: ${field} with value: ${value}`
         );
@@ -422,6 +414,7 @@ const App = () => {
 
         setTableData(newData);
         setRecalcTrigger((prev) => prev + 1);
+        debugger;
         console.log('RecalcTrigger incremented');
 
         return newData;
@@ -495,36 +488,37 @@ const App = () => {
         );
 
         setRecalcTrigger((prev) => prev + 1);
+        debugger;
         console.log('RecalcTrigger incremented');
     };
 
     const handleRowClick = (index) => {
         const clickedMonth = tableData[index].month;
-        console.log(`Row clicked: Index ${index}, Month: ${clickedMonth}`);
+        // console.log(`Row clicked: Index ${index}, Month: ${clickedMonth}`);
 
-        console.log('Current state of all rows before update:');
-        tableData.forEach((row, idx) => {
-            console.log(
-                `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
-            );
-        });
+        // console.log('Current state of all rows before update:');
+        // tableData.forEach((row, idx) => {
+        //     console.log(
+        //         `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
+        //     );
+        // });
 
         const updatedTableData = tableData.map((row, idx) => {
             if (row.month === clickedMonth) {
-                console.log(
-                    `Toggling isActive for index ${idx}: currently ${row.isActive}`
-                );
+                // console.log(
+                //     `Toggling isActive for index ${idx}: currently ${row.isActive}`
+                // );
                 return { ...row, isActive: idx === index };
             }
             return row;
         });
 
-        console.log('Updated state of all rows after update:');
-        updatedTableData.forEach((row, idx) => {
-            console.log(
-                `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
-            );
-        });
+        // console.log('Updated state of all rows after update:');
+        // updatedTableData.forEach((row, idx) => {
+        //     console.log(
+        //         `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
+        //     );
+        // });
 
         // const recalculatedData = recalculateFromIndex(
         //     updatedTableData.filter((row) => row.isActive), // Filter for active rows
@@ -555,7 +549,7 @@ const App = () => {
         );
 
         setRecalcTrigger((prev) => prev + 1);
-
+        debugger;
         console.log('RecalcTrigger incremented');
     };
 

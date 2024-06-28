@@ -36,7 +36,7 @@ export const recalculateFromIndex = (
     let runningTotalInvestments =
         startIndex === 0 ? 0 : data[startIndex - 1].totalInvestments;
 
-    console.log(`Logging ALL data length: ${data.length}`);
+    // console.log(`Logging ALL data length: ${data.length}`);
 
     // console.log(`Recalculating from index: ${startIndex}`);
     // console.log(`Initial runningTotalSavings: ${runningTotalSavings}`);
@@ -45,7 +45,7 @@ export const recalculateFromIndex = (
 
     const activeData = data.filter((row) => row.isActive);
 
-    console.log(`Logging ACTIVE data length: ${activeData.length}`);
+    // console.log(`Logging ACTIVE data length: ${activeData.length}`);
 
     for (let i = startIndex; i < activeData.length; i++) {
         const entry = activeData[i];
@@ -105,10 +105,10 @@ export const recalculateFromIndex = (
         // );
     }
 
-    console.log(
-        `Final data after recalculation:`,
-        JSON.stringify(data, null, 2)
-    );
+    // console.log(
+    //     `Final data after recalculation:`,
+    //     JSON.stringify(data, null, 2)
+    // );
 
     return data;
 };

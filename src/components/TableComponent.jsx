@@ -1,3 +1,4 @@
+/* eslint-disable no-debugger */
 import { useState, useEffect, useRef } from 'react';
 import { formatNumber } from '../utils/formatUtils';
 import addIcon from '../assets/add.svg';
@@ -20,10 +21,10 @@ const TableComponent = ({
         if (prevDataRef.current) {
             const prevData = prevDataRef.current;
             if (JSON.stringify(prevData) !== JSON.stringify(data)) {
-                console.log(
-                    'TableComponent received data:',
-                    JSON.stringify(data, null, 2)
-                );
+                // console.log(
+                //     'TableComponent received data:',
+                //     JSON.stringify(data, null, 2)
+                // );
             }
         }
         prevDataRef.current = data;
@@ -62,9 +63,11 @@ const TableComponent = ({
         e.stopPropagation();
         setFocusedIndex(index);
         setFocusedField(field);
+        // debugger;
     };
 
-    const handleBlur = (index, field, value) => {
+    const handleBlur = (index, field, value, e) => {
+        e.stopPropagation();
         const numericValue =
             field === 'goal'
                 ? value
@@ -83,12 +86,14 @@ const TableComponent = ({
         setFocusedField(null);
     };
 
-    const handleChange = (index, field, value) => {
+    const handleChange = (index, field, value, e) => {
+        e.stopPropagation();
         setInputValues((current) =>
             current.map((item, idx) =>
                 idx === index ? { ...item, [field]: value } : item
             )
         );
+        debugger;
     };
 
     return (
