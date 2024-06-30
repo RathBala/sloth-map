@@ -76,20 +76,23 @@ const App = () => {
         trackChange = true,
         isManual = false
     ) => {
-        console.log(
-            `updateField called for index: ${index}, field: ${field}, value: ${value}, trackChange: ${trackChange}, isManual: ${isManual}`
-        );
-        console.log('Data before update:', JSON.stringify(data, null, 2));
+        // console.log(
+        //     `updateField called for index: ${index}, field: ${field}, value: ${value}, trackChange: ${trackChange}, isManual: ${isManual}`
+        // );
+        // console.log('Data before update:', JSON.stringify(data, null, 2));
+        debugger;
 
         let updatedData = [...data];
 
         updatedData[index] = { ...updatedData[index], [field]: value };
 
-        console.log(`Updated row ${index} with ${field}: ${value}`);
-        console.log(
-            `Data after immediate update of row ${index}:`,
-            JSON.stringify(updatedData, null, 2)
-        );
+        debugger;
+
+        // console.log(`Updated row ${index} with ${field}: ${value}`);
+        // console.log(
+        //     `Data after immediate update of row ${index}:`,
+        //     JSON.stringify(updatedData, null, 2)
+        // );
 
         if (field === 'depositSavings' || field === 'depositInvestments') {
             const currentMonth = updatedData[index].month;
@@ -97,6 +100,8 @@ const App = () => {
                 (row, idx) =>
                     idx > index && row.isActive && row.month !== currentMonth
             );
+
+            debugger;
 
             if (nextActiveIndex !== -1) {
                 for (let i = nextActiveIndex; i < updatedData.length; i++) {
@@ -107,18 +112,12 @@ const App = () => {
                             !updatedData[i].isTotalInvestmentsManual)
                     ) {
                         updatedData[i][field] = value;
-                        console.log(
-                            `Propagated ${field}: ${value} to row ${i}, month: ${updatedData[i].month}`
-                        );
                     }
                 }
             }
         }
 
-        console.log(
-            'Data after field update:',
-            JSON.stringify(updatedData, null, 2)
-        );
+        debugger;
 
         if (trackChange) {
             const [monthName, year] = updatedData[index].month.split(' ');
@@ -147,6 +146,8 @@ const App = () => {
                 return prevChanges;
             });
         }
+
+        debugger;
 
         return updatedData;
     };
@@ -276,7 +277,7 @@ const App = () => {
             });
 
             if (monthIndex !== -1) {
-                // debugger;
+                debugger;
 
                 for (const [field, value] of Object.entries(changes)) {
                     updatedData = updateField(
@@ -289,7 +290,7 @@ const App = () => {
                     );
                 }
 
-                // debugger;
+                debugger;
 
                 if (
                     Object.prototype.hasOwnProperty.call(
@@ -317,11 +318,11 @@ const App = () => {
             }
         }
 
-        // debugger;
+        debugger;
 
         updatedData = adjustGoals(updatedData);
 
-        // debugger;
+        debugger;
 
         updatedData = ensureNestEgg(
             targetNestEgg,
@@ -331,7 +332,7 @@ const App = () => {
             recalculateFromIndex
         );
 
-        // debugger;
+        debugger;
 
         // console.log(
         //     'Final updated data after recalculation:',
@@ -493,6 +494,7 @@ const App = () => {
     };
 
     const handleRowClick = (index) => {
+        console.log(`Row click event at index ${index}`); //added
         const clickedMonth = tableData[index].month;
         // console.log(`Row clicked: Index ${index}, Month: ${clickedMonth}`);
 

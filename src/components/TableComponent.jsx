@@ -59,15 +59,13 @@ const TableComponent = ({
         );
     }, [data]);
 
-    const handleFocus = (index, field, e) => {
-        e.stopPropagation();
+    const handleFocus = (index, field) => {
+        console.log(`Focus event on ${field} at index ${index}`);
         setFocusedIndex(index);
         setFocusedField(field);
-        // debugger;
     };
 
-    const handleBlur = (index, field, value, e) => {
-        e.stopPropagation();
+    const handleBlur = (index, field, value) => {
         const numericValue =
             field === 'goal'
                 ? value
@@ -86,14 +84,20 @@ const TableComponent = ({
         setFocusedField(null);
     };
 
-    const handleChange = (index, field, value, e) => {
-        e.stopPropagation();
+    const handleChange = (index, field, value) => {
         setInputValues((current) =>
             current.map((item, idx) =>
                 idx === index ? { ...item, [field]: value } : item
             )
         );
-        debugger;
+    };
+
+    const handleInputInteraction = (index, field, e) => {
+        console.log(`Interaction event on ${field} at index ${index}`);
+        e.stopPropagation();
+        if (field === 'depositSavings' && e.type === 'focus') {
+            handleFocus(index, field, e);
+        }
     };
 
     return (
@@ -159,7 +163,18 @@ const TableComponent = ({
                                         : formatNumber(row.depositSavings || '')
                                 }
                                 onFocus={(e) =>
-                                    handleFocus(index, 'depositSavings', e)
+                                    handleInputInteraction(
+                                        index,
+                                        'depositSavings',
+                                        e
+                                    )
+                                }
+                                onClick={(e) =>
+                                    handleInputInteraction(
+                                        index,
+                                        'depositSavings',
+                                        e
+                                    )
                                 }
                                 onChange={(e) =>
                                     handleChange(
