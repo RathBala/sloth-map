@@ -267,6 +267,8 @@ const App = () => {
 
         debugger;
 
+        // I COULD filter out inactive rows from this first, but is there a risk that it inadvertently
+        // updates the inactive row later if it becomes active again?
         for (const [monthId, changes] of Object.entries(userInputs)) {
             const monthIndex = updatedData.findIndex((row) => {
                 const [monthName, year] = row.month.split(' ');
@@ -276,7 +278,7 @@ const App = () => {
                 return rowMonthId === monthId;
             });
 
-            if (monthIndex !== -1) {
+            if (monthIndex !== -1 && updatedData[monthIndex].isActive) {
                 debugger;
 
                 for (const [field, value] of Object.entries(changes)) {
