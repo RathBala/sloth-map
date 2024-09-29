@@ -101,10 +101,27 @@ const useUserData = () => {
         }
     };
 
+    // Define a maximum number of entries that can be saved at once
+    const MAX_ALLOWED_ENTRIES = 100; // Adjust this number as needed
+
     const saveTableData = async () => {
         if (user && user.uid) {
             const userRef = doc(db, 'users', user.uid);
             const tableDataRef = collection(userRef, 'tableData');
+
+            // Get the number of entries to be saved
+            const numberOfEntries = Object.keys(userInputs).length;
+
+            // Check if the number exceeds the maximum allowed entries
+            if (numberOfEntries > MAX_ALLOWED_ENTRIES) {
+                console.error(
+                    `Attempting to save too many entries (${numberOfEntries}). Save aborted.`
+                );
+                alert(
+                    `Too many changes to save (${numberOfEntries}). Please reduce the number of changes.`
+                );
+                return; // Abort the save operation
+            }
 
             try {
                 for (const [month, fields] of Object.entries(userInputs)) {

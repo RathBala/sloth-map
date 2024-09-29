@@ -119,7 +119,7 @@ const App = () => {
 
         debugger;
 
-        if (trackChange) {
+        if (trackChange && isManual) {
             const [monthName, year] = updatedData[index].month.split(' ');
             const monthNumber =
                 new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
@@ -287,8 +287,7 @@ const App = () => {
                         monthIndex,
                         field,
                         value,
-                        false,
-                        true
+                        false
                     );
                 }
 
@@ -377,7 +376,14 @@ const App = () => {
 
         if (field === 'totalSavings' || field === 'totalInvestments') {
             const newValue = parseFloat(value);
-            newData = updateField(newData, index, field, newValue);
+            newData = updateField(
+                newData,
+                index,
+                field,
+                newValue,
+                true,
+                isManual
+            );
             shouldRecalculate = true;
             if (field === 'totalSavings') {
                 newData[index].isTotalSavingsManual = true;
