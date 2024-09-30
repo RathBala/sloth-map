@@ -54,7 +54,10 @@ const useUserData = () => {
                     userInputs[doc.id] = doc.data();
                 });
                 console.log('Manual changes from Firestore:', userInputs);
-                setUserInputs(userInputs);
+                setUserInputs((prevInputs) => ({
+                    ...prevInputs,
+                    ...userInputs,
+                }));
             } else {
                 setUserDocument(null);
             }

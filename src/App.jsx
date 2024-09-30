@@ -54,7 +54,6 @@ const App = () => {
             'Recalculating data due to change in table data or manual changes'
         );
         recalculateData();
-        debugger;
     }, [interestRate, investmentReturnRate, targetNestEgg, recalcTrigger]);
 
     useEffect(() => {
@@ -80,13 +79,9 @@ const App = () => {
         //     `updateField called for index: ${index}, field: ${field}, value: ${value}, trackChange: ${trackChange}, isManual: ${isManual}`
         // );
         // console.log('Data before update:', JSON.stringify(data, null, 2));
-        debugger;
-
         let updatedData = [...data];
 
         updatedData[index] = { ...updatedData[index], [field]: value };
-
-        debugger;
 
         // console.log(`Updated row ${index} with ${field}: ${value}`);
         // console.log(
@@ -101,23 +96,12 @@ const App = () => {
                     idx > index && row.isActive && row.month !== currentMonth
             );
 
-            debugger;
-
             if (nextActiveIndex !== -1) {
                 for (let i = nextActiveIndex; i < updatedData.length; i++) {
-                    if (
-                        (field === 'depositSavings' &&
-                            !updatedData[i].isTotalSavingsManual) ||
-                        (field === 'depositInvestments' &&
-                            !updatedData[i].isTotalInvestmentsManual)
-                    ) {
-                        updatedData[i][field] = value;
-                    }
+                    updatedData[i][field] = value;
                 }
             }
         }
-
-        debugger;
 
         if (trackChange && isManual) {
             const [monthName, year] = updatedData[index].month.split(' ');
@@ -146,8 +130,6 @@ const App = () => {
                 return prevChanges;
             });
         }
-
-        debugger;
 
         return updatedData;
     };
@@ -249,14 +231,10 @@ const App = () => {
     const recalculateData = () => {
         console.log('recalculateData called');
 
-        debugger;
-
         let updatedData = tableData.map((row) => ({
             ...row,
             isActive: row.isActive !== undefined ? row.isActive : true,
         }));
-
-        debugger;
 
         updatedData = recalculateFromIndex(
             updatedData,
@@ -264,8 +242,6 @@ const App = () => {
             interestRate,
             investmentReturnRate
         );
-
-        debugger;
 
         // I COULD filter out inactive rows from this first, but is there a risk that it inadvertently
         // updates the inactive row later if it becomes active again?
@@ -279,8 +255,6 @@ const App = () => {
             });
 
             if (monthIndex !== -1 && updatedData[monthIndex].isActive) {
-                debugger;
-
                 for (const [field, value] of Object.entries(changes)) {
                     updatedData = updateField(
                         updatedData,
@@ -290,8 +264,6 @@ const App = () => {
                         false
                     );
                 }
-
-                debugger;
 
                 if (
                     Object.prototype.hasOwnProperty.call(
@@ -319,11 +291,7 @@ const App = () => {
             }
         }
 
-        debugger;
-
         updatedData = adjustGoals(updatedData);
-
-        debugger;
 
         updatedData = ensureNestEgg(
             targetNestEgg,
@@ -332,8 +300,6 @@ const App = () => {
             investmentReturnRate,
             recalculateFromIndex
         );
-
-        debugger;
 
         // console.log(
         //     'Final updated data after recalculation:',
@@ -365,7 +331,6 @@ const App = () => {
         setAge(e.target.value === '' ? '' : parseFloat(e.target.value));
 
     const handleFieldChange = (index, field, value, data) => {
-        debugger;
         console.log(
             `handleFieldChange called for field: ${field} with value: ${value}`
         );
@@ -423,7 +388,6 @@ const App = () => {
 
         setTableData(newData);
         setRecalcTrigger((prev) => prev + 1);
-        debugger;
         console.log('RecalcTrigger incremented');
 
         return newData;
@@ -497,7 +461,6 @@ const App = () => {
         );
 
         setRecalcTrigger((prev) => prev + 1);
-        debugger;
         console.log('RecalcTrigger incremented');
     };
 
@@ -559,7 +522,6 @@ const App = () => {
         );
 
         setRecalcTrigger((prev) => prev + 1);
-        debugger;
         console.log('RecalcTrigger incremented');
     };
 
