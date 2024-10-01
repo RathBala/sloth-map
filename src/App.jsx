@@ -53,17 +53,20 @@ const App = () => {
         console.log(
             'Recalculating data due to change in table data or manual changes'
         );
+        debugger;
         recalculateData();
     }, [interestRate, investmentReturnRate, targetNestEgg, recalcTrigger]);
 
     useEffect(() => {
         console.log('Manual changes detected, recalculating data');
         if (Object.keys(userInputs).length > 0) {
+            debugger;
             recalculateData();
         }
     }, [userInputs]);
 
     useEffect(() => {
+        debugger;
         recalculateData();
     }, [tableData]);
 
@@ -236,6 +239,8 @@ const App = () => {
             isActive: row.isActive !== undefined ? row.isActive : true,
         }));
 
+        debugger;
+
         updatedData = recalculateFromIndex(
             updatedData,
             0,
@@ -243,8 +248,8 @@ const App = () => {
             investmentReturnRate
         );
 
-        // I COULD filter out inactive rows from this first, but is there a risk that it inadvertently
-        // updates the inactive row later if it becomes active again?
+        debugger;
+
         for (const [monthId, changes] of Object.entries(userInputs)) {
             const monthIndex = updatedData.findIndex((row) => {
                 const [monthName, year] = row.month.split(' ');
