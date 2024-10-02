@@ -98,17 +98,7 @@ export const recalculateFromIndex = (
                 investmentReturn,
             commentary: entry.commentary,
         };
-
-        // console.log(
-        //     `Updated row ${originalIndex} after recalculation:`,
-        //     JSON.stringify(data[originalIndex], null, 2)
-        // );
     }
-
-    // console.log(
-    //     `Final data after recalculation:`,
-    //     JSON.stringify(data, null, 2)
-    // );
 
     return data;
 };

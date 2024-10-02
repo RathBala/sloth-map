@@ -34,41 +34,22 @@ const App = () => {
     } = useUserData();
 
     const [tableData, setTableData] = useState(() => generateData(500, 300, 0));
-    const [recalcTrigger, setRecalcTrigger] = useState(0);
 
     useEffect(() => {
-        console.log(
-            'Recalculating data due to change in interest rate, investment return rate, or target nest egg'
-        );
         if (
             interestRate !== null &&
             investmentReturnRate !== null &&
             targetNestEgg !== null
         ) {
-            setTableData(generateData(500, 300, 0));
-        }
-    }, [interestRate, investmentReturnRate, targetNestEgg]);
-
-    useEffect(() => {
-        console.log(
-            'Recalculating data due to change in table data or manual changes'
-        );
-        debugger;
-        recalculateData();
-    }, [interestRate, investmentReturnRate, targetNestEgg, recalcTrigger]);
-
-    useEffect(() => {
-        console.log('Manual changes detected, recalculating data');
-        if (Object.keys(userInputs).length > 0) {
-            debugger;
             recalculateData();
         }
-    }, [userInputs]);
-
-    useEffect(() => {
-        debugger;
-        recalculateData();
-    }, [tableData]);
+    }, [
+        interestRate,
+        investmentReturnRate,
+        targetNestEgg,
+        userInputs,
+        tableData,
+    ]);
 
     const updateField = (
         data,
@@ -78,19 +59,9 @@ const App = () => {
         trackChange = true,
         isManual = false
     ) => {
-        // console.log(
-        //     `updateField called for index: ${index}, field: ${field}, value: ${value}, trackChange: ${trackChange}, isManual: ${isManual}`
-        // );
-        // console.log('Data before update:', JSON.stringify(data, null, 2));
         let updatedData = [...data];
 
         updatedData[index] = { ...updatedData[index], [field]: value };
-
-        // console.log(`Updated row ${index} with ${field}: ${value}`);
-        // console.log(
-        //     `Data after immediate update of row ${index}:`,
-        //     JSON.stringify(updatedData, null, 2)
-        // );
 
         if (field === 'depositSavings' || field === 'depositInvestments') {
             const currentMonth = updatedData[index].month;
@@ -99,10 +70,37 @@ const App = () => {
                     idx > index && row.isActive && row.month !== currentMonth
             );
 
+            const monthsToUpdate = [];
+
             if (nextActiveIndex !== -1) {
                 for (let i = nextActiveIndex; i < updatedData.length; i++) {
                     updatedData[i][field] = value;
+                    monthsToUpdate.push(updatedData[i].month);
                 }
+            }
+
+            // Only remove manual changes from userInputs if the change is manual
+            if (isManual && monthsToUpdate.length > 0) {
+                setUserInputs((prevChanges) => {
+                    const newChanges = { ...prevChanges };
+                    monthsToUpdate.forEach((monthStr) => {
+                        const [monthName, year] = monthStr.split(' ');
+                        const monthNumber =
+                            new Date(
+                                Date.parse(`${monthName} 1, 2000`)
+                            ).getMonth() + 1;
+                        const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
+
+                        if (newChanges[monthId] && newChanges[monthId][field]) {
+                            // Remove the manual change for this field
+                            delete newChanges[monthId][field];
+                            if (Object.keys(newChanges[monthId]).length === 0) {
+                                delete newChanges[monthId];
+                            }
+                        }
+                    });
+                    return newChanges;
+                });
             }
         }
 
@@ -114,23 +112,11 @@ const App = () => {
 
             setUserInputs((prevChanges) => {
                 const newChanges = { ...prevChanges };
-                const existingChange =
-                    prevChanges[monthId] && prevChanges[monthId][field];
-
                 if (!newChanges[monthId]) {
                     newChanges[monthId] = {};
                 }
-
-                if (isManual && (!existingChange || existingChange !== value)) {
-                    newChanges[monthId][field] = value;
-                    console.log(
-                        'Manual changes updated:',
-                        JSON.stringify(newChanges, null, 2)
-                    );
-                    return newChanges;
-                }
-
-                return prevChanges;
+                newChanges[monthId][field] = value;
+                return newChanges;
             });
         }
 
@@ -306,11 +292,6 @@ const App = () => {
             recalculateFromIndex
         );
 
-        // console.log(
-        //     'Final updated data after recalculation:',
-        //     JSON.stringify(updatedData, null, 2)
-        // );
-
         if (JSON.stringify(tableData) !== JSON.stringify(updatedData)) {
             setTableData(updatedData); // Only update state if there is a change
         }
@@ -335,67 +316,50 @@ const App = () => {
     const handleAgeChange = (e) =>
         setAge(e.target.value === '' ? '' : parseFloat(e.target.value));
 
-    const handleFieldChange = (index, field, value, data) => {
+    const handleFieldChange = (index, field, value) => {
         console.log(
             `handleFieldChange called for field: ${field} with value: ${value}`
         );
 
-        let newData = data ? [...data] : [...tableData];
-        let shouldRecalculate = false;
-        let isManual = true;
+        // Clone the current table data to avoid mutating state directly
+        let updatedTableData = [...tableData];
 
-        if (field === 'totalSavings' || field === 'totalInvestments') {
-            const newValue = parseFloat(value);
-            newData = updateField(
-                newData,
-                index,
-                field,
-                newValue,
-                true,
-                isManual
-            );
-            shouldRecalculate = true;
-            if (field === 'totalSavings') {
-                newData[index].isTotalSavingsManual = true;
-            } else if (field === 'totalInvestments') {
-                newData[index].isTotalInvestmentsManual = true;
+        // Update the specific field in the cloned data
+        updatedTableData = updateField(
+            updatedTableData,
+            index,
+            field,
+            value,
+            true,
+            true
+        );
+
+        // Set manual flags if necessary
+        if (field === 'totalSavings') {
+            updatedTableData[index].isTotalSavingsManual = true;
+        } else if (field === 'totalInvestments') {
+            updatedTableData[index].isTotalInvestmentsManual = true;
+        }
+
+        // Update the state to reflect the change in the UI immediately
+        setTableData(updatedTableData);
+
+        // Record the manual change in userInputs
+        const [monthName, year] = updatedTableData[index].month.split(' ');
+        const monthNumber =
+            new Date(Date.parse(`${monthName} 1, 2000`)).getMonth() + 1;
+        const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
+
+        setUserInputs((prevChanges) => {
+            const newChanges = { ...prevChanges };
+            if (!newChanges[monthId]) {
+                newChanges[monthId] = {};
             }
-        } else if (
-            field === 'withdrawals' ||
-            field === 'depositSavings' ||
-            field === 'depositInvestments'
-        ) {
-            newData = updateField(
-                newData,
-                index,
-                field,
-                parseFloat(value),
-                true,
-                isManual
-            );
-            shouldRecalculate = true;
-        } else if (field === 'goal') {
-            newData = updateField(newData, index, field, value, true, isManual);
-        }
+            newChanges[monthId][field] = value;
+            return newChanges;
+        });
 
-        if (shouldRecalculate) {
-            console.log('handleFieldChange calling recalculateFromIndex');
-            newData = recalculateFromIndex(
-                newData,
-                index,
-                interestRate,
-                investmentReturnRate
-            );
-            console.log('After recalculation:', newData);
-        } else {
-            console.log('Data updated without recalculation:', newData);
-        }
-
-        setTableData(newData);
-        setRecalcTrigger((prev) => prev + 1);
-        console.log('RecalcTrigger incremented');
-
-        return newData;
+        // No need to call recalculateFromIndex or increment recalcTrigger here
     };
 
     const handleSaveClick = async () => {
@@ -417,8 +381,6 @@ const App = () => {
         totalSavedFormatted: formatNumber(entry.totalSaved),
         grandTotalFormatted: formatNumber(entry.grandTotal),
     }));
-
-    // console.log('Formatted Table Data:', formattedTableData);
 
     const slothMapData = processDataForSlothMap(formattedTableData);
 
@@ -458,76 +420,20 @@ const App = () => {
             });
 
         setTableData(updatedTableData);
-        recalculateFromIndex(
-            updatedTableData,
-            index,
-            interestRate,
-            investmentReturnRate
-        );
-
-        setRecalcTrigger((prev) => prev + 1);
-        console.log('RecalcTrigger incremented');
     };
 
     const handleRowClick = (index) => {
-        console.log(`Row click event at index ${index}`); //added
+        console.log(`Row click event at index ${index}`);
         const clickedMonth = tableData[index].month;
-        // console.log(`Row clicked: Index ${index}, Month: ${clickedMonth}`);
-
-        // console.log('Current state of all rows before update:');
-        // tableData.forEach((row, idx) => {
-        //     console.log(
-        //         `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
-        //     );
-        // });
 
         const updatedTableData = tableData.map((row, idx) => {
             if (row.month === clickedMonth) {
-                // console.log(
-                //     `Toggling isActive for index ${idx}: currently ${row.isActive}`
-                // );
                 return { ...row, isActive: idx === index };
             }
             return row;
         });
 
-        // console.log('Updated state of all rows after update:');
-        // updatedTableData.forEach((row, idx) => {
-        //     console.log(
-        //         `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
-        //     );
-        // });
-
-        // const recalculatedData = recalculateFromIndex(
-        //     updatedTableData.filter((row) => row.isActive), // Filter for active rows
-        //     index,
-        //     interestRate,
-        //     investmentReturnRate
-        // );
-
-        // const finalData = updatedTableData.map((row) => {
-        //     if (row.isActive) {
-        //         return (
-        //             recalculatedData.find(
-        //                 (activeRow) => activeRow.month === row.month
-        //             ) || row
-        //         );
-        //     }
-        //     return row;
-        // });
-
-        // setTableData(finalData);
-
         setTableData(updatedTableData);
-        recalculateFromIndex(
-            updatedTableData,
-            index,
-            interestRate,
-            investmentReturnRate
-        );
-
-        setRecalcTrigger((prev) => prev + 1);
-        console.log('RecalcTrigger incremented');
     };
 
     return (
