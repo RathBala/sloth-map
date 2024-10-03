@@ -55,15 +55,13 @@ const useUserData = () => {
 
                 const tableDataRef = collection(userRef, 'tableData');
                 const snapshot = await getDocs(tableDataRef);
-                console.log('Manual changes snapshot:', snapshot);
-                const userInputs = {};
+                const loadedUserInputs = {};
                 snapshot.forEach((doc) => {
-                    userInputs[doc.id] = doc.data();
+                    loadedUserInputs[doc.id] = doc.data();
                 });
-                console.log('Manual changes from Firestore:', userInputs);
                 setUserInputs((prevInputs) => ({
                     ...prevInputs,
-                    ...userInputs,
+                    ...loadedUserInputs,
                 }));
             } else {
                 setUserDocument(null);
@@ -111,12 +109,12 @@ const useUserData = () => {
         }
     };
 
-    const MAX_ALLOWED_ENTRIES = 100;
-
     const saveTableData = async () => {
         if (user && user.uid) {
             const userRef = doc(db, 'users', user.uid);
             const tableDataRef = collection(userRef, 'tableData');
+
+            const MAX_ALLOWED_ENTRIES = 100;
 
             const numberOfEntries = Object.keys(userInputs).length;
 
@@ -156,8 +154,8 @@ const useUserData = () => {
                 }
 
                 // Step 4: Save the current userInputs to Firestore
-                for (const [month, fields] of Object.entries(userInputs)) {
-                    const tableDataDocRef = doc(tableDataRef, month);
+                for (const [rowKey, fields] of Object.entries(userInputs)) {
+                    const tableDataDocRef = doc(tableDataRef, rowKey);
                     await setDoc(tableDataDocRef, fields, { merge: true });
                 }
                 console.log('Table data saved successfully');

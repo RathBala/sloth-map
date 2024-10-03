@@ -122,7 +122,7 @@ const TableComponent = ({
             <tbody>
                 {inputValues.map((row, index) => (
                     <tr
-                        key={index}
+                        key={row.rowKey}
                         className={
                             row.isAlt
                                 ? row.isActive

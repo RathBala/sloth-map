@@ -61,61 +61,30 @@ const App = () => {
     ) => {
         let updatedData = [...data];
 
+        // Update the specific field for the current row
         updatedData[index] = { ...updatedData[index], [field]: value };
 
+        // If the field is 'depositSavings' or 'depositInvestments', propagate the change to subsequent active rows
         if (field === 'depositSavings' || field === 'depositInvestments') {
-            const currentMonth = updatedData[index].month;
-            const nextActiveIndex = updatedData.findIndex(
-                (row, idx) =>
-                    idx > index && row.isActive && row.month !== currentMonth
-            );
-
-            const monthsToUpdate = [];
-
-            if (nextActiveIndex !== -1) {
-                for (let i = nextActiveIndex; i < updatedData.length; i++) {
-                    updatedData[i][field] = value;
-                    monthsToUpdate.push(updatedData[i].month);
+            // Start updating from the next row
+            for (let i = index + 1; i < updatedData.length; i++) {
+                if (updatedData[i].isActive) {
+                    // Clone the row before modifying
+                    updatedData[i] = { ...updatedData[i], [field]: value };
                 }
-            }
-
-            // Only remove manual changes from userInputs if the change is manual
-            if (isManual && monthsToUpdate.length > 0) {
-                setUserInputs((prevChanges) => {
-                    const newChanges = { ...prevChanges };
-                    monthsToUpdate.forEach((monthStr) => {
-                        const [monthName, year] = monthStr.split(' ');
-                        const monthNumber =
-                            new Date(
-                                Date.parse(`${monthName} 1, 2000`)
-                            ).getMonth() + 1;
-                        const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
-
-                        if (newChanges[monthId] && newChanges[monthId][field]) {
-                            // Remove the manual change for this field
-                            delete newChanges[monthId][field];
-                            if (Object.keys(newChanges[monthId]).length === 0) {
-                                delete newChanges[monthId];
-                            }
-                        }
-                    });
-                    return newChanges;
-                });
             }
         }
 
+        // Track manual changes if needed
         if (trackChange && isManual) {
-            const [monthName, year] = updatedData[index].month.split(' ');
-            const monthNumber =
-                new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
-            const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
+            const rowKey = updatedData[index].rowKey;
 
             setUserInputs((prevChanges) => {
                 const newChanges = { ...prevChanges };
-                if (!newChanges[monthId]) {
-                    newChanges[monthId] = {};
+                if (!newChanges[rowKey]) {
+                    newChanges[rowKey] = {};
                 }
-                newChanges[monthId][field] = value;
+                newChanges[rowKey][field] = value;
                 return newChanges;
             });
         }
@@ -133,6 +102,7 @@ const App = () => {
                     goal: entry.goal,
                     withdrawals: entry.withdrawals,
                     originalIndex: index,
+                    id: entry.id,
                     month: entry.month,
                 });
 
@@ -162,7 +132,7 @@ const App = () => {
             investmentReturnRate
         );
 
-        goals.sort((a, b) => new Date(a.month) - new Date(b.month));
+        goals.sort((a, b) => a.originalIndex - b.originalIndex);
 
         goals.forEach((goal) => {
             let withdrawalAmount = goal.withdrawals;
@@ -225,8 +195,6 @@ const App = () => {
             isActive: row.isActive !== undefined ? row.isActive : true,
         }));
 
-        debugger;
-
         updatedData = recalculateFromIndex(
             updatedData,
             0,
@@ -234,35 +202,30 @@ const App = () => {
             investmentReturnRate
         );
 
-        debugger;
+        for (const [rowKey, changes] of Object.entries(userInputs)) {
+            const rowIndex = updatedData.findIndex(
+                (row) => row.rowKey === rowKey
+            );
 
-        for (const [monthId, changes] of Object.entries(userInputs)) {
-            const monthIndex = updatedData.findIndex((row) => {
-                const [monthName, year] = row.month.split(' ');
-                const monthNumber =
-                    new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
-                const rowMonthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
-                return rowMonthId === monthId;
-            });
-
-            if (monthIndex !== -1 && updatedData[monthIndex].isActive) {
+            if (rowIndex !== -1 && updatedData[rowIndex].isActive) {
                 for (const [field, value] of Object.entries(changes)) {
                     updatedData = updateField(
                         updatedData,
-                        monthIndex,
+                        rowIndex,
                         field,
                         value,
                         false
                     );
                 }
 
+                // Set manual flags if necessary
                 if (
                     Object.prototype.hasOwnProperty.call(
                         changes,
                         'totalSavings'
                     )
                 ) {
-                    updatedData[monthIndex].isTotalSavingsManual = true;
+                    updatedData[rowIndex].isTotalSavingsManual = true;
                 }
                 if (
                     Object.prototype.hasOwnProperty.call(
@@ -270,12 +233,12 @@ const App = () => {
                         'totalInvestments'
                     )
                 ) {
-                    updatedData[monthIndex].isTotalInvestmentsManual = true;
+                    updatedData[rowIndex].isTotalInvestmentsManual = true;
                 }
 
                 updatedData = recalculateFromIndex(
                     updatedData,
-                    monthIndex,
+                    rowIndex,
                     interestRate,
                     investmentReturnRate
                 );
@@ -345,21 +308,16 @@ const App = () => {
         setTableData(updatedTableData);
 
         // Record the manual change in userInputs
-        const [monthName, year] = updatedTableData[index].month.split(' ');
-        const monthNumber =
-            new Date(Date.parse(`${monthName} 1, 2000`)).getMonth() + 1;
-        const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
+        const rowKey = updatedTableData[index].rowKey;
 
         setUserInputs((prevChanges) => {
             const newChanges = { ...prevChanges };
-            if (!newChanges[monthId]) {
-                newChanges[monthId] = {};
+            if (!newChanges[rowKey]) {
+                newChanges[rowKey] = {};
             }
-            newChanges[monthId][field] = value;
+            newChanges[rowKey][field] = value;
             return newChanges;
         });
-
-        // No need to call recalculateFromIndex or increment recalcTrigger here
     };
 
     const handleSaveClick = async () => {
@@ -391,11 +349,28 @@ const App = () => {
 
     const addAltScenario = (index) => {
         const clickedMonth = tableData[index].month;
+
         console.log(
             `Adding new altScenario for month: ${clickedMonth}, based on row index: ${index}`
         );
 
-        const newRow = { ...tableData[index], isAlt: true, isActive: true };
+        const variantsForMonth = tableData.filter(
+            (row) => row.month === clickedMonth
+        );
+        const maxVariantIndex = Math.max(
+            ...variantsForMonth.map((row) => row.variantIndex)
+        );
+
+        const newVariantIndex = maxVariantIndex + 1;
+
+        const newRow = {
+            ...tableData[index],
+            variantIndex: newVariantIndex,
+            rowKey: `${clickedMonth}-${newVariantIndex}`,
+            isAlt: true,
+            isActive: true,
+        };
+
         console.log(`New altScenario row created from index ${index}:`, newRow);
 
         let updatedTableData = [
@@ -404,31 +379,26 @@ const App = () => {
             ...tableData.slice(index + 1),
         ];
 
-        updatedTableData = updatedTableData.map((row, i) => ({
-            ...row,
-            isActive:
-                row.month === clickedMonth ? i === index + 1 : row.isActive,
-        }));
-
-        console.log(`Updated states for month ${clickedMonth}:`);
-        updatedTableData
-            .filter((row) => row.month === clickedMonth)
-            .forEach((row) => {
-                console.log(
-                    `Row index ${updatedTableData.indexOf(row)}: isActive = ${row.isActive}`
-                );
-            });
+        updatedTableData = updatedTableData.map((row) => {
+            if (row.month === clickedMonth) {
+                return { ...row, isActive: row.rowKey === newRow.rowKey };
+            }
+            return row;
+        });
 
         setTableData(updatedTableData);
     };
 
     const handleRowClick = (index) => {
-        console.log(`Row click event at index ${index}`);
-        const clickedMonth = tableData[index].month;
+        const clickedRow = tableData[index];
 
-        const updatedTableData = tableData.map((row, idx) => {
-            if (row.month === clickedMonth) {
-                return { ...row, isActive: idx === index };
+        const updatedTableData = tableData.map((row) => {
+            if (row.month === clickedRow.month && row.id !== clickedRow.id) {
+                // Deactivate other rows with the same month
+                return { ...row, isActive: false };
+            } else if (row.id === clickedRow.id) {
+                // Activate the clicked row
+                return { ...row, isActive: true };
             }
             return row;
         });
@@ -522,7 +492,7 @@ const processDataForSlothMap = (data) => {
             current.depositSavings !== previous.depositSavings
         ) {
             nodes.push({
-                id: current.month,
+                id: current.id,
                 type: 'rect',
                 text: `Save £${current.depositSavings} in savings; Save £${current.depositInvestments} in investments`,
                 date: current.month,
@@ -531,7 +501,7 @@ const processDataForSlothMap = (data) => {
         }
         if (current.withdrawals > 0) {
             nodes.push({
-                id: current.month,
+                id: current.id,
                 type: 'circle',
                 text: `${current.goal || 'Withdrawal'} for £${current.withdrawals}`,
                 date: current.month,

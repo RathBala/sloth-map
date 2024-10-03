@@ -8,6 +8,8 @@ export const generateData = (savings, investments, withdrawals) => {
     return [
         {
             month: currentMonth,
+            variantIndex: 0,
+            rowKey: `${currentMonth}-0`,
             depositSavings: savings,
             depositInvestments: investments,
             withdrawals: withdrawals,
@@ -31,30 +33,23 @@ export const recalculateFromIndex = (
     interestRate,
     investmentReturnRate
 ) => {
+    let updatedData = [...data];
+
     let runningTotalSavings =
-        startIndex === 0 ? 0 : data[startIndex - 1].totalSavings;
+        startIndex === 0 ? 0 : updatedData[startIndex - 1].totalSavings;
     let runningTotalInvestments =
-        startIndex === 0 ? 0 : data[startIndex - 1].totalInvestments;
+        startIndex === 0 ? 0 : updatedData[startIndex - 1].totalInvestments;
 
-    // console.log(`Logging ALL data length: ${data.length}`);
+    for (let i = startIndex; i < updatedData.length; i++) {
+        const entry = updatedData[i];
 
-    // console.log(`Recalculating from index: ${startIndex}`);
-    // console.log(`Initial runningTotalSavings: ${runningTotalSavings}`);
-    // console.log(`Initial runningTotalInvestments: ${runningTotalInvestments}`);
-    // console.log(`Data before recalculation:`, JSON.stringify(data, null, 2));
-
-    const activeData = data.filter((row) => row.isActive);
-
-    // console.log(`Logging ACTIVE data length: ${activeData.length}`);
-
-    for (let i = startIndex; i < activeData.length; i++) {
-        const entry = activeData[i];
-
-        // console.log(`Processing row ${i}:`, JSON.stringify(entry, null, 2));
+        if (!entry.isActive) {
+            continue;
+        }
 
         if (i > 0) {
-            runningTotalSavings += activeData[i - 1].interestReturn;
-            runningTotalInvestments += activeData[i - 1].investmentReturn;
+            runningTotalSavings += updatedData[i - 1].interestReturn;
+            runningTotalInvestments += updatedData[i - 1].investmentReturn;
         }
 
         if (!entry.isTotalSavingsManual) {
@@ -80,11 +75,7 @@ export const recalculateFromIndex = (
         const investmentReturn =
             runningTotalInvestments * (investmentReturnRate / 12 / 100);
 
-        const originalIndex = data.findIndex(
-            (row) => row.month === entry.month && row.isActive
-        );
-
-        data[originalIndex] = {
+        updatedData[i] = {
             ...entry,
             totalSavings: runningTotalSavings,
             totalInvestments: runningTotalInvestments,
@@ -100,7 +91,7 @@ export const recalculateFromIndex = (
         };
     }
 
-    return data;
+    return updatedData;
 };
 
 export const ensureNestEgg = (
@@ -122,6 +113,8 @@ export const ensureNestEgg = (
         while (lastTotal < target && iterations < 1000) {
             const newEntry = {
                 month: getNextMonth(data[data.length - 1].month),
+                variantIndex: 0,
+                rowKey: `${getNextMonth(data[data.length - 1].month)}-0`,
                 depositSavings: data[data.length - 1].depositSavings,
                 depositInvestments: data[data.length - 1].depositInvestments,
                 withdrawals: data[data.length - 1].withdrawals,
@@ -148,6 +141,8 @@ export const ensureNestEgg = (
     if (data.length > 1 && data[data.length - 1].grandTotal < target) {
         const newEntry = {
             month: getNextMonth(data[data.length - 1].month),
+            variantIndex: 0,
+            rowKey: `${getNextMonth(data[data.length - 1].month)}-0`,
             depositSavings: data[data.length - 1].depositSavings,
             depositInvestments: data[data.length - 1].depositInvestments,
             withdrawals: data[data.length - 1].withdrawals,
