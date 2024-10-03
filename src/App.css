@@ -26,11 +26,11 @@ th {
     background-color: #fff3cd;
 }
 
-.alt-scenario.inactive {
+.inactive {
     opacity: 0.3;
 }
 
-.alt-scenario.active {
+.active {
     opacity: 1;
 }
 

@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 import { auth, db } from '../firebase-config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    setDoc,
+    deleteDoc,
+} from 'firebase/firestore';
 
 const useUserData = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -104,18 +111,15 @@ const useUserData = () => {
         }
     };
 
-    // Define a maximum number of entries that can be saved at once
-    const MAX_ALLOWED_ENTRIES = 100; // Adjust this number as needed
+    const MAX_ALLOWED_ENTRIES = 100;
 
     const saveTableData = async () => {
         if (user && user.uid) {
             const userRef = doc(db, 'users', user.uid);
             const tableDataRef = collection(userRef, 'tableData');
 
-            // Get the number of entries to be saved
             const numberOfEntries = Object.keys(userInputs).length;
 
-            // Check if the number exceeds the maximum allowed entries
             if (numberOfEntries > MAX_ALLOWED_ENTRIES) {
                 console.error(
                     `Attempting to save too many entries (${numberOfEntries}). Save aborted.`
@@ -123,10 +127,35 @@ const useUserData = () => {
                 alert(
                     `Too many changes to save (${numberOfEntries}). Please reduce the number of changes.`
                 );
-                return; // Abort the save operation
+                return;
             }
 
             try {
+                // Step 1: Fetch all existing documents in 'tableData' collection
+                const existingDocsSnapshot = await getDocs(tableDataRef);
+                const existingDocIds = new Set();
+                existingDocsSnapshot.forEach((doc) => {
+                    existingDocIds.add(doc.id);
+                });
+
+                // Step 2: Create a set of userInputs IDs
+                const userInputIds = new Set(Object.keys(userInputs));
+
+                // Step 3: Identify documents that need to be deleted
+                const docsToDelete = [...existingDocIds].filter(
+                    (id) => !userInputIds.has(id)
+                );
+
+                // Delete the documents that are no longer in userInputs
+                for (const docId of docsToDelete) {
+                    const docRef = doc(tableDataRef, docId);
+                    await deleteDoc(docRef);
+                    console.log(
+                        `Deleted document with ID ${docId} from Firestore`
+                    );
+                }
+
+                // Step 4: Save the current userInputs to Firestore
                 for (const [month, fields] of Object.entries(userInputs)) {
                     const tableDataDocRef = doc(tableDataRef, month);
                     await setDoc(tableDataDocRef, fields, { merge: true });
