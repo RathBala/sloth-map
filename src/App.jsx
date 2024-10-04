@@ -219,21 +219,18 @@ const App = () => {
                 }
 
                 // Set manual flags if necessary
-                if (
-                    Object.prototype.hasOwnProperty.call(
-                        changes,
-                        'totalSavings'
-                    )
-                ) {
+                if (field === 'totalSavings') {
                     updatedData[rowIndex].isTotalSavingsManual = true;
-                }
-                if (
-                    Object.prototype.hasOwnProperty.call(
-                        changes,
-                        'totalInvestments'
-                    )
-                ) {
+                } else if (field === 'totalInvestments') {
                     updatedData[rowIndex].isTotalInvestmentsManual = true;
+                } else if (field === 'depositSavings') {
+                    updatedData[rowIndex].isDepositSavingsManual = true;
+                } else if (field === 'depositInvestments') {
+                    updatedData[rowIndex].isDepositInvestmentsManual = true;
+                }
+
+                // Set the isManualFromFirestore flag
+                updatedData[rowIndex].isManualFromFirestore = true;
                 }
 
                 updatedData = recalculateFromIndex(
