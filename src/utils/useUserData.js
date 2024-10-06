@@ -136,12 +136,12 @@ const useUserData = () => {
                     existingDocIds.add(doc.id);
                 });
 
-                // Step 2: Create a set of userInputs IDs
-                const userInputIds = new Set(Object.keys(userInputs));
+                // Step 2: Create a set of IDs from current userInputs
+                const currentUserInputIds = new Set(Object.keys(userInputs));
 
                 // Step 3: Identify documents that need to be deleted
                 const docsToDelete = [...existingDocIds].filter(
-                    (id) => !userInputIds.has(id)
+                    (id) => !currentUserInputIds.has(id)
                 );
 
                 // Delete the documents that are no longer in userInputs
@@ -153,7 +153,7 @@ const useUserData = () => {
                     );
                 }
 
-                // Step 4: Save the current userInputs to Firestore
+                // Step 4: Save only the entries in userInputs
                 for (const [rowKey, fields] of Object.entries(userInputs)) {
                     const tableDataDocRef = doc(tableDataRef, rowKey);
                     await setDoc(tableDataDocRef, fields, { merge: true });

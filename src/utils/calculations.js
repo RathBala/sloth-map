@@ -128,6 +128,12 @@ export const ensureNestEgg = (
                 investmentReturn: 0,
                 grandTotal: 0,
                 commentary: '',
+                isDepositSavingsManual: false,
+                isDepositInvestmentsManual: false,
+                isManualFromFirestore: false,
+                isTotalSavingsManual: false,
+                isTotalInvestmentsManual: false,
+                isActive: true,
             };
             data = [...data, newEntry];
             data = recalculate(
@@ -156,6 +162,12 @@ export const ensureNestEgg = (
             investmentReturn: 0,
             grandTotal: 0,
             commentary: '',
+            isDepositSavingsManual: false,
+            isDepositInvestmentsManual: false,
+            isManualFromFirestore: false,
+            isTotalSavingsManual: false,
+            isTotalInvestmentsManual: false,
+            isActive: true,
         };
         data.push(newEntry);
         data = recalculate(

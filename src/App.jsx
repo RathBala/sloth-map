@@ -61,21 +61,8 @@ const App = () => {
     ) => {
         let updatedData = [...data];
 
-        // Update the specific field for the current row
         updatedData[index] = { ...updatedData[index], [field]: value };
 
-        // If the field is 'depositSavings' or 'depositInvestments', propagate the change to subsequent active rows
-        if (field === 'depositSavings' || field === 'depositInvestments') {
-            // Start updating from the next row
-            for (let i = index + 1; i < updatedData.length; i++) {
-                if (updatedData[i].isActive) {
-                    // Clone the row before modifying
-                    updatedData[i] = { ...updatedData[i], [field]: value };
-                }
-            }
-        }
-
-        // Track manual changes if needed
         if (trackChange && isManual) {
             const rowKey = updatedData[index].rowKey;
 
@@ -87,6 +74,57 @@ const App = () => {
                 newChanges[rowKey][field] = value;
                 return newChanges;
             });
+
+            if (field === 'depositSavings') {
+                updatedData[index].isDepositSavingsManual = true;
+            } else if (field === 'depositInvestments') {
+                updatedData[index].isDepositInvestmentsManual = true;
+            }
+
+            updatedData[index].isManualFromFirestore = false;
+        }
+
+        if (field === 'depositSavings' || field === 'depositInvestments') {
+            const isManualField =
+                field === 'depositSavings'
+                    ? 'isDepositSavingsManual'
+                    : 'isDepositInvestmentsManual';
+
+            for (let i = index + 1; i < updatedData.length; i++) {
+                if (updatedData[i].isActive) {
+                    if (isManual) {
+                        // For current manual changes, overwrite all subsequent rows
+                        // Remove any manual flags and userInputs
+                        updatedData[i] = { ...updatedData[i], [field]: value };
+                        updatedData[i][isManualField] = false;
+                        updatedData[i].isManualFromFirestore = false;
+
+                        // Remove manual changes for this field in userInputs
+                        const rowKey = updatedData[i].rowKey;
+                        setUserInputs((prevChanges) => {
+                            const newChanges = { ...prevChanges };
+                            if (
+                                newChanges[rowKey] &&
+                                newChanges[rowKey][field] !== undefined
+                            ) {
+                                delete newChanges[rowKey][field];
+                                if (
+                                    Object.keys(newChanges[rowKey]).length === 0
+                                ) {
+                                    delete newChanges[rowKey];
+                                }
+                            }
+                            return newChanges;
+                        });
+                    } else {
+                        // For initial load, stop propagation at any manual change
+                        if (updatedData[i][isManualField]) {
+                            break;
+                        }
+                        updatedData[i] = { ...updatedData[i], [field]: value };
+                    }
+                }
+            }
         }
 
         return updatedData;
@@ -216,21 +254,20 @@ const App = () => {
                         value,
                         false
                     );
-                }
 
-                // Set manual flags if necessary
-                if (field === 'totalSavings') {
-                    updatedData[rowIndex].isTotalSavingsManual = true;
-                } else if (field === 'totalInvestments') {
-                    updatedData[rowIndex].isTotalInvestmentsManual = true;
-                } else if (field === 'depositSavings') {
-                    updatedData[rowIndex].isDepositSavingsManual = true;
-                } else if (field === 'depositInvestments') {
-                    updatedData[rowIndex].isDepositInvestmentsManual = true;
-                }
+                    // Set manual flags if necessary
+                    if (field === 'totalSavings') {
+                        updatedData[rowIndex].isTotalSavingsManual = true;
+                    } else if (field === 'totalInvestments') {
+                        updatedData[rowIndex].isTotalInvestmentsManual = true;
+                    } else if (field === 'depositSavings') {
+                        updatedData[rowIndex].isDepositSavingsManual = true;
+                    } else if (field === 'depositInvestments') {
+                        updatedData[rowIndex].isDepositInvestmentsManual = true;
+                    }
 
-                // Set the isManualFromFirestore flag
-                updatedData[rowIndex].isManualFromFirestore = true;
+                    // Set the isManualFromFirestore flag
+                    updatedData[rowIndex].isManualFromFirestore = true;
                 }
 
                 updatedData = recalculateFromIndex(
@@ -281,10 +318,8 @@ const App = () => {
             `handleFieldChange called for field: ${field} with value: ${value}`
         );
 
-        // Clone the current table data to avoid mutating state directly
         let updatedTableData = [...tableData];
 
-        // Update the specific field in the cloned data
         updatedTableData = updateField(
             updatedTableData,
             index,
@@ -294,27 +329,7 @@ const App = () => {
             true
         );
 
-        // Set manual flags if necessary
-        if (field === 'totalSavings') {
-            updatedTableData[index].isTotalSavingsManual = true;
-        } else if (field === 'totalInvestments') {
-            updatedTableData[index].isTotalInvestmentsManual = true;
-        }
-
-        // Update the state to reflect the change in the UI immediately
         setTableData(updatedTableData);
-
-        // Record the manual change in userInputs
-        const rowKey = updatedTableData[index].rowKey;
-
-        setUserInputs((prevChanges) => {
-            const newChanges = { ...prevChanges };
-            if (!newChanges[rowKey]) {
-                newChanges[rowKey] = {};
-            }
-            newChanges[rowKey][field] = value;
-            return newChanges;
-        });
     };
 
     const handleSaveClick = async () => {
@@ -366,6 +381,16 @@ const App = () => {
             rowKey: `${clickedMonth}-${newVariantIndex}`,
             isAlt: true,
             isActive: true,
+            isDepositSavingsManual:
+                tableData[index].isDepositSavingsManual || false,
+            isDepositInvestmentsManual:
+                tableData[index].isDepositInvestmentsManual || false,
+            isManualFromFirestore:
+                tableData[index].isManualFromFirestore || false,
+            isTotalSavingsManual:
+                tableData[index].isTotalSavingsManual || false,
+            isTotalInvestmentsManual:
+                tableData[index].isTotalInvestmentsManual || false,
         };
 
         console.log(`New altScenario row created from index ${index}:`, newRow);
