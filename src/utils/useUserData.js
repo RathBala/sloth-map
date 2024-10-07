@@ -21,6 +21,8 @@ const useUserData = () => {
     const [age, setAge] = useState(null);
     const [userInputs, setUserInputs] = useState({});
 
+    const [rowsToDelete, setRowsToDelete] = useState([]);
+
     const calculateAge = (dateOfBirth) => {
         const dob = new Date(dateOfBirth.seconds * 1000);
         const ageDifMs = Date.now() - dob.getTime();
@@ -141,7 +143,9 @@ const useUserData = () => {
 
                 // Step 3: Identify documents that need to be deleted
                 const docsToDelete = [...existingDocIds].filter(
-                    (id) => !currentUserInputIds.has(id)
+                    (id) =>
+                        !currentUserInputIds.has(id) ||
+                        rowsToDelete.includes(id)
                 );
 
                 // Delete the documents that are no longer in userInputs
@@ -159,6 +163,8 @@ const useUserData = () => {
                     await setDoc(tableDataDocRef, fields, { merge: true });
                 }
                 console.log('Table data saved successfully');
+
+                setRowsToDelete([]);
             } catch (error) {
                 console.error('Error saving table data:', error);
             }
@@ -187,6 +193,7 @@ const useUserData = () => {
         saveInputFields,
         saveTableData,
         logout,
+        setRowsToDelete,
     };
 };
 

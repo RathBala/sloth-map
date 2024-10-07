@@ -1,9 +1,9 @@
 export const generateData = (savings, investments, withdrawals) => {
     const today = new Date();
     const currentMonth =
-        today.toLocaleString('default', { month: 'long' }) +
-        ' ' +
-        today.getFullYear();
+        today.getFullYear() +
+        '-' +
+        String(today.getMonth() + 1).padStart(2, '0');
 
     return [
         {
@@ -182,15 +182,10 @@ export const ensureNestEgg = (
 };
 
 export const getNextMonth = (currentMonth) => {
-    const dateParts = currentMonth.split(' ');
-    const month = dateParts[0];
-    const year = parseInt(dateParts[1], 10);
-
-    const date = new Date(`${month} 1, ${year}`);
+    const [year, month] = currentMonth.split('-').map(Number);
+    const date = new Date(year, month - 1); // Adjust for zero-based month index
     date.setMonth(date.getMonth() + 1);
-    return (
-        date.toLocaleString('default', { month: 'long' }) +
-        ' ' +
-        date.getFullYear()
-    );
+    const nextYear = date.getFullYear();
+    const nextMonth = String(date.getMonth() + 1).padStart(2, '0');
+    return `${nextYear}-${nextMonth}`;
 };

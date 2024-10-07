@@ -1,6 +1,6 @@
 /* eslint-disable no-debugger */
 import { useState, useEffect, useRef } from 'react';
-import { formatNumber } from '../utils/formatUtils';
+import { formatNumber, formatMonth } from '../utils/formatUtils';
 import addIcon from '../assets/add.svg';
 
 const TableComponent = ({
@@ -12,10 +12,9 @@ const TableComponent = ({
 }) => {
     const prevDataRef = useRef();
     const today = new Date();
-    const currentMonth =
-        today.toLocaleString('default', { month: 'long' }) +
-        ' ' +
-        today.getFullYear();
+    const currentMonth = `${today.getFullYear()}-${String(
+        today.getMonth() + 1
+    ).padStart(2, '0')}`;
 
     useEffect(() => {
         if (prevDataRef.current) {
@@ -152,7 +151,7 @@ const TableComponent = ({
                                 }}
                             />{' '}
                         </td>
-                        <td>{row.month}</td>
+                        <td>{formatMonth(row.month)}</td>
                         <td>
                             <input
                                 type="text"

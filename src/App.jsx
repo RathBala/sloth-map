@@ -5,7 +5,7 @@ import TableComponent from './components/TableComponent';
 import InputFields from './components/InputFields';
 import Authentication from './components/Auth';
 import SlothMap from './components/SlothMap';
-import { formatNumber } from './utils/formatUtils';
+import { formatNumber, formatMonth } from './utils/formatUtils';
 import useUserData from './utils/useUserData';
 import {
     generateData,
@@ -31,6 +31,7 @@ const App = () => {
         saveInputFields,
         saveTableData,
         logout,
+        setRowsToDelete,
     } = useUserData();
 
     const [tableData, setTableData] = useState(() => generateData(500, 300, 0));
@@ -116,6 +117,10 @@ const App = () => {
                             }
                             return newChanges;
                         });
+                        setRowsToDelete((prevRowsToDelete) => [
+                            ...prevRowsToDelete,
+                            rowKey,
+                        ]);
                     } else {
                         // For initial load, stop propagation at any manual change
                         if (updatedData[i][isManualField]) {
@@ -131,7 +136,7 @@ const App = () => {
     };
 
     const adjustGoals = (data) => {
-        let updatedData = JSON.parse(JSON.stringify(data));
+        let updatedData = data.map((row) => ({ ...row }));
         let goals = [];
 
         updatedData.forEach((entry, index) => {
@@ -228,10 +233,7 @@ const App = () => {
     const recalculateData = () => {
         console.log('recalculateData called');
 
-        let updatedData = tableData.map((row) => ({
-            ...row,
-            isActive: row.isActive !== undefined ? row.isActive : true,
-        }));
+        let updatedData = tableData.map((row) => ({ ...row }));
 
         updatedData = recalculateFromIndex(
             updatedData,
@@ -337,6 +339,7 @@ const App = () => {
         await saveInputFields();
         await saveTableData();
         setUserInputs({});
+        setRowsToDelete([]);
     };
 
     const formattedTableData = tableData.map((entry) => ({
@@ -355,7 +358,7 @@ const App = () => {
     const slothMapData = processDataForSlothMap(formattedTableData);
 
     const lastEntry = tableData[tableData.length - 1];
-    const achieveNestEggBy = lastEntry ? lastEntry.month : 'TBC';
+    const achieveNestEggBy = lastEntry ? formatMonth(lastEntry.month) : 'TBC';
 
     console.log('Achieve nest egg by: ', achieveNestEggBy);
 
@@ -415,10 +418,12 @@ const App = () => {
         const clickedRow = tableData[index];
 
         const updatedTableData = tableData.map((row) => {
-            if (row.month === clickedRow.month && row.id !== clickedRow.id) {
-                // Deactivate other rows with the same month
+            if (
+                row.month === clickedRow.month &&
+                row.rowKey !== clickedRow.rowKey
+            ) {
                 return { ...row, isActive: false };
-            } else if (row.id === clickedRow.id) {
+            } else if (row.rowKey === clickedRow.rowKey) {
                 // Activate the clicked row
                 return { ...row, isActive: true };
             }
@@ -517,7 +522,7 @@ const processDataForSlothMap = (data) => {
                 id: current.id,
                 type: 'rect',
                 text: `Save £${current.depositSavings} in savings; Save £${current.depositInvestments} in investments`,
-                date: current.month,
+                date: formatMonth(current.month),
                 grandTotal: current.grandTotal,
             });
         }
