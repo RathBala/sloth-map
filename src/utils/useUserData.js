@@ -131,36 +131,38 @@ const useUserData = () => {
             }
 
             try {
-                // Step 1: Fetch all existing documents in 'tableData' collection
-                const existingDocsSnapshot = await getDocs(tableDataRef);
-                const existingDocIds = new Set();
-                existingDocsSnapshot.forEach((doc) => {
-                    existingDocIds.add(doc.id);
-                });
-
-                // Step 2: Create a set of IDs from current userInputs
-                const currentUserInputIds = new Set(Object.keys(userInputs));
-
-                // Step 3: Identify documents that need to be deleted
-                const docsToDelete = [...existingDocIds].filter(
-                    (id) =>
-                        !currentUserInputIds.has(id) ||
-                        rowsToDelete.includes(id)
-                );
-
-                // Delete the documents that are no longer in userInputs
-                for (const docId of docsToDelete) {
-                    const docRef = doc(tableDataRef, docId);
-                    await deleteDoc(docRef);
-                    console.log(
-                        `Deleted document with ID ${docId} from Firestore`
-                    );
+                // Delete only the documents explicitly marked in rowsToDelete
+                if (rowsToDelete.length > 0) {
+                    console.log('Rows to be deleted are:', rowsToDelete);
+                    for (const docId of rowsToDelete) {
+                        const docRef = doc(tableDataRef, docId);
+                        const docSnapshot = await getDoc(docRef);
+                        if (docSnapshot.exists()) {
+                            await deleteDoc(docRef);
+                            console.log(
+                                `Deleted document with ID ${docId} from Firestore`
+                            );
+                        } else {
+                            console.log(
+                                `Document with ID ${docId} does not exist in Firestore`
+                            );
+                        }
+                    }
                 }
 
-                // Step 4: Save only the entries in userInputs
+                // Save only the entries in userInputs
                 for (const [rowKey, fields] of Object.entries(userInputs)) {
+                    // Remove undefined values from fields
+                    const cleanedFields = Object.fromEntries(
+                        Object.entries(fields).filter(
+                            ([, value]) => value !== undefined
+                        )
+                    );
+
                     const tableDataDocRef = doc(tableDataRef, rowKey);
-                    await setDoc(tableDataDocRef, fields, { merge: true });
+                    await setDoc(tableDataDocRef, cleanedFields, {
+                        merge: true,
+                    });
                 }
                 console.log('Table data saved successfully');
 

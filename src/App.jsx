@@ -112,15 +112,29 @@ const App = () => {
                                 if (
                                     Object.keys(newChanges[rowKey]).length === 0
                                 ) {
+                                    // RowKey has no more changes, delete it from newChanges
                                     delete newChanges[rowKey];
+
+                                    // Since we had changes for this rowKey before, and now we've removed them,
+                                    // we need to delete the document in Firestore
+                                    setRowsToDelete((prevRowsToDelete) => {
+                                        const updatedRowsToDelete = [
+                                            ...prevRowsToDelete,
+                                            rowKey,
+                                        ];
+                                        console.log(
+                                            `Row overwritten and added to rowsToDelete: ${rowKey}`
+                                        );
+                                        console.log(
+                                            'Rows to be deleted are:',
+                                            updatedRowsToDelete
+                                        );
+                                        return updatedRowsToDelete;
+                                    });
                                 }
                             }
                             return newChanges;
                         });
-                        setRowsToDelete((prevRowsToDelete) => [
-                            ...prevRowsToDelete,
-                            rowKey,
-                        ]);
                     } else {
                         // For initial load, stop propagation at any manual change
                         if (updatedData[i][isManualField]) {
@@ -369,6 +383,7 @@ const App = () => {
             `Adding new altScenario for month: ${clickedMonth}, based on row index: ${index}`
         );
 
+        // Find all variants for the clicked month
         const variantsForMonth = tableData.filter(
             (row) => row.month === clickedMonth
         );
@@ -378,6 +393,7 @@ const App = () => {
 
         const newVariantIndex = maxVariantIndex + 1;
 
+        // Create a new row based on the selected row
         const newRow = {
             ...tableData[index],
             variantIndex: newVariantIndex,
@@ -394,16 +410,23 @@ const App = () => {
                 tableData[index].isTotalSavingsManual || false,
             isTotalInvestmentsManual:
                 tableData[index].isTotalInvestmentsManual || false,
+            // Set default values for fields that might be undefined
+            goal: tableData[index].goal || '',
+            depositSavings: tableData[index].depositSavings || 0,
+            depositInvestments: tableData[index].depositInvestments || 0,
+            withdrawals: tableData[index].withdrawals || 0,
         };
 
         console.log(`New altScenario row created from index ${index}:`, newRow);
 
+        // Add the new alt row to tableData
         let updatedTableData = [
             ...tableData.slice(0, index + 1),
             newRow,
             ...tableData.slice(index + 1),
         ];
 
+        // Deactivate other variants for the same month
         updatedTableData = updatedTableData.map((row) => {
             if (row.month === clickedMonth) {
                 return { ...row, isActive: row.rowKey === newRow.rowKey };
@@ -411,26 +434,75 @@ const App = () => {
             return row;
         });
 
+        // Update userInputs to include the new alt row
+        setUserInputs((prevUserInputs) => ({
+            ...prevUserInputs,
+            [newRow.rowKey]: {
+                depositSavings: newRow.depositSavings,
+                depositInvestments: newRow.depositInvestments,
+                withdrawals: newRow.withdrawals,
+                goal: newRow.goal,
+            },
+        }));
+
         setTableData(updatedTableData);
     };
 
     const handleRowClick = (index) => {
         const clickedRow = tableData[index];
+        const clickedMonth = clickedRow.month;
 
-        const updatedTableData = tableData.map((row) => {
-            if (
-                row.month === clickedRow.month &&
-                row.rowKey !== clickedRow.rowKey
-            ) {
-                return { ...row, isActive: false };
-            } else if (row.rowKey === clickedRow.rowKey) {
-                // Activate the clicked row
-                return { ...row, isActive: true };
+        // Update isActive status in tableData
+        let updatedTableData = tableData.map((row) => {
+            if (row.month === clickedMonth) {
+                return { ...row, isActive: row.rowKey === clickedRow.rowKey };
             }
             return row;
         });
 
+        // Record the isActive status change in userInputs
+        const updatedUserInputs = { ...userInputs };
+        updatedTableData.forEach((row) => {
+            if (row.month === clickedMonth) {
+                if (!updatedUserInputs[row.rowKey]) {
+                    updatedUserInputs[row.rowKey] = {};
+                }
+                updatedUserInputs[row.rowKey].isActive = row.isActive;
+            }
+        });
+
+        // Find the index of the new active row
+        const newActiveRowIndex = updatedTableData.findIndex(
+            (row) => row.month === clickedMonth && row.isActive
+        );
+
+        // Get the new deposit values from the active row
+        const newDepositSavings =
+            updatedTableData[newActiveRowIndex].depositSavings;
+        const newDepositInvestments =
+            updatedTableData[newActiveRowIndex].depositInvestments;
+
+        // Use updateField to propagate new deposit values to subsequent rows
+        updatedTableData = updateField(
+            updatedTableData,
+            newActiveRowIndex,
+            'depositSavings',
+            newDepositSavings,
+            true,
+            true
+        );
+
+        updatedTableData = updateField(
+            updatedTableData,
+            newActiveRowIndex,
+            'depositInvestments',
+            newDepositInvestments,
+            true,
+            true
+        );
+
         setTableData(updatedTableData);
+        setUserInputs(updatedUserInputs);
     };
 
     return (
