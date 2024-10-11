@@ -249,6 +249,80 @@ const App = () => {
 
         let updatedData = tableData.map((row) => ({ ...row }));
 
+        // Step 1: Identify missing rows from userInputs
+        const existingRowKeys = new Set(updatedData.map((row) => row.rowKey));
+        const missingRowKeys = Object.keys(userInputs).filter(
+            (rowKey) => !existingRowKeys.has(rowKey)
+        );
+
+        // Step 2: Create missing rows
+        missingRowKeys.forEach((rowKey) => {
+            // Find the last hyphen in the rowKey
+            const lastHyphenIndex = rowKey.lastIndexOf('-');
+            // Extract the month and variantIndex from the rowKey
+            const month = rowKey.substring(0, lastHyphenIndex);
+            const variantIndexStr = rowKey.substring(lastHyphenIndex + 1);
+            const variantIndex = parseInt(variantIndexStr, 10);
+
+            // Find a baseRow to copy from
+            let baseRow = updatedData.find(
+                (row) => row.month === month && row.variantIndex === 0
+            );
+
+            // If no baseRow is found, use a default row
+            if (!baseRow) {
+                baseRow = {
+                    month: month,
+                    variantIndex: 0,
+                    rowKey: `${month}-0`,
+                    depositSavings: 0,
+                    depositInvestments: 0,
+                    withdrawals: 0,
+                    totalSavings: 0,
+                    totalInvestments: 0,
+                    isTotalSavingsManual: false,
+                    isTotalInvestmentsManual: false,
+                    isDepositSavingsManual: false,
+                    isDepositInvestmentsManual: false,
+                    totalSaved: 0,
+                    interestReturn: 0,
+                    investmentReturn: 0,
+                    grandTotal: 0,
+                    commentary: '',
+                    isActive: true,
+                    isManualFromFirestore: false,
+                };
+            }
+
+            // Extract changes from userInputs, filtering out undefined values
+            const changes = Object.fromEntries(
+                Object.entries(userInputs[rowKey]).filter(
+                    ([, value]) => value !== undefined
+                )
+            );
+
+            const newRow = {
+                ...baseRow,
+                rowKey: rowKey,
+                variantIndex: variantIndex,
+                isAlt: variantIndex > 0,
+                isActive:
+                    changes.isActive !== undefined ? changes.isActive : true,
+                // Apply only defined fields from changes
+                ...changes,
+            };
+
+            // Ensure newRow has all necessary properties
+            if (!newRow.month) newRow.month = month;
+            if (newRow.variantIndex === undefined)
+                newRow.variantIndex = variantIndex;
+
+            updatedData.push(newRow);
+        });
+
+        // Step 3: Sort the updatedData by rowKey
+        updatedData.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
+
         updatedData = recalculateFromIndex(
             updatedData,
             0,
@@ -256,6 +330,7 @@ const App = () => {
             investmentReturnRate
         );
 
+        // Apply userInputs to updatedData
         for (const [rowKey, changes] of Object.entries(userInputs)) {
             const rowIndex = updatedData.findIndex(
                 (row) => row.rowKey === rowKey
@@ -306,7 +381,7 @@ const App = () => {
         );
 
         if (JSON.stringify(tableData) !== JSON.stringify(updatedData)) {
-            setTableData(updatedData); // Only update state if there is a change
+            setTableData(updatedData);
         }
     };
 
@@ -438,10 +513,7 @@ const App = () => {
         setUserInputs((prevUserInputs) => ({
             ...prevUserInputs,
             [newRow.rowKey]: {
-                depositSavings: newRow.depositSavings,
-                depositInvestments: newRow.depositInvestments,
-                withdrawals: newRow.withdrawals,
-                goal: newRow.goal,
+                isActive: true,
             },
         }));
 

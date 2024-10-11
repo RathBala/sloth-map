@@ -155,14 +155,17 @@ const useUserData = () => {
                     // Remove undefined values from fields
                     const cleanedFields = Object.fromEntries(
                         Object.entries(fields).filter(
-                            ([, value]) => value !== undefined
+                            ([, value]) => value !== undefined && value !== null
                         )
                     );
 
-                    const tableDataDocRef = doc(tableDataRef, rowKey);
-                    await setDoc(tableDataDocRef, cleanedFields, {
-                        merge: true,
-                    });
+                    // Only save if there are fields to save
+                    if (Object.keys(cleanedFields).length > 0) {
+                        const tableDataDocRef = doc(tableDataRef, rowKey);
+                        await setDoc(tableDataDocRef, cleanedFields, {
+                            merge: true,
+                        });
+                    }
                 }
                 console.log('Table data saved successfully');
 
