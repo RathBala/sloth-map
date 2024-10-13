@@ -60,6 +60,79 @@ th {
     animation: click-animation 0.2s forwards;
 }
 
+.goal-pill {
+    display: inline-block;
+    background-color: #e0f7fa;
+    color: #006064;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.9em;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 5px;
+    margin-top: 5px;
+}
+
+.modal-content button {
+    margin-right: 10px;
+}
+
+.new-goal-button {
+    position: fixed;
+    top: 70px; /* Adjust as needed */
+    right: 20px;
+    background-color: #04aa6d;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.new-goal-button .add-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.new-goal-button:hover {
+    background-color: #039958;
+}
+
 .top-nav {
     width: 100%;
     position: fixed;

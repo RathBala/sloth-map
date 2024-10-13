@@ -20,6 +20,7 @@ const useUserData = () => {
     const [targetNestEgg, setTargetNestEgg] = useState(null);
     const [age, setAge] = useState(null);
     const [userInputs, setUserInputs] = useState({});
+    const [goals, setGoals] = useState({});
 
     const [rowsToDelete, setRowsToDelete] = useState([]);
 
@@ -78,12 +79,68 @@ const useUserData = () => {
             setIsLoggedIn(true);
             setUser(userDocument);
             console.log('User document set:', userDocument);
+
+            fetchGoals();
         } else {
             setIsLoggedIn(false);
             setUser(null);
             console.log('User document is null.');
         }
     }, [userDocument]);
+
+    const fetchGoals = async () => {
+        if (user && user.uid) {
+            const userRef = doc(db, 'users', user.uid);
+            const goalsRef = collection(userRef, 'goals');
+            const snapshot = await getDocs(goalsRef);
+            const loadedGoals = {};
+            snapshot.forEach((doc) => {
+                loadedGoals[doc.id] = { id: doc.id, ...doc.data() };
+            });
+            setGoals(loadedGoals);
+        }
+    };
+
+    const generateGoalId = () => {
+        return `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+    };
+
+    const saveGoal = async (goal) => {
+        if (user && user.uid) {
+            const userRef = doc(db, 'users', user.uid);
+            const goalsRef = collection(userRef, 'goals');
+            let goalRef;
+
+            if (goal.id) {
+                goalRef = doc(goalsRef, goal.id);
+                await setDoc(goalRef, goal, { merge: true });
+            } else {
+                const id = generateGoalId();
+                goalRef = doc(goalsRef, id);
+                await setDoc(goalRef, goal);
+                goal.id = id;
+            }
+
+            setGoals((prevGoals) => ({
+                ...prevGoals,
+                [goal.id]: goal,
+            }));
+        }
+    };
+
+    const deleteGoal = async (goalId) => {
+        if (user && user.uid) {
+            const userRef = doc(db, 'users', user.uid);
+            const goalRef = doc(userRef, 'goals', goalId);
+            await deleteDoc(goalRef);
+
+            setGoals((prevGoals) => {
+                const updatedGoals = { ...prevGoals };
+                delete updatedGoals[goalId];
+                return updatedGoals;
+            });
+        }
+    };
 
     const saveInputFields = async () => {
         if (user && user.uid) {
@@ -199,6 +256,9 @@ const useUserData = () => {
         saveTableData,
         logout,
         setRowsToDelete,
+        goals,
+        saveGoal,
+        deleteGoal,
     };
 };
 

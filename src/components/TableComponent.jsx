@@ -9,6 +9,7 @@ const TableComponent = ({
     onFieldChange,
     onAltScenario,
     handleRowClick,
+    onEditGoal,
 }) => {
     const prevDataRef = useRef();
     const today = new Date();
@@ -38,8 +39,9 @@ const TableComponent = ({
         totalInvestments: row.totalInvestments?.toString() || '',
         depositSavings: row.depositSavings?.toString() || '',
         depositInvestments: row.depositInvestments?.toString() || '',
-        withdrawals: row.withdrawals?.toString() || '',
-        goal: row.goal || '',
+        goalName: row.goal ? row.goal.name : '',
+        goalAmount: row.goal ? row.goal.amount.toString() : '',
+        commentary: row.commentary || '',
     }));
 
     const [inputValues, setInputValues] = useState(initialState);
@@ -52,8 +54,9 @@ const TableComponent = ({
                 totalInvestments: row.totalInvestments?.toString() || '',
                 depositSavings: row.depositSavings?.toString() || '',
                 depositInvestments: row.depositInvestments?.toString() || '',
-                withdrawals: row.withdrawals?.toString() || '',
-                goal: row.goal || '',
+                goalName: row.goal ? row.goal.name : '',
+                goalAmount: row.goal ? row.goal.amount.toString() : '',
+                commentary: row.commentary || '',
             }))
         );
     }, [data]);
@@ -108,14 +111,15 @@ const TableComponent = ({
                     <th>Deposit in Savings</th>
                     <th>Deposit in Investments</th>
                     <th>Total Deposit</th>
-                    <th>Withdrawals</th>
+                    <th>Goal</th>
+                    <th>Goal Amount</th>
                     <th>Total in Savings Account (monzo)</th>
                     <th>Total in Investments Account (HL, SJP ISA, bitcoin)</th>
                     <th>Total Saved</th>
                     <th>Interest Return</th>
                     <th>Investment Return</th>
                     <th>Grand Total</th>
-                    <th>Goal</th>
+                    <th>Commentary</th>
                 </tr>
             </thead>
             <tbody>
@@ -223,33 +227,19 @@ const TableComponent = ({
                         </td>
                         <td>{row.totalDepositFormatted}</td>
                         <td>
-                            <input
-                                type="text"
-                                value={
-                                    focusedIndex === index &&
-                                    focusedField === 'withdrawals'
-                                        ? row.withdrawals
-                                        : formatNumber(row.withdrawals || '')
-                                }
-                                onFocus={(e) =>
-                                    handleFocus(index, 'withdrawals', e)
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        index,
-                                        'withdrawals',
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={(e) =>
-                                    handleBlur(
-                                        index,
-                                        'withdrawals',
-                                        e.target.value
-                                    )
-                                }
-                            />
+                            {row.goal ? (
+                                <span
+                                    className="goal-pill"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEditGoal(row.goal);
+                                    }}
+                                >
+                                    {row.goal.name}
+                                </span>
+                            ) : null}
                         </td>
+                        <td>{row.goal ? formatNumber(row.goal.amount) : ''}</td>
                         <td>
                             {row.month === currentMonth ? (
                                 <input
@@ -329,12 +319,23 @@ const TableComponent = ({
                         <td>
                             <input
                                 type="text"
-                                value={row.goal || ''}
+                                value={inputValues[index].commentary || ''}
+                                onFocus={(e) =>
+                                    handleFocus(index, 'commentary', e)
+                                }
                                 onChange={(e) =>
-                                    handleChange(index, 'goal', e.target.value)
+                                    handleChange(
+                                        index,
+                                        'commentary',
+                                        e.target.value
+                                    )
                                 }
                                 onBlur={(e) =>
-                                    handleBlur(index, 'goal', e.target.value)
+                                    handleBlur(
+                                        index,
+                                        'commentary',
+                                        e.target.value
+                                    )
                                 }
                             />
                         </td>

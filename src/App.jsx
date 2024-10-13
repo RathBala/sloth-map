@@ -9,10 +9,12 @@ import { formatNumber, formatMonth } from './utils/formatUtils';
 import useUserData from './utils/useUserData';
 import {
     generateData,
-    recalculateFromIndex,
     ensureNestEgg,
+    recalculateAllEntries,
 } from './utils/calculations';
 import './App.css';
+import GoalModal from './components/GoalModal';
+import addIcon from './assets/add.svg';
 
 const App = () => {
     const {
@@ -32,9 +34,14 @@ const App = () => {
         saveTableData,
         logout,
         setRowsToDelete,
+        goals,
+        saveGoal,
     } = useUserData();
 
-    const [tableData, setTableData] = useState(() => generateData(500, 300, 0));
+    const [tableData, setTableData] = useState(() => generateData(500, 300));
+
+    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+    const [editingGoal, setEditingGoal] = useState(null);
 
     useEffect(() => {
         if (
@@ -42,15 +49,9 @@ const App = () => {
             investmentReturnRate !== null &&
             targetNestEgg !== null
         ) {
-            recalculateData();
+            recalculateAllData();
         }
-    }, [
-        interestRate,
-        investmentReturnRate,
-        targetNestEgg,
-        userInputs,
-        tableData,
-    ]);
+    }, [interestRate, investmentReturnRate, targetNestEgg, userInputs, goals]);
 
     const updateField = (
         data,
@@ -149,102 +150,7 @@ const App = () => {
         return updatedData;
     };
 
-    const adjustGoals = (data) => {
-        let updatedData = data.map((row) => ({ ...row }));
-        let goals = [];
-
-        updatedData.forEach((entry, index) => {
-            if (entry.withdrawals > 0 && entry.goal) {
-                goals.push({
-                    goal: entry.goal,
-                    withdrawals: entry.withdrawals,
-                    originalIndex: index,
-                    id: entry.id,
-                    month: entry.month,
-                });
-
-                updatedData = updateField(
-                    updatedData,
-                    index,
-                    'goal',
-                    '',
-                    true,
-                    false
-                );
-                updatedData = updateField(
-                    updatedData,
-                    index,
-                    'withdrawals',
-                    0,
-                    true,
-                    false
-                );
-            }
-        });
-
-        updatedData = recalculateFromIndex(
-            updatedData,
-            0,
-            interestRate,
-            investmentReturnRate
-        );
-
-        goals.sort((a, b) => a.originalIndex - b.originalIndex);
-
-        goals.forEach((goal) => {
-            let withdrawalAmount = goal.withdrawals;
-            let sufficientFundsIndex = goal.originalIndex;
-
-            while (sufficientFundsIndex < updatedData.length) {
-                let hypotheticalSavings =
-                    updatedData[sufficientFundsIndex].totalSavings -
-                    withdrawalAmount;
-                let hypotheticalInvestments =
-                    updatedData[sufficientFundsIndex].totalInvestments;
-
-                if (hypotheticalSavings < 0) {
-                    hypotheticalInvestments += hypotheticalSavings;
-                    hypotheticalSavings = 0;
-                }
-
-                if (hypotheticalInvestments >= 0) {
-                    let isManualChange =
-                        goal.month !== updatedData[sufficientFundsIndex].month;
-
-                    updatedData = updateField(
-                        updatedData,
-                        sufficientFundsIndex,
-                        'goal',
-                        goal.goal,
-                        true,
-                        isManualChange
-                    );
-                    updatedData = updateField(
-                        updatedData,
-                        sufficientFundsIndex,
-                        'withdrawals',
-                        goal.withdrawals,
-                        true,
-                        isManualChange
-                    );
-
-                    updatedData = recalculateFromIndex(
-                        updatedData,
-                        sufficientFundsIndex,
-                        interestRate,
-                        investmentReturnRate
-                    );
-                    break;
-                }
-
-                sufficientFundsIndex++;
-            }
-        });
-
-        return updatedData;
-    };
-
-    const recalculateData = () => {
+    const recalculateAllData = () => {
         console.log('recalculateData called');
 
         let updatedData = tableData.map((row) => ({ ...row }));
@@ -277,7 +183,6 @@ const App = () => {
                     rowKey: `${month}-0`,
                     depositSavings: 0,
                     depositInvestments: 0,
-                    withdrawals: 0,
                     totalSavings: 0,
                     totalInvestments: 0,
                     isTotalSavingsManual: false,
@@ -323,11 +228,11 @@ const App = () => {
         // Step 3: Sort the updatedData by rowKey
         updatedData.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
 
-        updatedData = recalculateFromIndex(
+        updatedData = recalculateAllEntries(
             updatedData,
-            0,
             interestRate,
-            investmentReturnRate
+            investmentReturnRate,
+            goals
         );
 
         // Apply userInputs to updatedData
@@ -360,29 +265,53 @@ const App = () => {
                     // Set the isManualFromFirestore flag
                     updatedData[rowIndex].isManualFromFirestore = true;
                 }
-
-                updatedData = recalculateFromIndex(
-                    updatedData,
-                    rowIndex,
-                    interestRate,
-                    investmentReturnRate
-                );
             }
         }
 
-        updatedData = adjustGoals(updatedData);
+        // In recalculateAllData before calling recalculateAllEntries
+        updatedData = updatedData.map((entry) => ({
+            ...entry,
+            totalSaved: 0,
+            interestReturn: 0,
+            investmentReturn: 0,
+            grandTotal: 0,
+            goal: null,
+        }));
 
+        updatedData = recalculateAllEntries(
+            updatedData,
+            interestRate,
+            investmentReturnRate,
+            goals
+        );
+
+        // Ensure target nest egg
         updatedData = ensureNestEgg(
             targetNestEgg,
             updatedData,
             interestRate,
             investmentReturnRate,
-            recalculateFromIndex
+            recalculateAllEntries,
+            goals
         );
 
         if (JSON.stringify(tableData) !== JSON.stringify(updatedData)) {
             setTableData(updatedData);
         }
+    };
+
+    const handleNewGoalClick = () => {
+        setEditingGoal(null);
+        setIsGoalModalOpen(true);
+    };
+
+    const handleGoalSave = (goal) => {
+        saveGoal(goal);
+    };
+
+    const handleEditGoal = (goal) => {
+        setEditingGoal(goal);
+        setIsGoalModalOpen(true);
     };
 
     if (!isLoggedIn) {
@@ -489,7 +418,6 @@ const App = () => {
             goal: tableData[index].goal || '',
             depositSavings: tableData[index].depositSavings || 0,
             depositInvestments: tableData[index].depositInvestments || 0,
-            withdrawals: tableData[index].withdrawals || 0,
         };
 
         console.log(`New altScenario row created from index ${index}:`, newRow);
@@ -589,6 +517,18 @@ const App = () => {
                                 : 'No user logged in'}
                         </span>
                     </div>
+                    <button
+                        type="button"
+                        onClick={handleNewGoalClick}
+                        className="new-goal-button"
+                    >
+                        <img
+                            src={addIcon}
+                            alt="Add Goal"
+                            className="add-icon"
+                        />{' '}
+                        New Goal
+                    </button>
                     <button type="button" onClick={handleSaveClick}>
                         Save
                     </button>
@@ -641,11 +581,18 @@ const App = () => {
                                         onFieldChange={handleFieldChange}
                                         onAltScenario={addAltScenario}
                                         handleRowClick={handleRowClick}
+                                        onEditGoal={handleEditGoal}
                                     />
                                 </>
                             }
                         />
                     </Routes>
+                    <GoalModal
+                        isOpen={isGoalModalOpen}
+                        onClose={() => setIsGoalModalOpen(false)}
+                        onSave={handleGoalSave}
+                        goal={editingGoal}
+                    />
                 </div>
             </div>
         </Router>
@@ -670,12 +617,12 @@ const processDataForSlothMap = (data) => {
                 grandTotal: current.grandTotal,
             });
         }
-        if (current.withdrawals > 0) {
+        if (current.goal) {
             nodes.push({
-                id: current.id,
+                id: current.rowKey,
                 type: 'circle',
-                text: `${current.goal || 'Withdrawal'} for £${current.withdrawals}`,
-                date: current.month,
+                text: `${current.goal.name} for £${formatNumber(current.goal.amount)}`,
+                date: formatMonth(current.month),
                 grandTotal: current.grandTotal,
             });
         }
