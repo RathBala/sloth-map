@@ -38,6 +38,22 @@ const useUserData = () => {
             if (currentUser) {
                 const userRef = doc(db, 'users', currentUser.uid);
                 const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    console.log(
+                        'User document fetched successfully:',
+                        userDoc.data()
+                    );
+                    setUserDocument({
+                        ...userDoc.data(),
+                        email: currentUser.email,
+                        uid: currentUser.uid,
+                    });
+                } else {
+                    console.log('No user document exists:', currentUser.uid);
+                    setUserDocument(null);
+                }
+
                 const userData = userDoc.data();
                 console.log('User data from Firestore:', userData);
 
@@ -90,6 +106,7 @@ const useUserData = () => {
 
     const fetchGoals = async () => {
         if (user && user.uid) {
+            console.log(`Fetching goals for user UID: ${user.uid}`);
             const userRef = doc(db, 'users', user.uid);
             const goalsRef = collection(userRef, 'goals');
             const snapshot = await getDocs(goalsRef);
@@ -98,6 +115,7 @@ const useUserData = () => {
                 loadedGoals[doc.id] = { id: doc.id, ...doc.data() };
             });
             setGoals(loadedGoals);
+            console.log('Loaded goals:', loadedGoals);
         }
     };
 
@@ -107,40 +125,40 @@ const useUserData = () => {
 
     const saveGoal = async (goal) => {
         if (user && user.uid) {
-            const userRef = doc(db, 'users', user.uid);
-            const goalsRef = collection(userRef, 'goals');
-            let goalRef;
-
-            if (goal.id) {
-                goalRef = doc(goalsRef, goal.id);
-                await setDoc(goalRef, goal, { merge: true });
-            } else {
-                const id = generateGoalId();
-                goalRef = doc(goalsRef, id);
-                await setDoc(goalRef, goal);
-                goal.id = id;
-            }
-
+            const goalId = goal.id || generateGoalId();
             setGoals((prevGoals) => ({
                 ...prevGoals,
-                [goal.id]: goal,
+                [goalId]: { ...goal, id: goalId },
             }));
         }
     };
 
-    const deleteGoal = async (goalId) => {
+    const commitGoalsToFirestore = async () => {
         if (user && user.uid) {
             const userRef = doc(db, 'users', user.uid);
-            const goalRef = doc(userRef, 'goals', goalId);
-            await deleteDoc(goalRef);
-
-            setGoals((prevGoals) => {
-                const updatedGoals = { ...prevGoals };
-                delete updatedGoals[goalId];
-                return updatedGoals;
+            const goalsRef = collection(userRef, 'goals');
+            const promises = Object.values(goals).map((goal) => {
+                const goalRef = doc(goalsRef, goal.id);
+                return setDoc(goalRef, goal, { merge: true });
             });
+            await Promise.all(promises);
+            console.log('Goals saved to Firestore');
         }
     };
+
+    // const deleteGoal = async (goalId) => {
+    //     if (user && user.uid) {
+    //         const userRef = doc(db, 'users', user.uid);
+    //         const goalRef = doc(userRef, 'goals', goalId);
+    //         await deleteDoc(goalRef);
+
+    //         setGoals((prevGoals) => {
+    //             const updatedGoals = { ...prevGoals };
+    //             delete updatedGoals[goalId];
+    //             return updatedGoals;
+    //         });
+    //     }
+    // };
 
     const saveInputFields = async () => {
         if (user && user.uid) {
@@ -258,7 +276,8 @@ const useUserData = () => {
         setRowsToDelete,
         goals,
         saveGoal,
-        deleteGoal,
+        // deleteGoal,
+        commitGoalsToFirestore,
     };
 };
 

@@ -32,6 +32,7 @@ const App = () => {
         setUserInputs,
         saveInputFields,
         saveTableData,
+        commitGoalsToFirestore,
         logout,
         setRowsToDelete,
         goals,
@@ -268,14 +269,12 @@ const App = () => {
             }
         }
 
-        // In recalculateAllData before calling recalculateAllEntries
         updatedData = updatedData.map((entry) => ({
             ...entry,
             totalSaved: 0,
             interestReturn: 0,
             investmentReturn: 0,
             grandTotal: 0,
-            goal: null,
         }));
 
         updatedData = recalculateAllEntries(
@@ -285,7 +284,6 @@ const App = () => {
             goals
         );
 
-        // Ensure target nest egg
         updatedData = ensureNestEgg(
             targetNestEgg,
             updatedData,
@@ -354,10 +352,17 @@ const App = () => {
 
     const handleSaveClick = async () => {
         console.log('Save button clicked');
-        await saveInputFields();
-        await saveTableData();
-        setUserInputs({});
-        setRowsToDelete([]);
+        try {
+            await saveInputFields();
+            await saveTableData();
+            await commitGoalsToFirestore();
+            setUserInputs({});
+            setRowsToDelete([]);
+            console.log('All changes saved successfully');
+        } catch (error) {
+            console.error('Failed to save changes:', error);
+            alert('Error saving changes: ' + error.message);
+        }
     };
 
     const formattedTableData = tableData.map((entry) => ({

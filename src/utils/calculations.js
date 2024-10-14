@@ -29,7 +29,6 @@ export const generateData = (savings, investments) => {
     ];
 };
 
-// calculations.js
 export const recalculateAllEntries = (
     data,
     interestRate,
@@ -38,12 +37,20 @@ export const recalculateAllEntries = (
 ) => {
     let updatedData = [...data];
 
-    // Sort goals by your preferred criteria (e.g., amount or priority)
-    const sortedGoals = Object.values(goals).sort(
-        (a, b) => a.amount - b.amount
-    );
+    // Collect applied goal IDs from entries
+    const appliedGoalIds = new Set();
+    for (const entry of updatedData) {
+        if (entry.goal && entry.goal.id) {
+            appliedGoalIds.add(entry.goal.id);
+        }
+    }
 
-    let pendingGoals = [...sortedGoals]; // Copy of goals to keep track of pending ones
+    // Filter out already applied goals
+    const sortedGoals = Object.values(goals)
+        .filter((goal) => !appliedGoalIds.has(goal.id))
+        .sort((a, b) => a.amount - b.amount);
+
+    let pendingGoals = [...sortedGoals];
 
     for (let i = 0; i < updatedData.length; i++) {
         const entry = updatedData[i];
@@ -98,7 +105,6 @@ export const recalculateAllEntries = (
 
         let goalApplied = null;
 
-        // Try to apply goals if the entry is active
         if (entry.isActive) {
             while (pendingGoals.length > 0) {
                 const pendingGoal = pendingGoals[0];
@@ -115,7 +121,7 @@ export const recalculateAllEntries = (
                     // Deduct from savings first, then investments
                     runningTotalSavings -= goalAmount;
                     if (runningTotalSavings < 0) {
-                        runningTotalInvestments += runningTotalSavings; // Adjust investments if savings are negative
+                        runningTotalInvestments += runningTotalSavings;
                         runningTotalSavings = 0;
                     }
                     runningTotalInvestments = Math.max(
@@ -123,8 +129,9 @@ export const recalculateAllEntries = (
                         runningTotalInvestments
                     );
 
-                    // Record the applied goal
+                    // Record the applied goal with its ID
                     goalApplied = {
+                        id: pendingGoal.id,
                         name: pendingGoal.name,
                         amount: pendingGoal.amount,
                     };
