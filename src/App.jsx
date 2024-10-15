@@ -18,6 +18,7 @@ import addIcon from './assets/add.svg';
 
 const App = () => {
     const {
+        loading,
         isLoggedIn,
         user,
         interestRate,
@@ -312,6 +313,10 @@ const App = () => {
         setIsGoalModalOpen(true);
     };
 
+    if (loading) {
+        return <div>Loading user data...</div>;
+    }
+
     if (!isLoggedIn) {
         return <Authentication />;
     }
@@ -455,9 +460,14 @@ const App = () => {
 
     const handleRowClick = (index) => {
         const clickedRow = tableData[index];
+
+        if (clickedRow.isActive) {
+            console.log('Clicked on an already active row; no changes made.');
+            return;
+        }
+
         const clickedMonth = clickedRow.month;
 
-        // Update isActive status in tableData
         let updatedTableData = tableData.map((row) => {
             if (row.month === clickedMonth) {
                 return { ...row, isActive: row.rowKey === clickedRow.rowKey };

@@ -37,15 +37,10 @@ export const recalculateAllEntries = (
 ) => {
     let updatedData = [...data];
 
-    // Collect applied goal IDs from entries
-    const appliedGoalIds = new Set();
-    for (const entry of updatedData) {
-        if (entry.goal && entry.goal.id) {
-            appliedGoalIds.add(entry.goal.id);
-        }
-    }
+    const appliedGoalIds = new Set(
+        updatedData.filter((entry) => entry.goal).map((entry) => entry.goal.id)
+    );
 
-    // Filter out already applied goals
     const sortedGoals = Object.values(goals)
         .filter((goal) => !appliedGoalIds.has(goal.id))
         .sort((a, b) => a.amount - b.amount);
@@ -55,7 +50,6 @@ export const recalculateAllEntries = (
     for (let i = 0; i < updatedData.length; i++) {
         const entry = updatedData[i];
 
-        // Find the last active entry before this one
         let prevEntry = null;
         for (let j = i - 1; j >= 0; j--) {
             if (updatedData[j].isActive) {
@@ -73,8 +67,6 @@ export const recalculateAllEntries = (
             runningTotalInvestments =
                 prevEntry.totalInvestments + prevEntry.investmentReturn;
         } else {
-            // First entry
-            // Use manual totals if they exist, otherwise initialize to zero
             runningTotalSavings = entry.isTotalSavingsManual
                 ? entry.totalSavings
                 : 0;
@@ -83,22 +75,18 @@ export const recalculateAllEntries = (
                 : 0;
         }
 
-        // Process deposits
         if (!entry.isTotalSavingsManual) {
             runningTotalSavings += entry.depositSavings;
         } else if (prevEntry) {
-            // For manual totals in entries beyond the first, add deposits
             runningTotalSavings += entry.depositSavings;
         }
 
         if (!entry.isTotalInvestmentsManual) {
             runningTotalInvestments += entry.depositInvestments;
         } else if (prevEntry) {
-            // For manual totals in entries beyond the first, add deposits
             runningTotalInvestments += entry.depositInvestments;
         }
 
-        // Calculate returns
         const interestReturn = runningTotalSavings * (interestRate / 12 / 100);
         const investmentReturn =
             runningTotalInvestments * (investmentReturnRate / 12 / 100);
@@ -115,10 +103,8 @@ export const recalculateAllEntries = (
                     investmentReturn;
 
                 if (totalAvailable >= pendingGoal.amount) {
-                    // Apply the goal
                     const goalAmount = pendingGoal.amount;
 
-                    // Deduct from savings first, then investments
                     runningTotalSavings -= goalAmount;
                     if (runningTotalSavings < 0) {
                         runningTotalInvestments += runningTotalSavings;
@@ -129,26 +115,21 @@ export const recalculateAllEntries = (
                         runningTotalInvestments
                     );
 
-                    // Record the applied goal with its ID
                     goalApplied = {
                         id: pendingGoal.id,
                         name: pendingGoal.name,
                         amount: pendingGoal.amount,
                     };
 
-                    // Remove the applied goal from pendingGoals
                     pendingGoals.shift();
 
-                    // Break if you only want to apply one goal per month
                     break;
                 } else {
-                    // Cannot apply any more goals in this entry
                     break;
                 }
             }
         }
 
-        // Update the entry
         updatedData[i] = {
             ...entry,
             totalSavings: runningTotalSavings,
@@ -161,7 +142,7 @@ export const recalculateAllEntries = (
                 runningTotalInvestments +
                 interestReturn +
                 investmentReturn,
-            goal: goalApplied, // Only set if a goal is applied in this entry
+            goal: goalApplied,
             commentary: entry.commentary,
         };
     }

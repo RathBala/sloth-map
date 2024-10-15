@@ -13,7 +13,6 @@ import {
 const useUserData = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
-    const [userDocument, setUserDocument] = useState(null);
 
     const [interestRate, setInterestRate] = useState(null);
     const [investmentReturnRate, setInvestmentReturnRate] = useState(null);
@@ -24,6 +23,8 @@ const useUserData = () => {
 
     const [rowsToDelete, setRowsToDelete] = useState([]);
 
+    const [loading, setLoading] = useState(true);
+
     const calculateAge = (dateOfBirth) => {
         const dob = new Date(dateOfBirth.seconds * 1000);
         const ageDifMs = Date.now() - dob.getTime();
@@ -33,82 +34,66 @@ const useUserData = () => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            console.log('Auth state changed:', currentUser);
-
             if (currentUser) {
                 const userRef = doc(db, 'users', currentUser.uid);
-                const userDoc = await getDoc(userRef);
+                setLoading(true);
 
-                if (userDoc.exists()) {
-                    console.log(
-                        'User document fetched successfully:',
-                        userDoc.data()
-                    );
-                    setUserDocument({
-                        ...userDoc.data(),
-                        email: currentUser.email,
-                        uid: currentUser.uid,
-                    });
-                } else {
-                    console.log('No user document exists:', currentUser.uid);
-                    setUserDocument(null);
+                try {
+                    const userDoc = await getDoc(userRef);
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        console.log('User data from Firestore:', userData);
+
+                        setUser({
+                            ...userData,
+                            email: currentUser.email,
+                            uid: currentUser.uid,
+                        });
+                        setIsLoggedIn(true);
+
+                        setInterestRate(userData.interestRate || 5);
+                        setInvestmentReturnRate(
+                            userData.investmentReturnRate || 10
+                        );
+                        setTargetNestEgg(userData.targetNestEgg || 0);
+                        setAge(calculateAge(userData.dateOfBirth));
+
+                        const tableDataRef = collection(userRef, 'tableData');
+                        const snapshot = await getDocs(tableDataRef);
+                        const loadedUserInputs = {};
+                        snapshot.forEach((doc) => {
+                            loadedUserInputs[doc.id] = doc.data();
+                        });
+                        setUserInputs(loadedUserInputs);
+
+                        await fetchGoals(currentUser.uid);
+                    } else {
+                        console.log(
+                            'No user document exists:',
+                            currentUser.uid
+                        );
+                        setIsLoggedIn(false);
+                        setUser(null);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch user document:', error);
+                    setIsLoggedIn(false);
+                    setUser(null);
                 }
-
-                const userData = userDoc.data();
-                console.log('User data from Firestore:', userData);
-
-                setUserDocument({
-                    ...userData,
-                    email: currentUser.email,
-                    uid: currentUser.uid,
-                });
-
-                if (userData) {
-                    setInterestRate(userData.interestRate || 5);
-                    setInvestmentReturnRate(
-                        userData.investmentReturnRate || 10
-                    );
-                    setTargetNestEgg(userData.targetNestEgg || 0);
-                    setAge(calculateAge(userData.dateOfBirth));
-                }
-
-                const tableDataRef = collection(userRef, 'tableData');
-                const snapshot = await getDocs(tableDataRef);
-                const loadedUserInputs = {};
-                snapshot.forEach((doc) => {
-                    loadedUserInputs[doc.id] = doc.data();
-                });
-                setUserInputs((prevInputs) => ({
-                    ...prevInputs,
-                    ...loadedUserInputs,
-                }));
             } else {
-                setUserDocument(null);
+                console.log('No user logged in');
+                setIsLoggedIn(false);
+                setUser(null);
             }
+            setLoading(false); // Ensure loading is set to false regardless of the outcome
         });
 
         return () => unsubscribe();
     }, []);
 
-    useEffect(() => {
-        if (userDocument) {
-            setIsLoggedIn(true);
-            setUser(userDocument);
-            console.log('User document set:', userDocument);
-
-            fetchGoals();
-        } else {
-            setIsLoggedIn(false);
-            setUser(null);
-            console.log('User document is null.');
-        }
-    }, [userDocument]);
-
-    const fetchGoals = async () => {
-        if (user && user.uid) {
-            console.log(`Fetching goals for user UID: ${user.uid}`);
-            const userRef = doc(db, 'users', user.uid);
-            const goalsRef = collection(userRef, 'goals');
+    const fetchGoals = async (userId) => {
+        const goalsRef = collection(db, 'users', userId, 'goals');
+        try {
             const snapshot = await getDocs(goalsRef);
             const loadedGoals = {};
             snapshot.forEach((doc) => {
@@ -116,6 +101,8 @@ const useUserData = () => {
             });
             setGoals(loadedGoals);
             console.log('Loaded goals:', loadedGoals);
+        } catch (error) {
+            console.error('Error fetching goals:', error);
         }
     };
 
@@ -258,6 +245,7 @@ const useUserData = () => {
     };
 
     return {
+        loading,
         isLoggedIn,
         user,
         interestRate,
