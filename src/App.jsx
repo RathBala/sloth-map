@@ -468,11 +468,16 @@ const App = () => {
 
         const clickedMonth = clickedRow.month;
 
-        let updatedTableData = tableData.map((row) => {
+        let updatedTableData = tableData.map((row, idx) => {
             if (row.month === clickedMonth) {
                 return { ...row, isActive: row.rowKey === clickedRow.rowKey };
+            } else if (idx > index) {
+                // For rows after the clicked row, reset isActive based on existing conditions
+                return row;
+            } else {
+                // For rows before the clicked row, do not change isActive status
+                return row;
             }
-            return row;
         });
 
         // Record the isActive status change in userInputs
@@ -486,36 +491,7 @@ const App = () => {
             }
         });
 
-        // Find the index of the new active row
-        const newActiveRowIndex = updatedTableData.findIndex(
-            (row) => row.month === clickedMonth && row.isActive
-        );
-
-        // Get the new deposit values from the active row
-        const newDepositSavings =
-            updatedTableData[newActiveRowIndex].depositSavings;
-        const newDepositInvestments =
-            updatedTableData[newActiveRowIndex].depositInvestments;
-
-        // Use updateField to propagate new deposit values to subsequent rows
-        updatedTableData = updateField(
-            updatedTableData,
-            newActiveRowIndex,
-            'depositSavings',
-            newDepositSavings,
-            true,
-            true
-        );
-
-        updatedTableData = updateField(
-            updatedTableData,
-            newActiveRowIndex,
-            'depositInvestments',
-            newDepositInvestments,
-            true,
-            true
-        );
-
+        // Update tableData and userInputs
         setTableData(updatedTableData);
         setUserInputs(updatedUserInputs);
     };

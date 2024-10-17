@@ -37,83 +37,80 @@ export const recalculateAllEntries = (
 ) => {
     let updatedData = [...data];
 
-    const appliedGoalIds = new Set(
-        updatedData.filter((entry) => entry.goal).map((entry) => entry.goal.id)
+    // Prepare the list of goals to be applied
+    const sortedGoals = Object.values(goals).sort(
+        (a, b) => a.amount - b.amount
     );
 
-    const sortedGoals = Object.values(goals)
-        .filter((goal) => !appliedGoalIds.has(goal.id))
-        .sort((a, b) => a.amount - b.amount);
-
     let pendingGoals = [...sortedGoals];
+
+    // Initialize running totals
+    let runningTotalSavings = 0;
+    let runningTotalInvestments = 0;
 
     for (let i = 0; i < updatedData.length; i++) {
         const entry = updatedData[i];
 
-        let prevEntry = null;
-        for (let j = i - 1; j >= 0; j--) {
-            if (updatedData[j].isActive) {
-                prevEntry = updatedData[j];
-                break;
-            }
-        }
-
-        let runningTotalSavings;
-        let runningTotalInvestments;
-
-        if (prevEntry) {
-            runningTotalSavings =
-                prevEntry.totalSavings + prevEntry.interestReturn;
-            runningTotalInvestments =
-                prevEntry.totalInvestments + prevEntry.investmentReturn;
-        } else {
+        // For each entry, start with previous totals
+        if (i === 0) {
+            // First row
             runningTotalSavings = entry.isTotalSavingsManual
-                ? entry.totalSavings
+                ? entry.totalSavings || 0
                 : 0;
             runningTotalInvestments = entry.isTotalInvestmentsManual
-                ? entry.totalInvestments
+                ? entry.totalInvestments || 0
                 : 0;
+        } else {
+            // Subsequent rows
+            const prevEntry = updatedData[i - 1];
+            runningTotalSavings = prevEntry.runningTotalSavings;
+            runningTotalInvestments = prevEntry.runningTotalInvestments;
         }
 
-        if (!entry.isTotalSavingsManual) {
+        // Add deposits if entry is active
+        if (entry.isActive) {
             runningTotalSavings += entry.depositSavings;
-        } else if (prevEntry) {
-            runningTotalSavings += entry.depositSavings;
-        }
-
-        if (!entry.isTotalInvestmentsManual) {
-            runningTotalInvestments += entry.depositInvestments;
-        } else if (prevEntry) {
             runningTotalInvestments += entry.depositInvestments;
         }
 
+        // Calculate returns
         const interestReturn = runningTotalSavings * (interestRate / 12 / 100);
         const investmentReturn =
             runningTotalInvestments * (investmentReturnRate / 12 / 100);
 
-        let goalApplied = null;
+        // Add returns to running totals
+        runningTotalSavings += interestReturn;
+        runningTotalInvestments += investmentReturn;
 
+        // Try to apply goals only if the entry is active
+        let goalApplied = null;
         if (entry.isActive) {
             while (pendingGoals.length > 0) {
                 const pendingGoal = pendingGoals[0];
                 const totalAvailable =
-                    runningTotalSavings +
-                    runningTotalInvestments +
-                    interestReturn +
-                    investmentReturn;
+                    runningTotalSavings + runningTotalInvestments;
 
                 if (totalAvailable >= pendingGoal.amount) {
-                    const goalAmount = pendingGoal.amount;
+                    let goalAmount = pendingGoal.amount;
+                    let remainingGoalAmount = goalAmount;
 
-                    runningTotalSavings -= goalAmount;
-                    if (runningTotalSavings < 0) {
-                        runningTotalInvestments += runningTotalSavings;
+                    // Subtract from savings first
+                    if (runningTotalSavings >= remainingGoalAmount) {
+                        runningTotalSavings -= remainingGoalAmount;
+                        remainingGoalAmount = 0;
+                    } else {
+                        remainingGoalAmount -= runningTotalSavings;
                         runningTotalSavings = 0;
+
+                        // Subtract the remaining from investments
+                        if (runningTotalInvestments >= remainingGoalAmount) {
+                            runningTotalInvestments -= remainingGoalAmount;
+                            remainingGoalAmount = 0;
+                        } else {
+                            // Not enough funds; this shouldn't happen as we checked totalAvailable
+                            break;
+                        }
                     }
-                    runningTotalInvestments = Math.max(
-                        0,
-                        runningTotalInvestments
-                    );
 
                     goalApplied = {
                         id: pendingGoal.id,
@@ -121,31 +118,48 @@ export const recalculateAllEntries = (
                         amount: pendingGoal.amount,
                     };
 
-                    pendingGoals.shift();
-
-                    break;
+                    pendingGoals.shift(); // Remove goal from pending list
                 } else {
+                    // Not enough funds to apply goal
                     break;
                 }
             }
         }
 
+        // Ensure totals are not negative
+        runningTotalSavings = Math.max(runningTotalSavings, 0);
+        runningTotalInvestments = Math.max(runningTotalInvestments, 0);
+
+        // Set display totals
+        const displayTotalSavings =
+            entry.isTotalSavingsManual && i === 0
+                ? entry.totalSavings
+                : runningTotalSavings;
+        const displayTotalInvestments =
+            entry.isTotalInvestmentsManual && i === 0
+                ? entry.totalInvestments
+                : runningTotalInvestments;
+
+        // Update entry data
         updatedData[i] = {
             ...entry,
-            totalSavings: runningTotalSavings,
-            totalInvestments: runningTotalInvestments,
+            totalSavings: displayTotalSavings,
+            totalInvestments: displayTotalInvestments,
             interestReturn,
             investmentReturn,
-            totalSaved: runningTotalSavings + runningTotalInvestments,
-            grandTotal:
-                runningTotalSavings +
-                runningTotalInvestments +
-                interestReturn +
-                investmentReturn,
+            totalSaved: displayTotalSavings + displayTotalInvestments,
+            grandTotal: displayTotalSavings + displayTotalInvestments,
             goal: goalApplied,
             commentary: entry.commentary,
+            runningTotalSavings, // For next iteration
+            runningTotalInvestments, // For next iteration
         };
     }
+
+    // Remove runningTotalSavings and runningTotalInvestments from entries before returning
+    updatedData = updatedData.map(
+        ({ runningTotalSavings, runningTotalInvestments, ...rest }) => rest
+    );
 
     return updatedData;
 };
