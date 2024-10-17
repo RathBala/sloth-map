@@ -1,20 +1,24 @@
+/* eslint-disable no-debugger */
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import TableComponent from './components/TableComponent';
 import InputFields from './components/InputFields';
 import Authentication from './components/Auth';
 import SlothMap from './components/SlothMap';
-import { formatNumber } from './utils/formatUtils';
+import { formatNumber, formatMonth } from './utils/formatUtils';
 import useUserData from './utils/useUserData';
 import {
     generateData,
-    recalculateFromIndex,
     ensureNestEgg,
+    recalculateAllEntries,
 } from './utils/calculations';
 import './App.css';
+import GoalModal from './components/GoalModal';
+import addIcon from './assets/add.svg';
 
 const App = () => {
     const {
+        loading,
         isLoggedIn,
         user,
         interestRate,
@@ -25,46 +29,31 @@ const App = () => {
         setTargetNestEgg,
         age,
         setAge,
-        manualChanges,
-        setManualChanges,
+        userInputs,
+        setUserInputs,
         saveInputFields,
         saveTableData,
+        commitGoalsToFirestore,
         logout,
+        setRowsToDelete,
+        goals,
+        saveGoal,
     } = useUserData();
 
-    const [tableData, setTableData] = useState(() => generateData(500, 300, 0));
-    const [recalcTrigger, setRecalcTrigger] = useState(0);
+    const [tableData, setTableData] = useState(() => generateData(500, 300));
+
+    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+    const [editingGoal, setEditingGoal] = useState(null);
 
     useEffect(() => {
-        console.log(
-            'Recalculating data due to change in interest rate, investment return rate, or target nest egg'
-        );
         if (
             interestRate !== null &&
             investmentReturnRate !== null &&
             targetNestEgg !== null
         ) {
-            setTableData(generateData(500, 300, 0));
+            recalculateAllData();
         }
-    }, [interestRate, investmentReturnRate, targetNestEgg]);
-
-    useEffect(() => {
-        console.log(
-            'Recalculating data due to change in table data or manual changes'
-        );
-        recalculateData();
-    }, [interestRate, investmentReturnRate, targetNestEgg, recalcTrigger]);
-
-    useEffect(() => {
-        console.log('Manual changes detected, recalculating data');
-        if (Object.keys(manualChanges).length > 0) {
-            recalculateData();
-        }
-    }, [manualChanges]);
-
-    useEffect(() => {
-        recalculateData();
-    }, [tableData]);
+    }, [interestRate, investmentReturnRate, targetNestEgg, userInputs, goals]);
 
     const updateField = (
         data,
@@ -74,304 +63,259 @@ const App = () => {
         trackChange = true,
         isManual = false
     ) => {
-        // console.log(
-        //     `updateField called for index: ${index}, field: ${field}, value: ${value}, trackChange: ${trackChange}, isManual: ${isManual}`
-        // );
-        // console.log('Data before update:', JSON.stringify(data, null, 2));
-
         let updatedData = [...data];
+
         updatedData[index] = { ...updatedData[index], [field]: value };
 
-        if (field === 'depositSavings' || field === 'depositInvestments') {
-            for (let i = index + 1; i < updatedData.length; i++) {
-                if (
-                    (field === 'depositSavings' &&
-                        !updatedData[i].isTotalSavingsManual) ||
-                    (field === 'depositInvestments' &&
-                        !updatedData[i].isTotalInvestmentsManual)
-                ) {
-                    updatedData[i][field] = value;
-                    // console.log(
-                    //     `Propagated ${field} to index ${i}: ${JSON.stringify(updatedData[i], null, 2)}`
-                    // );
-                }
-            }
-        }
+        if (trackChange && isManual) {
+            const rowKey = updatedData[index].rowKey;
 
-        // if (field === 'depositSavings') {
-        //     // Log other scenarios in the same month
-        //     const monthOfInterest = updatedData[index].month;
-        //     console.log(
-        //         `Logging other 'depositSavings' for the month ${monthOfInterest}:`
-        //     );
-        //     updatedData.forEach((item, idx) => {
-        //         if (item.month === monthOfInterest && idx !== index) {
-        //             console.log(`Index ${idx}: ${item.depositSavings}`);
-        //         }
-        //     });
-        // }
-
-        // console.log(
-        //     'Data after field update:',
-        //     JSON.stringify(updatedData, null, 2)
-        // );
-
-        if (trackChange) {
-            const [monthName, year] = updatedData[index].month.split(' ');
-            const monthNumber =
-                new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
-            const monthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
-
-            setManualChanges((prevChanges) => {
+            setUserInputs((prevChanges) => {
                 const newChanges = { ...prevChanges };
-                const existingChange =
-                    prevChanges[monthId] && prevChanges[monthId][field];
-
-                if (!newChanges[monthId]) {
-                    newChanges[monthId] = {};
+                if (!newChanges[rowKey]) {
+                    newChanges[rowKey] = {};
                 }
-
-                if (isManual && (!existingChange || existingChange !== value)) {
-                    newChanges[monthId][field] = value;
-                    console.log(
-                        'Manual changes updated:',
-                        JSON.stringify(newChanges, null, 2)
-                    );
-                    return newChanges;
-                }
-
-                return prevChanges;
+                newChanges[rowKey][field] = value;
+                return newChanges;
             });
+
+            if (field === 'depositSavings') {
+                updatedData[index].isDepositSavingsManual = true;
+            } else if (field === 'depositInvestments') {
+                updatedData[index].isDepositInvestmentsManual = true;
+            }
+
+            updatedData[index].isManualFromFirestore = false;
         }
 
-        return updatedData;
-    };
+        if (field === 'depositSavings' || field === 'depositInvestments') {
+            const isManualField =
+                field === 'depositSavings'
+                    ? 'isDepositSavingsManual'
+                    : 'isDepositInvestmentsManual';
 
-    const adjustGoals = (data) => {
-        let updatedData = JSON.parse(JSON.stringify(data));
-        let goals = [];
+            for (let i = index + 1; i < updatedData.length; i++) {
+                if (updatedData[i].isActive) {
+                    if (isManual) {
+                        // For current manual changes, overwrite all subsequent rows
+                        // Remove any manual flags and userInputs
+                        updatedData[i] = { ...updatedData[i], [field]: value };
+                        updatedData[i][isManualField] = false;
+                        updatedData[i].isManualFromFirestore = false;
 
-        updatedData.forEach((entry, index) => {
-            if (entry.withdrawals > 0 && entry.goal) {
-                goals.push({
-                    goal: entry.goal,
-                    withdrawals: entry.withdrawals,
-                    originalIndex: index,
-                    month: entry.month,
-                });
+                        // Remove manual changes for this field in userInputs
+                        const rowKey = updatedData[i].rowKey;
+                        setUserInputs((prevChanges) => {
+                            const newChanges = { ...prevChanges };
+                            if (
+                                newChanges[rowKey] &&
+                                newChanges[rowKey][field] !== undefined
+                            ) {
+                                delete newChanges[rowKey][field];
+                                if (
+                                    Object.keys(newChanges[rowKey]).length === 0
+                                ) {
+                                    // RowKey has no more changes, delete it from newChanges
+                                    delete newChanges[rowKey];
 
-                updatedData = updateField(
-                    updatedData,
-                    index,
-                    'goal',
-                    '',
-                    true,
-                    false
-                );
-                updatedData = updateField(
-                    updatedData,
-                    index,
-                    'withdrawals',
-                    0,
-                    true,
-                    false
-                );
-            }
-        });
-
-        updatedData = recalculateFromIndex(
-            updatedData,
-            0,
-            interestRate,
-            investmentReturnRate
-        );
-
-        goals.sort((a, b) => new Date(a.month) - new Date(b.month));
-
-        goals.forEach((goal) => {
-            let withdrawalAmount = goal.withdrawals;
-            let sufficientFundsIndex = goal.originalIndex;
-
-            while (sufficientFundsIndex < updatedData.length) {
-                let hypotheticalSavings =
-                    updatedData[sufficientFundsIndex].totalSavings -
-                    withdrawalAmount;
-                let hypotheticalInvestments =
-                    updatedData[sufficientFundsIndex].totalInvestments;
-
-                if (hypotheticalSavings < 0) {
-                    hypotheticalInvestments += hypotheticalSavings;
-                    hypotheticalSavings = 0;
-                }
-
-                if (hypotheticalInvestments >= 0) {
-                    // Determine if the goal is being moved to a new month
-                    let isManualChange =
-                        goal.month !== updatedData[sufficientFundsIndex].month;
-
-                    // Track new location change using updateField
-                    updatedData = updateField(
-                        updatedData,
-                        sufficientFundsIndex,
-                        'goal',
-                        goal.goal,
-                        true,
-                        isManualChange // Set based on whether the month has changed
-                    );
-                    updatedData = updateField(
-                        updatedData,
-                        sufficientFundsIndex,
-                        'withdrawals',
-                        goal.withdrawals,
-                        true,
-                        isManualChange // Set based on whether the month has changed
-                    );
-
-                    updatedData = recalculateFromIndex(
-                        updatedData,
-                        sufficientFundsIndex,
-                        interestRate,
-                        investmentReturnRate
-                    );
-                    break;
-                }
-
-                sufficientFundsIndex++;
-            }
-        });
-
-        return updatedData;
-    };
-
-    const recalculateData = () => {
-        // console.log('Data before filter:', JSON.stringify(tableData, null, 2));
-
-        let updatedData = tableData.map((row) => ({
-            ...row,
-            isActive: row.isActive !== undefined ? row.isActive : true,
-        }));
-
-        // console.log(
-        //     'Data after filter, before recalculation:',
-        //     JSON.stringify(updatedData, null, 2)
-        // );
-
-        updatedData = recalculateFromIndex(
-            updatedData,
-            0,
-            interestRate,
-            investmentReturnRate
-        );
-
-        // console.log(
-        //     'Data after first recalculateFromIndex:',
-        //     JSON.stringify(updatedData, null, 2)
-        // );
-        // console.log(
-        //     'Manual changes being applied:',
-        //     JSON.stringify(manualChanges, null, 2)
-        // );
-
-        for (const [monthId, changes] of Object.entries(manualChanges)) {
-            // console.log(
-            //     `Processing changes for monthId: ${monthId}, changes: ${JSON.stringify(changes, null, 2)}`
-            // );
-
-            const monthIndex = updatedData.findIndex((row) => {
-                const [monthName, year] = row.month.split(' ');
-                const monthNumber =
-                    new Date(Date.parse(monthName + ' 1, 2000')).getMonth() + 1;
-                const rowMonthId = `${year}-${String(monthNumber).padStart(2, '0')}`;
-                // console.log(
-                //     `Checking rowMonthId: ${rowMonthId} against monthId: ${monthId}`
-                // );
-                return rowMonthId === monthId;
-            });
-
-            if (monthIndex !== -1) {
-                // console.log(
-                //     `Applying changes for monthId: ${monthId}, at index: ${monthIndex}`
-                // );
-
-                for (const [field, value] of Object.entries(changes)) {
-                    updatedData[monthIndex][field] = value;
-
-                    // console.log(
-                    //     `Updated ${field} at index ${monthIndex}: ${JSON.stringify(updatedData[monthIndex], null, 2)}`
-                    // );
-
-                    if (
-                        field === 'depositSavings' ||
-                        field === 'depositInvestments'
-                    ) {
-                        for (
-                            let i = monthIndex + 1;
-                            i < updatedData.length;
-                            i++
-                        ) {
-                            updatedData[i][field] = value;
-                            // console.log(
-                            //     `Propagated ${field} to index ${i}: ${JSON.stringify(updatedData[i], null, 2)}`
-                            // );
+                                    // Since we had changes for this rowKey before, and now we've removed them,
+                                    // we need to delete the document in Firestore
+                                    setRowsToDelete((prevRowsToDelete) => {
+                                        const updatedRowsToDelete = [
+                                            ...prevRowsToDelete,
+                                            rowKey,
+                                        ];
+                                        console.log(
+                                            `Row overwritten and added to rowsToDelete: ${rowKey}`
+                                        );
+                                        console.log(
+                                            'Rows to be deleted are:',
+                                            updatedRowsToDelete
+                                        );
+                                        return updatedRowsToDelete;
+                                    });
+                                }
+                            }
+                            return newChanges;
+                        });
+                    } else {
+                        // For initial load, stop propagation at any manual change
+                        if (updatedData[i][isManualField]) {
+                            break;
                         }
+                        updatedData[i] = { ...updatedData[i], [field]: value };
                     }
                 }
-
-                if (
-                    Object.prototype.hasOwnProperty.call(
-                        changes,
-                        'totalSavings'
-                    )
-                ) {
-                    updatedData[monthIndex].isTotalSavingsManual = true;
-                }
-                if (
-                    Object.prototype.hasOwnProperty.call(
-                        changes,
-                        'totalInvestments'
-                    )
-                ) {
-                    updatedData[monthIndex].isTotalInvestmentsManual = true;
-                }
-
-                // console.log(
-                //     'Data before second recalculateFromIndex:',
-                //     JSON.stringify(updatedData, null, 2)
-                // );
-
-                updatedData = recalculateFromIndex(
-                    updatedData,
-                    monthIndex,
-                    interestRate,
-                    investmentReturnRate
-                );
-
-                // console.log(
-                //     'Data after second recalculateFromIndex:',
-                //     JSON.stringify(updatedData, null, 2)
-                // );
             }
         }
 
-        updatedData = adjustGoals(updatedData);
+        return updatedData;
+    };
+
+    const recalculateAllData = () => {
+        console.log('recalculateData called');
+
+        let updatedData = tableData.map((row) => ({ ...row }));
+
+        // Step 1: Identify missing rows from userInputs
+        const existingRowKeys = new Set(updatedData.map((row) => row.rowKey));
+        const missingRowKeys = Object.keys(userInputs).filter(
+            (rowKey) => !existingRowKeys.has(rowKey)
+        );
+
+        // Step 2: Create missing rows
+        missingRowKeys.forEach((rowKey) => {
+            // Find the last hyphen in the rowKey
+            const lastHyphenIndex = rowKey.lastIndexOf('-');
+            // Extract the month and variantIndex from the rowKey
+            const month = rowKey.substring(0, lastHyphenIndex);
+            const variantIndexStr = rowKey.substring(lastHyphenIndex + 1);
+            const variantIndex = parseInt(variantIndexStr, 10);
+
+            // Find a baseRow to copy from
+            let baseRow = updatedData.find(
+                (row) => row.month === month && row.variantIndex === 0
+            );
+
+            // If no baseRow is found, use a default row
+            if (!baseRow) {
+                baseRow = {
+                    month: month,
+                    variantIndex: 0,
+                    rowKey: `${month}-0`,
+                    depositSavings: 0,
+                    depositInvestments: 0,
+                    totalSavings: 0,
+                    totalInvestments: 0,
+                    isTotalSavingsManual: false,
+                    isTotalInvestmentsManual: false,
+                    isDepositSavingsManual: false,
+                    isDepositInvestmentsManual: false,
+                    totalSaved: 0,
+                    interestReturn: 0,
+                    investmentReturn: 0,
+                    grandTotal: 0,
+                    commentary: '',
+                    isActive: true,
+                    isManualFromFirestore: false,
+                };
+            }
+
+            // Extract changes from userInputs, filtering out undefined values
+            const changes = Object.fromEntries(
+                Object.entries(userInputs[rowKey]).filter(
+                    ([, value]) => value !== undefined
+                )
+            );
+
+            const newRow = {
+                ...baseRow,
+                rowKey: rowKey,
+                variantIndex: variantIndex,
+                isAlt: variantIndex > 0,
+                isActive:
+                    changes.isActive !== undefined ? changes.isActive : true,
+                // Apply only defined fields from changes
+                ...changes,
+            };
+
+            // Ensure newRow has all necessary properties
+            if (!newRow.month) newRow.month = month;
+            if (newRow.variantIndex === undefined)
+                newRow.variantIndex = variantIndex;
+
+            updatedData.push(newRow);
+        });
+
+        // Step 3: Sort the updatedData by rowKey
+        updatedData.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
+
+        updatedData = recalculateAllEntries(
+            updatedData,
+            interestRate,
+            investmentReturnRate,
+            goals
+        );
+
+        // Apply userInputs to updatedData
+        for (const [rowKey, changes] of Object.entries(userInputs)) {
+            const rowIndex = updatedData.findIndex(
+                (row) => row.rowKey === rowKey
+            );
+
+            if (rowIndex !== -1 && updatedData[rowIndex].isActive) {
+                for (const [field, value] of Object.entries(changes)) {
+                    updatedData = updateField(
+                        updatedData,
+                        rowIndex,
+                        field,
+                        value,
+                        false
+                    );
+
+                    // Set manual flags if necessary
+                    if (field === 'totalSavings') {
+                        updatedData[rowIndex].isTotalSavingsManual = true;
+                    } else if (field === 'totalInvestments') {
+                        updatedData[rowIndex].isTotalInvestmentsManual = true;
+                    } else if (field === 'depositSavings') {
+                        updatedData[rowIndex].isDepositSavingsManual = true;
+                    } else if (field === 'depositInvestments') {
+                        updatedData[rowIndex].isDepositInvestmentsManual = true;
+                    }
+
+                    // Set the isManualFromFirestore flag
+                    updatedData[rowIndex].isManualFromFirestore = true;
+                }
+            }
+        }
+
+        updatedData = updatedData.map((entry) => ({
+            ...entry,
+            totalSaved: 0,
+            interestReturn: 0,
+            investmentReturn: 0,
+            grandTotal: 0,
+        }));
+
+        updatedData = recalculateAllEntries(
+            updatedData,
+            interestRate,
+            investmentReturnRate,
+            goals
+        );
 
         updatedData = ensureNestEgg(
             targetNestEgg,
             updatedData,
             interestRate,
             investmentReturnRate,
-            recalculateFromIndex
-        );
-
-        console.log(
-            'Final updated data after recalculation:',
-            JSON.stringify(updatedData, null, 2)
+            recalculateAllEntries,
+            goals
         );
 
         if (JSON.stringify(tableData) !== JSON.stringify(updatedData)) {
-            setTableData(updatedData); // Only update state if there is a change
+            setTableData(updatedData);
         }
     };
+
+    const handleNewGoalClick = () => {
+        setEditingGoal(null);
+        setIsGoalModalOpen(true);
+    };
+
+    const handleGoalSave = (goal) => {
+        saveGoal(goal);
+    };
+
+    const handleEditGoal = (goal) => {
+        setEditingGoal(goal);
+        setIsGoalModalOpen(true);
+    };
+
+    if (loading) {
+        return <div>Loading user data...</div>;
+    }
 
     if (!isLoggedIn) {
         return <Authentication />;
@@ -392,91 +336,38 @@ const App = () => {
     const handleAgeChange = (e) =>
         setAge(e.target.value === '' ? '' : parseFloat(e.target.value));
 
-    const handleFieldChange = (index, field, value, data) => {
+    const handleFieldChange = (index, field, value) => {
         console.log(
             `handleFieldChange called for field: ${field} with value: ${value}`
         );
 
-        let newData = data ? [...data] : [...tableData];
-        let shouldRecalculate = false;
-        let isManual = true;
+        let updatedTableData = [...tableData];
 
-        if (field === 'totalSavings' || field === 'totalInvestments') {
-            const newValue = parseFloat(value);
-            newData = updateField(newData, index, field, newValue);
-            shouldRecalculate = true;
-            if (field === 'totalSavings') {
-                newData[index].isTotalSavingsManual = true;
-            } else if (field === 'totalInvestments') {
-                newData[index].isTotalInvestmentsManual = true;
-            }
-        } else if (field === 'withdrawals') {
-            newData = updateField(
-                newData,
-                index,
-                field,
-                parseFloat(value),
-                true,
-                isManual
-            );
-            shouldRecalculate = true;
-        } else if (field === 'goal') {
-            newData = updateField(newData, index, field, value, true, isManual);
-        } else if (
-            field === 'depositSavings' ||
-            field === 'depositInvestments'
-        ) {
-            for (let i = index; i < newData.length; i++) {
-                if (
-                    newData[i].isActive &&
-                    (field === 'depositSavings' ||
-                        field === 'depositInvestments')
-                ) {
-                    console.log(
-                        `Before updateField - Index ${i}, field: ${field}, value: ${value}`
-                    );
+        updatedTableData = updateField(
+            updatedTableData,
+            index,
+            field,
+            value,
+            true,
+            true
+        );
 
-                    newData = updateField(
-                        newData,
-                        i,
-                        field,
-                        parseFloat(value),
-                        true,
-                        isManual
-                    );
-                    console.log(
-                        `After updateField - Index ${i}, updated data: ${JSON.stringify(newData[i], null, 2)}`
-                    );
-                }
-            }
-            shouldRecalculate = true;
-        }
-
-        if (shouldRecalculate) {
-            console.log('handleFieldChange calling recalculateFromIndex');
-            newData = recalculateFromIndex(
-                newData,
-                index,
-                interestRate,
-                investmentReturnRate
-            );
-            console.log('After recalculation:', newData);
-        } else {
-            console.log('Data updated without recalculation:', newData);
-        }
-
-        setTableData(newData);
-        setRecalcTrigger((prev) => prev + 1);
-        console.log('RecalcTrigger incremented');
-
-        return newData;
+        setTableData(updatedTableData);
     };
 
     const handleSaveClick = async () => {
         console.log('Save button clicked');
-        await saveInputFields();
-        await saveTableData();
-        setManualChanges({});
+        try {
+            await saveInputFields();
+            await saveTableData();
+            await commitGoalsToFirestore();
+            setUserInputs({});
+            setRowsToDelete([]);
+            console.log('All changes saved successfully');
+        } catch (error) {
+            console.error('Failed to save changes:', error);
+            alert('Error saving changes: ' + error.message);
+        }
     };
 
     const formattedTableData = tableData.map((entry) => ({
@@ -492,95 +383,117 @@ const App = () => {
         grandTotalFormatted: formatNumber(entry.grandTotal),
     }));
 
-    // console.log('Formatted Table Data:', formattedTableData);
-
     const slothMapData = processDataForSlothMap(formattedTableData);
 
     const lastEntry = tableData[tableData.length - 1];
-    const achieveNestEggBy = lastEntry ? lastEntry.month : 'TBC';
+    const achieveNestEggBy = lastEntry ? formatMonth(lastEntry.month) : 'TBC';
 
     console.log('Achieve nest egg by: ', achieveNestEggBy);
 
     const addAltScenario = (index) => {
         const clickedMonth = tableData[index].month;
+
         console.log(
             `Adding new altScenario for month: ${clickedMonth}, based on row index: ${index}`
         );
 
-        const newRow = { ...tableData[index], isAlt: true, isActive: true };
+        // Find all variants for the clicked month
+        const variantsForMonth = tableData.filter(
+            (row) => row.month === clickedMonth
+        );
+        const maxVariantIndex = Math.max(
+            ...variantsForMonth.map((row) => row.variantIndex)
+        );
+
+        const newVariantIndex = maxVariantIndex + 1;
+
+        // Create a new row based on the selected row
+        const newRow = {
+            ...tableData[index],
+            variantIndex: newVariantIndex,
+            rowKey: `${clickedMonth}-${newVariantIndex}`,
+            isAlt: true,
+            isActive: true,
+            isDepositSavingsManual:
+                tableData[index].isDepositSavingsManual || false,
+            isDepositInvestmentsManual:
+                tableData[index].isDepositInvestmentsManual || false,
+            isManualFromFirestore:
+                tableData[index].isManualFromFirestore || false,
+            isTotalSavingsManual:
+                tableData[index].isTotalSavingsManual || false,
+            isTotalInvestmentsManual:
+                tableData[index].isTotalInvestmentsManual || false,
+            // Set default values for fields that might be undefined
+            goal: tableData[index].goal || '',
+            depositSavings: tableData[index].depositSavings || 0,
+            depositInvestments: tableData[index].depositInvestments || 0,
+        };
+
         console.log(`New altScenario row created from index ${index}:`, newRow);
 
+        // Add the new alt row to tableData
         let updatedTableData = [
             ...tableData.slice(0, index + 1),
             newRow,
             ...tableData.slice(index + 1),
         ];
 
-        updatedTableData = updatedTableData.map((row, i) => ({
-            ...row,
-            isActive:
-                row.month === clickedMonth ? i === index + 1 : row.isActive,
-        }));
-
-        console.log(`Updated states for month ${clickedMonth}:`);
-        updatedTableData
-            .filter((row) => row.month === clickedMonth)
-            .forEach((row) => {
-                console.log(
-                    `Row index ${updatedTableData.indexOf(row)}: isActive = ${row.isActive}`
-                );
-            });
-
-        setTableData(updatedTableData);
-        recalculateFromIndex(
-            updatedTableData,
-            index,
-            interestRate,
-            investmentReturnRate
-        );
-
-        setRecalcTrigger((prev) => prev + 1);
-        console.log('RecalcTrigger incremented');
-    };
-
-    const handleRowClick = (index) => {
-        const clickedMonth = tableData[index].month;
-        console.log(`Row clicked: Index ${index}, Month: ${clickedMonth}`);
-
-        console.log('Current state of all rows before update:');
-        tableData.forEach((row, idx) => {
-            console.log(
-                `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
-            );
-        });
-
-        const updatedTableData = tableData.map((row, idx) => {
+        // Deactivate other variants for the same month
+        updatedTableData = updatedTableData.map((row) => {
             if (row.month === clickedMonth) {
-                console.log(
-                    `Toggling isActive for index ${idx}: currently ${row.isActive}`
-                );
-                return { ...row, isActive: idx === index };
+                return { ...row, isActive: row.rowKey === newRow.rowKey };
             }
             return row;
         });
 
-        console.log('Updated state of all rows after update:');
-        updatedTableData.forEach((row, idx) => {
-            console.log(
-                `Index: ${idx}, Month: ${row.month}, isActive: ${row.isActive}`
-            );
-        });
+        // Update userInputs to include the new alt row
+        setUserInputs((prevUserInputs) => ({
+            ...prevUserInputs,
+            [newRow.rowKey]: {
+                isActive: true,
+            },
+        }));
 
         setTableData(updatedTableData);
-        recalculateFromIndex(
-            updatedTableData,
-            index,
-            interestRate,
-            investmentReturnRate
-        );
+    };
 
-        setRecalcTrigger((prev) => prev + 1);
-        console.log('RecalcTrigger incremented');
+    const handleRowClick = (index) => {
+        const clickedRow = tableData[index];
+
+        if (clickedRow.isActive) {
+            console.log('Clicked on an already active row; no changes made.');
+            return;
+        }
+
+        const clickedMonth = clickedRow.month;
+
+        let updatedTableData = tableData.map((row, idx) => {
+            if (row.month === clickedMonth) {
+                return { ...row, isActive: row.rowKey === clickedRow.rowKey };
+            } else if (idx > index) {
+                // For rows after the clicked row, reset isActive based on existing conditions
+                return row;
+            } else {
+                // For rows before the clicked row, do not change isActive status
+                return row;
+            }
+        });
+
+        // Record the isActive status change in userInputs
+        const updatedUserInputs = { ...userInputs };
+        updatedTableData.forEach((row) => {
+            if (row.month === clickedMonth) {
+                if (!updatedUserInputs[row.rowKey]) {
+                    updatedUserInputs[row.rowKey] = {};
+                }
+                updatedUserInputs[row.rowKey].isActive = row.isActive;
+            }
+        });
+
+        // Update tableData and userInputs
+        setTableData(updatedTableData);
+        setUserInputs(updatedUserInputs);
     };
 
     return (
@@ -595,6 +508,18 @@ const App = () => {
                                 : 'No user logged in'}
                         </span>
                     </div>
+                    <button
+                        type="button"
+                        onClick={handleNewGoalClick}
+                        className="new-goal-button"
+                    >
+                        <img
+                            src={addIcon}
+                            alt="Add Goal"
+                            className="add-icon"
+                        />{' '}
+                        New Goal
+                    </button>
                     <button type="button" onClick={handleSaveClick}>
                         Save
                     </button>
@@ -647,11 +572,18 @@ const App = () => {
                                         onFieldChange={handleFieldChange}
                                         onAltScenario={addAltScenario}
                                         handleRowClick={handleRowClick}
+                                        onEditGoal={handleEditGoal}
                                     />
                                 </>
                             }
                         />
                     </Routes>
+                    <GoalModal
+                        isOpen={isGoalModalOpen}
+                        onClose={() => setIsGoalModalOpen(false)}
+                        onSave={handleGoalSave}
+                        goal={editingGoal}
+                    />
                 </div>
             </div>
         </Router>
@@ -669,19 +601,19 @@ const processDataForSlothMap = (data) => {
             current.depositSavings !== previous.depositSavings
         ) {
             nodes.push({
-                id: current.month,
+                id: current.id,
                 type: 'rect',
                 text: `Save £${current.depositSavings} in savings; Save £${current.depositInvestments} in investments`,
-                date: current.month,
+                date: formatMonth(current.month),
                 grandTotal: current.grandTotal,
             });
         }
-        if (current.withdrawals > 0) {
+        if (current.goal) {
             nodes.push({
-                id: current.month,
+                id: current.rowKey,
                 type: 'circle',
-                text: `${current.goal || 'Withdrawal'} for £${current.withdrawals}`,
-                date: current.month,
+                text: `${current.goal.name} for £${formatNumber(current.goal.amount)}`,
+                date: formatMonth(current.month),
                 grandTotal: current.grandTotal,
             });
         }

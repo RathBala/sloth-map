@@ -1,5 +1,6 @@
+/* eslint-disable no-debugger */
 import { useState, useEffect, useRef } from 'react';
-import { formatNumber } from '../utils/formatUtils';
+import { formatNumber, formatMonth } from '../utils/formatUtils';
 import addIcon from '../assets/add.svg';
 
 const TableComponent = ({
@@ -8,17 +9,22 @@ const TableComponent = ({
     onFieldChange,
     onAltScenario,
     handleRowClick,
+    onEditGoal,
 }) => {
     const prevDataRef = useRef();
+    const today = new Date();
+    const currentMonth = `${today.getFullYear()}-${String(
+        today.getMonth() + 1
+    ).padStart(2, '0')}`;
 
     useEffect(() => {
         if (prevDataRef.current) {
             const prevData = prevDataRef.current;
             if (JSON.stringify(prevData) !== JSON.stringify(data)) {
-                console.log(
-                    'TableComponent received data:',
-                    JSON.stringify(data, null, 2)
-                );
+                // console.log(
+                //     'TableComponent received data:',
+                //     JSON.stringify(data, null, 2)
+                // );
             }
         }
         prevDataRef.current = data;
@@ -33,8 +39,9 @@ const TableComponent = ({
         totalInvestments: row.totalInvestments?.toString() || '',
         depositSavings: row.depositSavings?.toString() || '',
         depositInvestments: row.depositInvestments?.toString() || '',
-        withdrawals: row.withdrawals?.toString() || '',
-        goal: row.goal || '',
+        goalName: row.goal ? row.goal.name : '',
+        goalAmount: row.goal ? row.goal.amount.toString() : '',
+        commentary: row.commentary || '',
     }));
 
     const [inputValues, setInputValues] = useState(initialState);
@@ -47,14 +54,15 @@ const TableComponent = ({
                 totalInvestments: row.totalInvestments?.toString() || '',
                 depositSavings: row.depositSavings?.toString() || '',
                 depositInvestments: row.depositInvestments?.toString() || '',
-                withdrawals: row.withdrawals?.toString() || '',
-                goal: row.goal || '',
+                goalName: row.goal ? row.goal.name : '',
+                goalAmount: row.goal ? row.goal.amount.toString() : '',
+                commentary: row.commentary || '',
             }))
         );
     }, [data]);
 
-    const handleFocus = (index, field, e) => {
-        e.stopPropagation();
+    const handleFocus = (index, field) => {
+        console.log(`Focus event on ${field} at index ${index}`);
         setFocusedIndex(index);
         setFocusedField(field);
     };
@@ -100,6 +108,14 @@ const TableComponent = ({
         );
     };
 
+    const handleInputInteraction = (index, field, e) => {
+        console.log(`Interaction event on ${field} at index ${index}`);
+        e.stopPropagation();
+        if (field === 'depositSavings' && e.type === 'focus') {
+            handleFocus(index, field, e);
+        }
+    };
+
     return (
         <table>
             <thead>
@@ -109,20 +125,21 @@ const TableComponent = ({
                     <th>Deposit in Savings</th>
                     <th>Deposit in Investments</th>
                     <th>Total Deposit</th>
-                    <th>Withdrawals</th>
+                    <th>Goal</th>
+                    <th>Goal Amount</th>
                     <th>Total in Savings Account (monzo)</th>
                     <th>Total in Investments Account (HL, SJP ISA, bitcoin)</th>
                     <th>Total Saved</th>
                     <th>Interest Return</th>
                     <th>Investment Return</th>
                     <th>Grand Total</th>
-                    <th>Goal</th>
+                    <th>Commentary</th>
                 </tr>
             </thead>
             <tbody>
                 {inputValues.map((row, index) => (
                     <tr
-                        key={index}
+                        key={row.rowKey}
                         className={
                             row.isAlt
                                 ? row.isActive
@@ -152,7 +169,7 @@ const TableComponent = ({
                                 }}
                             />{' '}
                         </td>
-                        <td>{row.month}</td>
+                        <td>{formatMonth(row.month)}</td>
                         <td>
                             <input
                                 type="text"
@@ -163,7 +180,18 @@ const TableComponent = ({
                                         : formatNumber(row.depositSavings || '')
                                 }
                                 onFocus={(e) =>
-                                    handleFocus(index, 'depositSavings', e)
+                                    handleInputInteraction(
+                                        index,
+                                        'depositSavings',
+                                        e
+                                    )
+                                }
+                                onClick={(e) =>
+                                    handleInputInteraction(
+                                        index,
+                                        'depositSavings',
+                                        e
+                                    )
                                 }
                                 onChange={(e) =>
                                     handleChange(
@@ -213,90 +241,90 @@ const TableComponent = ({
                         </td>
                         <td>{row.totalDepositFormatted}</td>
                         <td>
-                            <input
-                                type="text"
-                                value={
-                                    focusedIndex === index &&
-                                    focusedField === 'withdrawals'
-                                        ? row.withdrawals
-                                        : formatNumber(row.withdrawals || '')
-                                }
-                                onFocus={(e) =>
-                                    handleFocus(index, 'withdrawals', e)
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        index,
-                                        'withdrawals',
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={(e) =>
-                                    handleBlur(
-                                        index,
-                                        'withdrawals',
-                                        e.target.value
-                                    )
-                                }
-                            />
+                            {row.goal ? (
+                                <span
+                                    className="goal-pill"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEditGoal(row.goal);
+                                    }}
+                                >
+                                    {row.goal.name}
+                                </span>
+                            ) : null}
+                        </td>
+                        <td>{row.goal ? formatNumber(row.goal.amount) : ''}</td>
+                        <td>
+                            {row.month === currentMonth ? (
+                                <input
+                                    type="text"
+                                    value={
+                                        focusedIndex === index &&
+                                        focusedField === 'totalSavings'
+                                            ? row.totalSavings.toString()
+                                            : formatNumber(
+                                                  row.totalSavings || ''
+                                              )
+                                    }
+                                    onFocus={(e) =>
+                                        handleFocus(index, 'totalSavings', e)
+                                    }
+                                    onChange={(e) =>
+                                        handleChange(
+                                            index,
+                                            'totalSavings',
+                                            e.target.value
+                                        )
+                                    }
+                                    onBlur={(e) =>
+                                        handleBlur(
+                                            index,
+                                            'totalSavings',
+                                            e.target.value
+                                        )
+                                    }
+                                />
+                            ) : (
+                                formatNumber(row.totalSavings || '')
+                            )}
                         </td>
                         <td>
-                            <input
-                                type="text"
-                                value={
-                                    focusedIndex === index &&
-                                    focusedField === 'totalSavings'
-                                        ? row.totalSavings.toString()
-                                        : formatNumber(row.totalSavings || '')
-                                }
-                                onFocus={(e) =>
-                                    handleFocus(index, 'totalSavings', e)
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        index,
-                                        'totalSavings',
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={(e) =>
-                                    handleBlur(
-                                        index,
-                                        'totalSavings',
-                                        e.target.value
-                                    )
-                                }
-                            />
-                        </td>
-                        <td>
-                            <input
-                                type="text"
-                                value={
-                                    focusedIndex === index &&
-                                    focusedField === 'totalInvestments'
-                                        ? row.totalInvestments.toString()
-                                        : formatNumber(
-                                              row.totalInvestments || ''
-                                          )
-                                }
-                                onFocus={(e) =>
-                                    handleFocus(index, 'totalInvestments', e)
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        index,
-                                        'totalInvestments',
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={(e) =>
-                                    handleBlur(
-                                        index,
-                                        'totalInvestments',
-                                        e.target.value
-                                    )
-                                }
-                            />
+                            {row.month === currentMonth ? (
+                                <input
+                                    type="text"
+                                    value={
+                                        focusedIndex === index &&
+                                        focusedField === 'totalInvestments'
+                                            ? row.totalInvestments.toString()
+                                            : formatNumber(
+                                                  row.totalInvestments || ''
+                                              )
+                                    }
+                                    onFocus={(e) =>
+                                        handleFocus(
+                                            index,
+                                            'totalInvestments',
+                                            e
+                                        )
+                                    }
+                                    onChange={(e) =>
+                                        handleChange(
+                                            index,
+                                            'totalInvestments',
+                                            e.target.value
+                                        )
+                                    }
+                                    onBlur={(e) =>
+                                        handleBlur(
+                                            index,
+                                            'totalInvestments',
+                                            e.target.value
+                                        )
+                                    }
+                                />
+                            ) : (
+                                formatNumber(row.totalInvestments || '')
+                            )}
                         </td>
                         <td>{row.totalSavedFormatted}</td>
                         <td>{row.interestReturnFormatted}</td>
@@ -305,12 +333,23 @@ const TableComponent = ({
                         <td>
                             <input
                                 type="text"
-                                value={row.goal || ''}
+                                value={inputValues[index].commentary || ''}
+                                onFocus={(e) =>
+                                    handleFocus(index, 'commentary', e)
+                                }
                                 onChange={(e) =>
-                                    handleChange(index, 'goal', e.target.value)
+                                    handleChange(
+                                        index,
+                                        'commentary',
+                                        e.target.value
+                                    )
                                 }
                                 onBlur={(e) =>
-                                    handleBlur(index, 'goal', e.target.value)
+                                    handleBlur(
+                                        index,
+                                        'commentary',
+                                        e.target.value
+                                    )
                                 }
                             />
                         </td>

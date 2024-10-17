@@ -1,18 +1,29 @@
 import { useState, useEffect } from 'react';
 import { auth, db } from '../firebase-config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    setDoc,
+    deleteDoc,
+} from 'firebase/firestore';
 
 const useUserData = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
-    const [userDocument, setUserDocument] = useState(null);
 
     const [interestRate, setInterestRate] = useState(null);
     const [investmentReturnRate, setInvestmentReturnRate] = useState(null);
     const [targetNestEgg, setTargetNestEgg] = useState(null);
     const [age, setAge] = useState(null);
-    const [manualChanges, setManualChanges] = useState({});
+    const [userInputs, setUserInputs] = useState({});
+    const [goals, setGoals] = useState({});
+
+    const [rowsToDelete, setRowsToDelete] = useState([]);
+
+    const [loading, setLoading] = useState(true);
 
     const calculateAge = (dateOfBirth) => {
         const dob = new Date(dateOfBirth.seconds * 1000);
@@ -23,57 +34,118 @@ const useUserData = () => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            console.log('Auth state changed:', currentUser);
-
             if (currentUser) {
                 const userRef = doc(db, 'users', currentUser.uid);
-                const userDoc = await getDoc(userRef);
-                const userData = userDoc.data();
-                console.log('User data from Firestore:', userData);
+                setLoading(true);
 
-                setUserDocument({
-                    ...userData,
-                    email: currentUser.email,
-                    uid: currentUser.uid,
-                });
+                try {
+                    const userDoc = await getDoc(userRef);
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        console.log('User data from Firestore:', userData);
 
-                if (userData) {
-                    setInterestRate(userData.interestRate || 5);
-                    setInvestmentReturnRate(
-                        userData.investmentReturnRate || 10
-                    );
-                    setTargetNestEgg(userData.targetNestEgg || 0);
-                    setAge(calculateAge(userData.dateOfBirth));
+                        setUser({
+                            ...userData,
+                            email: currentUser.email,
+                            uid: currentUser.uid,
+                        });
+                        setIsLoggedIn(true);
+
+                        setInterestRate(userData.interestRate || 5);
+                        setInvestmentReturnRate(
+                            userData.investmentReturnRate || 10
+                        );
+                        setTargetNestEgg(userData.targetNestEgg || 0);
+                        setAge(calculateAge(userData.dateOfBirth));
+
+                        const tableDataRef = collection(userRef, 'tableData');
+                        const snapshot = await getDocs(tableDataRef);
+                        const loadedUserInputs = {};
+                        snapshot.forEach((doc) => {
+                            loadedUserInputs[doc.id] = doc.data();
+                        });
+                        setUserInputs(loadedUserInputs);
+
+                        await fetchGoals(currentUser.uid);
+                    } else {
+                        console.log(
+                            'No user document exists:',
+                            currentUser.uid
+                        );
+                        setIsLoggedIn(false);
+                        setUser(null);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch user document:', error);
+                    setIsLoggedIn(false);
+                    setUser(null);
                 }
-
-                const tableDataRef = collection(userRef, 'tableData');
-                const snapshot = await getDocs(tableDataRef);
-                console.log('Manual changes snapshot:', snapshot);
-                const manualChanges = {};
-                snapshot.forEach((doc) => {
-                    manualChanges[doc.id] = doc.data();
-                });
-                console.log('Manual changes from Firestore:', manualChanges);
-                setManualChanges(manualChanges);
             } else {
-                setUserDocument(null);
+                console.log('No user logged in');
+                setIsLoggedIn(false);
+                setUser(null);
             }
+            setLoading(false); // Ensure loading is set to false regardless of the outcome
         });
 
         return () => unsubscribe();
     }, []);
 
-    useEffect(() => {
-        if (userDocument) {
-            setIsLoggedIn(true);
-            setUser(userDocument);
-            console.log('User document set:', userDocument);
-        } else {
-            setIsLoggedIn(false);
-            setUser(null);
-            console.log('User document is null.');
+    const fetchGoals = async (userId) => {
+        const goalsRef = collection(db, 'users', userId, 'goals');
+        try {
+            const snapshot = await getDocs(goalsRef);
+            const loadedGoals = {};
+            snapshot.forEach((doc) => {
+                loadedGoals[doc.id] = { id: doc.id, ...doc.data() };
+            });
+            setGoals(loadedGoals);
+            console.log('Loaded goals:', loadedGoals);
+        } catch (error) {
+            console.error('Error fetching goals:', error);
         }
-    }, [userDocument]);
+    };
+
+    const generateGoalId = () => {
+        return `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+    };
+
+    const saveGoal = async (goal) => {
+        if (user && user.uid) {
+            const goalId = goal.id || generateGoalId();
+            setGoals((prevGoals) => ({
+                ...prevGoals,
+                [goalId]: { ...goal, id: goalId },
+            }));
+        }
+    };
+
+    const commitGoalsToFirestore = async () => {
+        if (user && user.uid) {
+            const userRef = doc(db, 'users', user.uid);
+            const goalsRef = collection(userRef, 'goals');
+            const promises = Object.values(goals).map((goal) => {
+                const goalRef = doc(goalsRef, goal.id);
+                return setDoc(goalRef, goal, { merge: true });
+            });
+            await Promise.all(promises);
+            console.log('Goals saved to Firestore');
+        }
+    };
+
+    // const deleteGoal = async (goalId) => {
+    //     if (user && user.uid) {
+    //         const userRef = doc(db, 'users', user.uid);
+    //         const goalRef = doc(userRef, 'goals', goalId);
+    //         await deleteDoc(goalRef);
+
+    //         setGoals((prevGoals) => {
+    //             const updatedGoals = { ...prevGoals };
+    //             delete updatedGoals[goalId];
+    //             return updatedGoals;
+    //         });
+    //     }
+    // };
 
     const saveInputFields = async () => {
         if (user && user.uid) {
@@ -106,12 +178,60 @@ const useUserData = () => {
             const userRef = doc(db, 'users', user.uid);
             const tableDataRef = collection(userRef, 'tableData');
 
+            const MAX_ALLOWED_ENTRIES = 100;
+
+            const numberOfEntries = Object.keys(userInputs).length;
+
+            if (numberOfEntries > MAX_ALLOWED_ENTRIES) {
+                console.error(
+                    `Attempting to save too many entries (${numberOfEntries}). Save aborted.`
+                );
+                alert(
+                    `Too many changes to save (${numberOfEntries}). Please reduce the number of changes.`
+                );
+                return;
+            }
+
             try {
-                for (const [month, fields] of Object.entries(manualChanges)) {
-                    const tableDataDocRef = doc(tableDataRef, month);
-                    await setDoc(tableDataDocRef, fields, { merge: true });
+                // Delete only the documents explicitly marked in rowsToDelete
+                if (rowsToDelete.length > 0) {
+                    console.log('Rows to be deleted are:', rowsToDelete);
+                    for (const docId of rowsToDelete) {
+                        const docRef = doc(tableDataRef, docId);
+                        const docSnapshot = await getDoc(docRef);
+                        if (docSnapshot.exists()) {
+                            await deleteDoc(docRef);
+                            console.log(
+                                `Deleted document with ID ${docId} from Firestore`
+                            );
+                        } else {
+                            console.log(
+                                `Document with ID ${docId} does not exist in Firestore`
+                            );
+                        }
+                    }
+                }
+
+                // Save only the entries in userInputs
+                for (const [rowKey, fields] of Object.entries(userInputs)) {
+                    // Remove undefined values from fields
+                    const cleanedFields = Object.fromEntries(
+                        Object.entries(fields).filter(
+                            ([, value]) => value !== undefined && value !== null
+                        )
+                    );
+
+                    // Only save if there are fields to save
+                    if (Object.keys(cleanedFields).length > 0) {
+                        const tableDataDocRef = doc(tableDataRef, rowKey);
+                        await setDoc(tableDataDocRef, cleanedFields, {
+                            merge: true,
+                        });
+                    }
                 }
                 console.log('Table data saved successfully');
+
+                setRowsToDelete([]);
             } catch (error) {
                 console.error('Error saving table data:', error);
             }
@@ -125,6 +245,7 @@ const useUserData = () => {
     };
 
     return {
+        loading,
         isLoggedIn,
         user,
         interestRate,
@@ -135,11 +256,16 @@ const useUserData = () => {
         setTargetNestEgg,
         age,
         setAge,
-        manualChanges,
-        setManualChanges,
+        userInputs,
+        setUserInputs,
         saveInputFields,
         saveTableData,
         logout,
+        setRowsToDelete,
+        goals,
+        saveGoal,
+        // deleteGoal,
+        commitGoalsToFirestore,
     };
 };
 
