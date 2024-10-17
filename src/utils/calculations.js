@@ -67,9 +67,11 @@ export const recalculateAllEntries = (
             runningTotalInvestments = prevEntry.runningTotalInvestments;
         }
 
-        // Add deposits if entry is active
-        if (entry.isActive) {
+        // Add deposits if entry is active and not manually overridden in first row
+        if (entry.isActive && (i > 0 || !entry.isTotalSavingsManual)) {
             runningTotalSavings += entry.depositSavings;
+        }
+        if (entry.isActive && (i > 0 || !entry.isTotalInvestmentsManual)) {
             runningTotalInvestments += entry.depositInvestments;
         }
 
@@ -82,29 +84,35 @@ export const recalculateAllEntries = (
         runningTotalSavings += interestReturn;
         runningTotalInvestments += investmentReturn;
 
-        // Try to apply goals only if the entry is active
+        // Apply goals
         let goalApplied = null;
+        let savingsDeduction = 0;
+        let investmentsDeduction = 0;
         if (entry.isActive) {
             while (pendingGoals.length > 0) {
                 const pendingGoal = pendingGoals[0];
+
+                // For first month with manual totals, do not consider deposits
                 const totalAvailable =
                     runningTotalSavings + runningTotalInvestments;
 
                 if (totalAvailable >= pendingGoal.amount) {
-                    let goalAmount = pendingGoal.amount;
-                    let remainingGoalAmount = goalAmount;
+                    let remainingGoalAmount = pendingGoal.amount;
 
                     // Subtract from savings first
                     if (runningTotalSavings >= remainingGoalAmount) {
                         runningTotalSavings -= remainingGoalAmount;
+                        savingsDeduction += remainingGoalAmount;
                         remainingGoalAmount = 0;
                     } else {
+                        savingsDeduction += runningTotalSavings;
                         remainingGoalAmount -= runningTotalSavings;
                         runningTotalSavings = 0;
 
                         // Subtract the remaining from investments
                         if (runningTotalInvestments >= remainingGoalAmount) {
                             runningTotalInvestments -= remainingGoalAmount;
+                            investmentsDeduction += remainingGoalAmount;
                             remainingGoalAmount = 0;
                         } else {
                             // Not enough funds; this shouldn't happen as we checked totalAvailable
@@ -131,14 +139,19 @@ export const recalculateAllEntries = (
         runningTotalInvestments = Math.max(runningTotalInvestments, 0);
 
         // Set display totals
-        const displayTotalSavings =
-            entry.isTotalSavingsManual && i === 0
-                ? entry.totalSavings
-                : runningTotalSavings;
-        const displayTotalInvestments =
-            entry.isTotalInvestmentsManual && i === 0
-                ? entry.totalInvestments
-                : runningTotalInvestments;
+        let displayTotalSavings;
+        if (i === 0 && entry.isTotalSavingsManual) {
+            displayTotalSavings = entry.totalSavings - savingsDeduction;
+        } else {
+            displayTotalSavings = runningTotalSavings;
+        }
+        let displayTotalInvestments;
+        if (i === 0 && entry.isTotalInvestmentsManual) {
+            displayTotalInvestments =
+                entry.totalInvestments - investmentsDeduction;
+        } else {
+            displayTotalInvestments = runningTotalInvestments;
+        }
 
         // Update entry data
         updatedData[i] = {
@@ -151,15 +164,18 @@ export const recalculateAllEntries = (
             grandTotal: displayTotalSavings + displayTotalInvestments,
             goal: goalApplied,
             commentary: entry.commentary,
-            runningTotalSavings, // For next iteration
-            runningTotalInvestments, // For next iteration
+            runningTotalSavings,
+            runningTotalInvestments,
         };
     }
 
-    // Remove runningTotalSavings and runningTotalInvestments from entries before returning
-    updatedData = updatedData.map(
-        ({ runningTotalSavings, runningTotalInvestments, ...rest }) => rest
-    );
+    // Remove running totals from entries without causing lint errors
+    updatedData = updatedData.map((entry) => {
+        const rest = { ...entry };
+        delete rest.runningTotalSavings;
+        delete rest.runningTotalInvestments;
+        return rest;
+    });
 
     return updatedData;
 };
