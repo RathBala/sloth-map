@@ -230,6 +230,7 @@ const App = () => {
         // Step 3: Sort the updatedData by rowKey
         updatedData.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
 
+        console.log('Goals before recalculation:', goals);
         updatedData = recalculateAllEntries(
             updatedData,
             interestRate,
@@ -583,6 +584,7 @@ const App = () => {
                         onClose={() => setIsGoalModalOpen(false)}
                         onSave={handleGoalSave}
                         goal={editingGoal}
+                        goals={goals}
                     />
                 </div>
             </div>

@@ -82,26 +82,31 @@ th {
     z-index: 2000;
 }
 
+/* App.css */
 .modal-content {
     background: white;
+    color: black; /* Ensure text color is black */
     padding: 20px;
     border-radius: 8px;
     width: 300px;
 }
 
-.modal-content h2 {
-    margin-top: 0;
-}
-
 .modal-content label {
     display: block;
     margin-bottom: 10px;
+    color: black; /* Ensure label text is black */
 }
 
 .modal-content input {
     width: 100%;
     padding: 5px;
     margin-top: 5px;
+    background-color: white; /* Ensure input background is white */
+    color: black; /* Ensure input text is black */
+}
+
+.modal-content h2 {
+    margin-top: 0;
 }
 
 .modal-content button {

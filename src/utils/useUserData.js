@@ -110,13 +110,35 @@ const useUserData = () => {
         return `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
     };
 
+    // useUserData.js
     const saveGoal = async (goal) => {
         if (user && user.uid) {
             const goalId = goal.id || generateGoalId();
-            setGoals((prevGoals) => ({
-                ...prevGoals,
-                [goalId]: { ...goal, id: goalId },
-            }));
+
+            setGoals((prevGoals) => {
+                let updatedGoals = { ...prevGoals };
+
+                // Adjust priorities if necessary
+                const newPriority = goal.priority;
+                const otherGoals = Object.values(updatedGoals).filter(
+                    (g) => g.id !== goalId
+                );
+
+                otherGoals.forEach((existingGoal) => {
+                    if (existingGoal.priority >= newPriority) {
+                        existingGoal.priority += 1;
+                    }
+                });
+
+                updatedGoals = { ...updatedGoals };
+                otherGoals.forEach((g) => {
+                    updatedGoals[g.id] = g;
+                });
+
+                updatedGoals[goalId] = { ...goal, id: goalId };
+
+                return updatedGoals;
+            });
         }
     };
 

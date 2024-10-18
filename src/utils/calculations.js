@@ -39,7 +39,7 @@ export const recalculateAllEntries = (
 
     // Prepare the list of goals to be applied
     const sortedGoals = Object.values(goals).sort(
-        (a, b) => a.amount - b.amount
+        (a, b) => a.priority - b.priority
     );
 
     let pendingGoals = [...sortedGoals];
@@ -53,6 +53,19 @@ export const recalculateAllEntries = (
 
         // For each entry, start with previous totals
         if (i === 0) {
+            console.log(`Processing first entry for month: ${entry.month}`);
+            console.log('Initial totals before any calculations:');
+            console.log('  entry.totalSavings:', entry.totalSavings);
+            console.log('  entry.totalInvestments:', entry.totalInvestments);
+            console.log(
+                '  entry.isTotalSavingsManual:',
+                entry.isTotalSavingsManual
+            );
+            console.log(
+                '  entry.isTotalInvestmentsManual:',
+                entry.isTotalInvestmentsManual
+            );
+
             // First row
             runningTotalSavings = entry.isTotalSavingsManual
                 ? entry.totalSavings || 0
@@ -88,49 +101,47 @@ export const recalculateAllEntries = (
         let goalApplied = null;
         let savingsDeduction = 0;
         let investmentsDeduction = 0;
-        if (entry.isActive) {
-            while (pendingGoals.length > 0) {
-                const pendingGoal = pendingGoals[0];
+        while (pendingGoals.length > 0) {
+            const pendingGoal = pendingGoals[0];
 
-                // For first month with manual totals, do not consider deposits
-                const totalAvailable =
-                    runningTotalSavings + runningTotalInvestments;
+            // For first month with manual totals, do not consider deposits
+            const totalAvailable =
+                runningTotalSavings + runningTotalInvestments;
 
-                if (totalAvailable >= pendingGoal.amount) {
-                    let remainingGoalAmount = pendingGoal.amount;
+            if (totalAvailable >= pendingGoal.amount) {
+                let remainingGoalAmount = pendingGoal.amount;
 
-                    // Subtract from savings first
-                    if (runningTotalSavings >= remainingGoalAmount) {
-                        runningTotalSavings -= remainingGoalAmount;
-                        savingsDeduction += remainingGoalAmount;
+                // Subtract from savings first
+                if (runningTotalSavings >= remainingGoalAmount) {
+                    runningTotalSavings -= remainingGoalAmount;
+                    savingsDeduction += remainingGoalAmount;
+                    remainingGoalAmount = 0;
+                } else {
+                    savingsDeduction += runningTotalSavings;
+                    remainingGoalAmount -= runningTotalSavings;
+                    runningTotalSavings = 0;
+
+                    // Subtract the remaining from investments
+                    if (runningTotalInvestments >= remainingGoalAmount) {
+                        runningTotalInvestments -= remainingGoalAmount;
+                        investmentsDeduction += remainingGoalAmount;
                         remainingGoalAmount = 0;
                     } else {
-                        savingsDeduction += runningTotalSavings;
-                        remainingGoalAmount -= runningTotalSavings;
-                        runningTotalSavings = 0;
-
-                        // Subtract the remaining from investments
-                        if (runningTotalInvestments >= remainingGoalAmount) {
-                            runningTotalInvestments -= remainingGoalAmount;
-                            investmentsDeduction += remainingGoalAmount;
-                            remainingGoalAmount = 0;
-                        } else {
-                            // Not enough funds; this shouldn't happen as we checked totalAvailable
-                            break;
-                        }
+                        // Not enough funds; this shouldn't happen as we checked totalAvailable
+                        break;
                     }
-
-                    goalApplied = {
-                        id: pendingGoal.id,
-                        name: pendingGoal.name,
-                        amount: pendingGoal.amount,
-                    };
-
-                    pendingGoals.shift(); // Remove goal from pending list
-                } else {
-                    // Not enough funds to apply goal
-                    break;
                 }
+
+                goalApplied = {
+                    id: pendingGoal.id,
+                    name: pendingGoal.name,
+                    amount: pendingGoal.amount,
+                };
+
+                pendingGoals.shift(); // Remove goal from pending list
+            } else {
+                // Not enough funds to apply goal
+                break;
             }
         }
 
