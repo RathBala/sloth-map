@@ -230,13 +230,14 @@ const App = () => {
         // Step 3: Sort the updatedData by rowKey
         updatedData.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
 
-        console.log('Goals before recalculation:', goals);
-        updatedData = recalculateAllEntries(
-            updatedData,
-            interestRate,
-            investmentReturnRate,
-            goals
-        );
+        // **CHANGE**: Remove the initial call to recalculateAllEntries
+        // console.log('Goals before recalculation:', goals);
+        // updatedData = recalculateAllEntries(
+        //     updatedData,
+        //     interestRate,
+        //     investmentReturnRate,
+        //     goals
+        // );
 
         // Apply userInputs to updatedData
         for (const [rowKey, changes] of Object.entries(userInputs)) {
@@ -271,6 +272,7 @@ const App = () => {
             }
         }
 
+        // **RESET** previous calculations
         updatedData = updatedData.map((entry) => ({
             ...entry,
             totalSaved: 0,
@@ -279,6 +281,7 @@ const App = () => {
             grandTotal: 0,
         }));
 
+        // **NOW**, call recalculateAllEntries once after all changes
         updatedData = recalculateAllEntries(
             updatedData,
             interestRate,

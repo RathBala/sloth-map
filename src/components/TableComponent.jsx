@@ -39,8 +39,16 @@ const TableComponent = ({
         totalInvestments: row.totalInvestments?.toString() || '',
         depositSavings: row.depositSavings?.toString() || '',
         depositInvestments: row.depositInvestments?.toString() || '',
-        goalName: row.goal ? row.goal.name : '',
-        goalAmount: row.goal ? row.goal.amount.toString() : '',
+        goalName: row.goal
+            ? Array.isArray(row.goal)
+                ? row.goal.map((g) => g.name).join(', ')
+                : row.goal.name
+            : '',
+        goalAmount: row.goal
+            ? Array.isArray(row.goal)
+                ? row.goal.reduce((sum, g) => sum + g.amount, 0).toString()
+                : row.goal.amount.toString()
+            : '',
         commentary: row.commentary || '',
     }));
 
@@ -54,8 +62,18 @@ const TableComponent = ({
                 totalInvestments: row.totalInvestments?.toString() || '',
                 depositSavings: row.depositSavings?.toString() || '',
                 depositInvestments: row.depositInvestments?.toString() || '',
-                goalName: row.goal ? row.goal.name : '',
-                goalAmount: row.goal ? row.goal.amount.toString() : '',
+                goalName: row.goal
+                    ? Array.isArray(row.goal)
+                        ? row.goal.map((g) => g.name).join(', ')
+                        : row.goal.name
+                    : '',
+                goalAmount: row.goal
+                    ? Array.isArray(row.goal)
+                        ? row.goal
+                              .reduce((sum, g) => sum + g.amount, 0)
+                              .toString()
+                        : row.goal.amount.toString()
+                    : '',
                 commentary: row.commentary || '',
             }))
         );
@@ -241,7 +259,20 @@ const TableComponent = ({
                         </td>
                         <td>{row.totalDepositFormatted}</td>
                         <td>
-                            {row.goal ? (
+                            {row.goal && Array.isArray(row.goal) ? (
+                                row.goal.map((g) => (
+                                    <span
+                                        key={g.id}
+                                        className="goal-pill"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onEditGoal(g);
+                                        }}
+                                    >
+                                        {g.name}
+                                    </span>
+                                ))
+                            ) : row.goal ? (
                                 <span
                                     className="goal-pill"
                                     onClick={(e) => {
@@ -253,7 +284,16 @@ const TableComponent = ({
                                 </span>
                             ) : null}
                         </td>
-                        <td>{row.goal ? formatNumber(row.goal.amount) : ''}</td>
+                        <td>
+                            {row.goal && Array.isArray(row.goal)
+                                ? row.goal
+                                      .map((g) => formatNumber(g.amount))
+                                      .join(', ')
+                                : row.goal
+                                  ? formatNumber(row.goal.amount)
+                                  : ''}
+                        </td>
+
                         <td>
                             {row.month === currentMonth ? (
                                 <input

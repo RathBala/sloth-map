@@ -35,37 +35,40 @@ export const recalculateAllEntries = (
     investmentReturnRate,
     goals
 ) => {
-    let updatedData = [...data];
-
-    // Prepare the list of goals to be applied
-    const sortedGoals = Object.values(goals).sort(
-        (a, b) => a.priority - b.priority
+    // First, calculate cumulative balances without goals
+    let updatedData = calculateCumulativeBalances(
+        data,
+        interestRate,
+        investmentReturnRate
     );
 
-    let pendingGoals = [...sortedGoals];
+    // Then, schedule the goals
+    const scheduledGoals = scheduleGoals(updatedData, goals);
 
-    // Initialize running totals
+    // Now, recalculate balances applying the goals in scheduled months
+    updatedData = applyScheduledGoals(
+        updatedData,
+        scheduledGoals,
+        interestRate,
+        investmentReturnRate
+    );
+
+    return updatedData;
+};
+
+const calculateCumulativeBalances = (
+    data,
+    interestRate,
+    investmentReturnRate
+) => {
+    let updatedData = [...data];
     let runningTotalSavings = 0;
     let runningTotalInvestments = 0;
 
     for (let i = 0; i < updatedData.length; i++) {
         const entry = updatedData[i];
 
-        // For each entry, start with previous totals
         if (i === 0) {
-            console.log(`Processing first entry for month: ${entry.month}`);
-            console.log('Initial totals before any calculations:');
-            console.log('  entry.totalSavings:', entry.totalSavings);
-            console.log('  entry.totalInvestments:', entry.totalInvestments);
-            console.log(
-                '  entry.isTotalSavingsManual:',
-                entry.isTotalSavingsManual
-            );
-            console.log(
-                '  entry.isTotalInvestmentsManual:',
-                entry.isTotalInvestmentsManual
-            );
-
             // First row
             runningTotalSavings = entry.isTotalSavingsManual
                 ? entry.totalSavings || 0
@@ -75,9 +78,8 @@ export const recalculateAllEntries = (
                 : 0;
         } else {
             // Subsequent rows
-            const prevEntry = updatedData[i - 1];
-            runningTotalSavings = prevEntry.runningTotalSavings;
-            runningTotalInvestments = prevEntry.runningTotalInvestments;
+            runningTotalSavings = updatedData[i - 1].endingTotalSavings;
+            runningTotalInvestments = updatedData[i - 1].endingTotalInvestments;
         }
 
         // Add deposits if entry is active and not manually overridden in first row
@@ -88,105 +90,165 @@ export const recalculateAllEntries = (
             runningTotalInvestments += entry.depositInvestments;
         }
 
-        // Calculate returns
-        const interestReturn = runningTotalSavings * (interestRate / 12 / 100);
-        const investmentReturn =
-            runningTotalInvestments * (investmentReturnRate / 12 / 100);
+        // No goals applied yet
 
-        // Add returns to running totals
-        runningTotalSavings += interestReturn;
-        runningTotalInvestments += investmentReturn;
+        // Interest and returns are zero for the first row with manual totals
+        let interestReturn = 0;
+        let investmentReturn = 0;
 
-        // Apply goals
-        let goalApplied = null;
-        let savingsDeduction = 0;
-        let investmentsDeduction = 0;
-        while (pendingGoals.length > 0) {
-            const pendingGoal = pendingGoals[0];
+        if (i > 0) {
+            interestReturn = runningTotalSavings * (interestRate / 12 / 100);
+            investmentReturn =
+                runningTotalInvestments * (investmentReturnRate / 12 / 100);
+        }
 
-            // For first month with manual totals, do not consider deposits
-            const totalAvailable =
-                runningTotalSavings + runningTotalInvestments;
+        // Update ending balances
+        const endingTotalSavings = runningTotalSavings + interestReturn;
+        const endingTotalInvestments =
+            runningTotalInvestments + investmentReturn;
 
-            if (totalAvailable >= pendingGoal.amount) {
-                let remainingGoalAmount = pendingGoal.amount;
+        // Store values in entry
+        updatedData[i] = {
+            ...entry,
+            startingTotalSavings: runningTotalSavings,
+            startingTotalInvestments: runningTotalInvestments,
+            interestReturn,
+            investmentReturn,
+            endingTotalSavings,
+            endingTotalInvestments,
+            totalSaved: endingTotalSavings + endingTotalInvestments,
+            grandTotal: endingTotalSavings + endingTotalInvestments,
+        };
+    }
+
+    return updatedData;
+};
+
+const scheduleGoals = (data, goals) => {
+    const scheduledGoals = {}; // key: row index, value: array of goals to apply
+    const sortedGoals = Object.values(goals).sort(
+        (a, b) => a.priority - b.priority
+    );
+
+    const totalAvailable = data.map((entry) => entry.grandTotal);
+
+    for (const goal of sortedGoals) {
+        for (let i = 0; i < data.length; i++) {
+            if (totalAvailable[i] >= goal.amount) {
+                // Schedule goal in this month
+                if (!scheduledGoals[i]) {
+                    scheduledGoals[i] = [];
+                }
+                scheduledGoals[i].push(goal);
+
+                // Reduce totalAvailable from this month onward
+                for (let j = i; j < data.length; j++) {
+                    totalAvailable[j] -= goal.amount;
+                }
+
+                break; // Goal scheduled, move to the next goal
+            }
+        }
+    }
+
+    return scheduledGoals;
+};
+
+const applyScheduledGoals = (
+    data,
+    scheduledGoals,
+    interestRate,
+    investmentReturnRate
+) => {
+    let updatedData = [...data];
+    let runningTotalSavings = 0;
+    let runningTotalInvestments = 0;
+
+    for (let i = 0; i < updatedData.length; i++) {
+        const entry = updatedData[i];
+
+        if (i === 0) {
+            // First row
+            runningTotalSavings = entry.isTotalSavingsManual
+                ? entry.totalSavings || 0
+                : 0;
+            runningTotalInvestments = entry.isTotalInvestmentsManual
+                ? entry.totalInvestments || 0
+                : 0;
+        } else {
+            runningTotalSavings = updatedData[i - 1].endingTotalSavings;
+            runningTotalInvestments = updatedData[i - 1].endingTotalInvestments;
+        }
+
+        // Add deposits if entry is active and not manually overridden in first row
+        if (entry.isActive && (i > 0 || !entry.isTotalSavingsManual)) {
+            runningTotalSavings += entry.depositSavings;
+        }
+        if (entry.isActive && (i > 0 || !entry.isTotalInvestmentsManual)) {
+            runningTotalInvestments += entry.depositInvestments;
+        }
+
+        // Apply scheduled goals
+        let goalsApplied = [];
+        if (scheduledGoals[i]) {
+            for (const goal of scheduledGoals[i]) {
+                let remainingGoalAmount = goal.amount;
 
                 // Subtract from savings first
                 if (runningTotalSavings >= remainingGoalAmount) {
                     runningTotalSavings -= remainingGoalAmount;
-                    savingsDeduction += remainingGoalAmount;
                     remainingGoalAmount = 0;
                 } else {
-                    savingsDeduction += runningTotalSavings;
                     remainingGoalAmount -= runningTotalSavings;
                     runningTotalSavings = 0;
 
                     // Subtract the remaining from investments
                     if (runningTotalInvestments >= remainingGoalAmount) {
                         runningTotalInvestments -= remainingGoalAmount;
-                        investmentsDeduction += remainingGoalAmount;
                         remainingGoalAmount = 0;
                     } else {
-                        // Not enough funds; this shouldn't happen as we checked totalAvailable
-                        break;
+                        // Should not happen as we checked totalAvailable
+                        console.error(
+                            'Insufficient funds during goal application'
+                        );
                     }
                 }
 
-                goalApplied = {
-                    id: pendingGoal.id,
-                    name: pendingGoal.name,
-                    amount: pendingGoal.amount,
-                };
-
-                pendingGoals.shift(); // Remove goal from pending list
-            } else {
-                // Not enough funds to apply goal
-                break;
+                goalsApplied.push(goal);
             }
         }
 
-        // Ensure totals are not negative
+        // Ensure balances are not negative
         runningTotalSavings = Math.max(runningTotalSavings, 0);
         runningTotalInvestments = Math.max(runningTotalInvestments, 0);
 
-        // Set display totals
-        let displayTotalSavings;
-        if (i === 0 && entry.isTotalSavingsManual) {
-            displayTotalSavings = entry.totalSavings - savingsDeduction;
-        } else {
-            displayTotalSavings = runningTotalSavings;
-        }
-        let displayTotalInvestments;
-        if (i === 0 && entry.isTotalInvestmentsManual) {
-            displayTotalInvestments =
-                entry.totalInvestments - investmentsDeduction;
-        } else {
-            displayTotalInvestments = runningTotalInvestments;
+        // Interest and returns are zero for the first row with manual totals
+        let interestReturn = 0;
+        let investmentReturn = 0;
+
+        if (i > 0) {
+            interestReturn = runningTotalSavings * (interestRate / 12 / 100);
+            investmentReturn =
+                runningTotalInvestments * (investmentReturnRate / 12 / 100);
         }
 
-        // Update entry data
+        // Update ending balances
+        const endingTotalSavings = runningTotalSavings + interestReturn;
+        const endingTotalInvestments =
+            runningTotalInvestments + investmentReturn;
+
+        // Update entry
         updatedData[i] = {
             ...entry,
-            totalSavings: displayTotalSavings,
-            totalInvestments: displayTotalInvestments,
             interestReturn,
             investmentReturn,
-            totalSaved: displayTotalSavings + displayTotalInvestments,
-            grandTotal: displayTotalSavings + displayTotalInvestments,
-            goal: goalApplied,
-            commentary: entry.commentary,
-            runningTotalSavings,
-            runningTotalInvestments,
+            endingTotalSavings,
+            endingTotalInvestments,
+            totalSaved: endingTotalSavings + endingTotalInvestments,
+            grandTotal: endingTotalSavings + endingTotalInvestments,
+            goal: goalsApplied.length > 0 ? goalsApplied : null,
         };
     }
-
-    // Remove running totals from entries without causing lint errors
-    updatedData = updatedData.map((entry) => {
-        const rest = { ...entry };
-        delete rest.runningTotalSavings;
-        delete rest.runningTotalInvestments;
-        return rest;
-    });
 
     return updatedData;
 };
@@ -199,79 +261,47 @@ export const ensureNestEgg = (
     recalculateFunction,
     goals
 ) => {
-    let lastTotal = data.length ? data[data.length - 1].grandTotal : 0;
+    let updatedData = [...data];
+    let iterations = 0;
+    const MAX_ITERATIONS = 1000;
+    let lastGrandTotal = 0;
 
-    if (lastTotal >= target) {
-        while (data.length > 1 && data[data.length - 1].grandTotal >= target) {
-            data.pop();
-            lastTotal = data[data.length - 1].grandTotal;
-        }
-    } else {
-        let iterations = 0;
-        while (lastTotal < target && iterations < 1000) {
-            const newEntry = {
-                month: getNextMonth(data[data.length - 1].month),
-                variantIndex: 0,
-                rowKey: `${getNextMonth(data[data.length - 1].month)}-0`,
-                depositSavings: data[data.length - 1].depositSavings,
-                depositInvestments: data[data.length - 1].depositInvestments,
-                totalSavings: 0,
-                totalInvestments: 0,
-                totalSaved: 0,
-                interestReturn: 0,
-                investmentReturn: 0,
-                grandTotal: 0,
-                commentary: '',
-                isDepositSavingsManual: false,
-                isDepositInvestmentsManual: false,
-                isManualFromFirestore: false,
-                isTotalSavingsManual: false,
-                isTotalInvestmentsManual: false,
-                isActive: true,
-            };
-            data = [...data, newEntry];
-            data = recalculateFunction(
-                data,
-                interestRate,
-                investmentReturnRate,
-                goals
-            );
-            lastTotal = data[data.length - 1].grandTotal;
-            iterations++;
-        }
-    }
-
-    if (data.length > 1 && data[data.length - 1].grandTotal < target) {
-        const newEntry = {
-            month: getNextMonth(data[data.length - 1].month),
-            variantIndex: 0,
-            rowKey: `${getNextMonth(data[data.length - 1].month)}-0`,
-            depositSavings: data[data.length - 1].depositSavings,
-            depositInvestments: data[data.length - 1].depositInvestments,
-            totalSavings: 0,
-            totalInvestments: 0,
-            totalSaved: 0,
-            interestReturn: 0,
-            investmentReturn: 0,
-            grandTotal: 0,
-            commentary: '',
-            isDepositSavingsManual: false,
-            isDepositInvestmentsManual: false,
-            isManualFromFirestore: false,
-            isTotalSavingsManual: false,
-            isTotalInvestmentsManual: false,
-            isActive: true,
-        };
-        data.push(newEntry);
-        data = recalculateAllEntries(
-            data,
+    do {
+        updatedData = recalculateFunction(
+            updatedData,
             interestRate,
             investmentReturnRate,
             goals
         );
-    }
 
-    return data;
+        lastGrandTotal = updatedData[updatedData.length - 1].grandTotal;
+        if (lastGrandTotal >= target) {
+            break;
+        }
+
+        // Add new month
+        const lastMonthEntry = updatedData[updatedData.length - 1];
+        const newMonth = getNextMonth(lastMonthEntry.month);
+        const newEntry = {
+            ...lastMonthEntry,
+            month: newMonth,
+            variantIndex: 0,
+            rowKey: `${newMonth}-0`,
+            goal: null, // Reset goal
+            isManualFromFirestore: false,
+            isAlt: false,
+        };
+
+        updatedData.push(newEntry);
+
+        iterations++;
+        if (iterations > MAX_ITERATIONS) {
+            console.error('Exceeded maximum iterations in ensureNestEgg');
+            break;
+        }
+    } while (lastGrandTotal < target);
+
+    return updatedData;
 };
 
 export const getNextMonth = (currentMonth) => {
