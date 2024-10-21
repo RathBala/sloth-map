@@ -10,7 +10,7 @@ import useUserData from './utils/useUserData';
 import {
     generateData,
     ensureNestEgg,
-    recalculateAllEntries,
+    calculateCumulativeBalances,
 } from './utils/calculations';
 import './App.css';
 import GoalModal from './components/GoalModal';
@@ -231,7 +231,7 @@ const App = () => {
         updatedData.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
 
         console.log('Goals before recalculation:', goals);
-        updatedData = recalculateAllEntries(
+        updatedData = calculateCumulativeBalances(
             updatedData,
             interestRate,
             investmentReturnRate,
@@ -279,7 +279,7 @@ const App = () => {
             grandTotal: 0,
         }));
 
-        updatedData = recalculateAllEntries(
+        updatedData = calculateCumulativeBalances(
             updatedData,
             interestRate,
             investmentReturnRate,
@@ -291,7 +291,7 @@ const App = () => {
             updatedData,
             interestRate,
             investmentReturnRate,
-            recalculateAllEntries,
+            calculateCumulativeBalances,
             goals
         );
 

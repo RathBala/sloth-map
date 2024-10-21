@@ -29,47 +29,25 @@ export const generateData = (savings, investments) => {
     ];
 };
 
-export const recalculateAllEntries = (
+export const calculateCumulativeBalances = (
     data,
     interestRate,
     investmentReturnRate,
     goals
 ) => {
-    // First, calculate cumulative balances without goals
-    let updatedData = calculateCumulativeBalances(
-        data,
-        interestRate,
-        investmentReturnRate
-    );
-
-    // Then, schedule the goals
-    const scheduledGoals = scheduleGoals(updatedData, goals);
-
-    // Now, recalculate balances applying the goals in scheduled months
-    updatedData = applyScheduledGoals(
-        updatedData,
-        scheduledGoals,
-        interestRate,
-        investmentReturnRate
-    );
-
-    return updatedData;
-};
-
-const calculateCumulativeBalances = (
-    data,
-    interestRate,
-    investmentReturnRate
-) => {
     let updatedData = [...data];
     let runningTotalSavings = 0;
     let runningTotalInvestments = 0;
+    const sortedGoals = Object.values(goals).sort(
+        (a, b) => a.priority - b.priority
+    );
+    let goalIndex = 0;
 
     for (let i = 0; i < updatedData.length; i++) {
         const entry = updatedData[i];
 
+        // Initialize or carry over balances
         if (i === 0) {
-            // First row
             runningTotalSavings = entry.isTotalSavingsManual
                 ? entry.totalSavings || 0
                 : 0;
@@ -77,12 +55,11 @@ const calculateCumulativeBalances = (
                 ? entry.totalInvestments || 0
                 : 0;
         } else {
-            // Subsequent rows
             runningTotalSavings = updatedData[i - 1].endingTotalSavings;
             runningTotalInvestments = updatedData[i - 1].endingTotalInvestments;
         }
 
-        // Add deposits if entry is active and not manually overridden in first row
+        // Add deposits if active
         if (entry.isActive && (i > 0 || !entry.isTotalSavingsManual)) {
             runningTotalSavings += entry.depositSavings;
         }
@@ -90,12 +67,32 @@ const calculateCumulativeBalances = (
             runningTotalInvestments += entry.depositInvestments;
         }
 
-        // No goals applied yet
+        // Apply goals if possible
+        let goalsApplied = [];
+        while (goalIndex < sortedGoals.length) {
+            const goal = sortedGoals[goalIndex];
+            const totalAvailable =
+                runningTotalSavings + runningTotalInvestments;
 
-        // Interest and returns are zero for the first row with manual totals
+            if (totalAvailable >= goal.amount) {
+                // Subtract goal amount
+                if (runningTotalSavings >= goal.amount) {
+                    runningTotalSavings -= goal.amount;
+                } else {
+                    const remaining = goal.amount - runningTotalSavings;
+                    runningTotalSavings = 0;
+                    runningTotalInvestments -= remaining;
+                }
+                goalsApplied.push(goal);
+                goalIndex++;
+            } else {
+                break;
+            }
+        }
+
+        // Calculate returns unless manual totals are set on the first row
         let interestReturn = 0;
         let investmentReturn = 0;
-
         if (
             !(
                 i === 0 &&
@@ -112,7 +109,7 @@ const calculateCumulativeBalances = (
         const endingTotalInvestments =
             runningTotalInvestments + investmentReturn;
 
-        // Store values in entry
+        // Update entry with all calculated values
         updatedData[i] = {
             ...entry,
             totalSavings: runningTotalSavings,
@@ -129,134 +126,6 @@ const calculateCumulativeBalances = (
                 runningTotalInvestments +
                 interestReturn +
                 investmentReturn,
-        };
-    }
-
-    return updatedData;
-};
-
-const scheduleGoals = (data, goals) => {
-    const scheduledGoals = {}; // key: row index, value: array of goals to apply
-    const sortedGoals = Object.values(goals).sort(
-        (a, b) => a.priority - b.priority
-    );
-
-    const totalAvailable = data.map((entry) => entry.grandTotal);
-
-    for (const goal of sortedGoals) {
-        for (let i = 0; i < data.length; i++) {
-            if (totalAvailable[i] >= goal.amount) {
-                // Schedule goal in this month
-                if (!scheduledGoals[i]) {
-                    scheduledGoals[i] = [];
-                }
-                scheduledGoals[i].push(goal);
-
-                // Reduce totalAvailable from this month onward
-                for (let j = i; j < data.length; j++) {
-                    totalAvailable[j] -= goal.amount;
-                }
-
-                break; // Goal scheduled, move to the next goal
-            }
-        }
-    }
-
-    return scheduledGoals;
-};
-
-const applyScheduledGoals = (
-    data,
-    scheduledGoals,
-    interestRate,
-    investmentReturnRate
-) => {
-    let updatedData = [...data];
-    let runningTotalSavings = 0;
-    let runningTotalInvestments = 0;
-
-    for (let i = 0; i < updatedData.length; i++) {
-        const entry = updatedData[i];
-
-        if (i === 0) {
-            // First row
-            runningTotalSavings = entry.isTotalSavingsManual
-                ? entry.totalSavings || 0
-                : 0;
-            runningTotalInvestments = entry.isTotalInvestmentsManual
-                ? entry.totalInvestments || 0
-                : 0;
-        } else {
-            runningTotalSavings = updatedData[i - 1].endingTotalSavings;
-            runningTotalInvestments = updatedData[i - 1].endingTotalInvestments;
-        }
-
-        // Add deposits if entry is active and not manually overridden in first row
-        if (entry.isActive && (i > 0 || !entry.isTotalSavingsManual)) {
-            runningTotalSavings += entry.depositSavings;
-        }
-        if (entry.isActive && (i > 0 || !entry.isTotalInvestmentsManual)) {
-            runningTotalInvestments += entry.depositInvestments;
-        }
-
-        // Apply scheduled goals
-        let goalsApplied = [];
-        if (scheduledGoals[i]) {
-            for (const goal of scheduledGoals[i]) {
-                let remainingGoalAmount = goal.amount;
-
-                // Subtract from savings first
-                if (runningTotalSavings >= remainingGoalAmount) {
-                    runningTotalSavings -= remainingGoalAmount;
-                    remainingGoalAmount = 0;
-                } else {
-                    remainingGoalAmount -= runningTotalSavings;
-                    runningTotalSavings = 0;
-
-                    // Subtract the remaining from investments
-                    if (runningTotalInvestments >= remainingGoalAmount) {
-                        runningTotalInvestments -= remainingGoalAmount;
-                        remainingGoalAmount = 0;
-                    } else {
-                        // Should not happen as we checked totalAvailable
-                        console.error(
-                            'Insufficient funds during goal application'
-                        );
-                    }
-                }
-
-                goalsApplied.push(goal);
-            }
-        }
-
-        // Ensure balances are not negative
-        runningTotalSavings = Math.max(runningTotalSavings, 0);
-        runningTotalInvestments = Math.max(runningTotalInvestments, 0);
-
-        // Interest and returns are zero for the first row with manual totals
-        let interestReturn = 0;
-        let investmentReturn = 0;
-
-        if (i > 0) {
-            interestReturn = runningTotalSavings * (interestRate / 12 / 100);
-            investmentReturn =
-                runningTotalInvestments * (investmentReturnRate / 12 / 100);
-        }
-
-        // Update ending balances
-        const endingTotalSavings = runningTotalSavings + interestReturn;
-        const endingTotalInvestments =
-            runningTotalInvestments + investmentReturn;
-
-        // Update entry
-        updatedData[i] = {
-            ...entry,
-            interestReturn,
-            investmentReturn,
-            endingTotalSavings,
-            endingTotalInvestments,
-            totalSaved: endingTotalSavings + endingTotalInvestments,
-            grandTotal: endingTotalSavings + endingTotalInvestments,
             goal: goalsApplied.length > 0 ? goalsApplied : null,
         };
     }
