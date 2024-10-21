@@ -96,7 +96,12 @@ const calculateCumulativeBalances = (
         let interestReturn = 0;
         let investmentReturn = 0;
 
-        if (i > 0) {
+        if (
+            !(
+                i === 0 &&
+                (entry.isTotalSavingsManual || entry.isTotalInvestmentsManual)
+            )
+        ) {
             interestReturn = runningTotalSavings * (interestRate / 12 / 100);
             investmentReturn =
                 runningTotalInvestments * (investmentReturnRate / 12 / 100);
@@ -110,14 +115,20 @@ const calculateCumulativeBalances = (
         // Store values in entry
         updatedData[i] = {
             ...entry,
+            totalSavings: runningTotalSavings,
+            totalInvestments: runningTotalInvestments,
             startingTotalSavings: runningTotalSavings,
             startingTotalInvestments: runningTotalInvestments,
             interestReturn,
             investmentReturn,
             endingTotalSavings,
             endingTotalInvestments,
-            totalSaved: endingTotalSavings + endingTotalInvestments,
-            grandTotal: endingTotalSavings + endingTotalInvestments,
+            totalSaved: runningTotalSavings + runningTotalInvestments,
+            grandTotal:
+                runningTotalSavings +
+                runningTotalInvestments +
+                interestReturn +
+                investmentReturn,
         };
     }
 
