@@ -35,6 +35,11 @@ export const calculateCumulativeBalances = (
     investmentReturnRate,
     goals
 ) => {
+    console.log(
+        'calculateCumulativeBalances called with data:',
+        JSON.stringify(data, null, 2)
+    );
+
     let updatedData = [...data];
     let runningTotalSavings = 0;
     let runningTotalInvestments = 0;
@@ -137,28 +142,14 @@ export const ensureNestEgg = (
     target,
     data,
     interestRate,
-    investmentReturnRate,
-    recalculateFunction,
-    goals
+    investmentReturnRate
 ) => {
     let updatedData = [...data];
     let iterations = 0;
     const MAX_ITERATIONS = 1000;
-    let lastGrandTotal = 0;
+    let lastGrandTotal = updatedData[updatedData.length - 1].grandTotal;
 
-    do {
-        updatedData = recalculateFunction(
-            updatedData,
-            interestRate,
-            investmentReturnRate,
-            goals
-        );
-
-        lastGrandTotal = updatedData[updatedData.length - 1].grandTotal;
-        if (lastGrandTotal >= target) {
-            break;
-        }
-
+    while (lastGrandTotal < target && iterations < MAX_ITERATIONS) {
         // Add new month
         const lastMonthEntry = updatedData[updatedData.length - 1];
         const newMonth = getNextMonth(lastMonthEntry.month);
@@ -170,16 +161,69 @@ export const ensureNestEgg = (
             goal: null, // Reset goal
             isManualFromFirestore: false,
             isAlt: false,
+            isActive: true,
+            // Reset any manual flags if necessary
+            isDepositSavingsManual: false,
+            isDepositInvestmentsManual: false,
+            isTotalSavingsManual: false,
+            isTotalInvestmentsManual: false,
         };
 
         updatedData.push(newEntry);
 
+        // Recalculate only the new row
+        const i = updatedData.length - 1;
+
+        // Initialize or carry over balances from the previous row
+        const previousEntry = updatedData[i - 1];
+        let runningTotalSavings = previousEntry.endingTotalSavings;
+        let runningTotalInvestments = previousEntry.endingTotalInvestments;
+
+        // Add deposits if active
+        runningTotalSavings += newEntry.depositSavings;
+        runningTotalInvestments += newEntry.depositInvestments;
+
+        // Apply any goals (unlikely in new rows, but included for completeness)
+        let goalsApplied = [];
+        // Assuming no new goals are added after initial calculations
+
+        // Calculate returns
+        let interestReturn = runningTotalSavings * (interestRate / 12 / 100);
+        let investmentReturn =
+            runningTotalInvestments * (investmentReturnRate / 12 / 100);
+
+        // Update ending balances
+        const endingTotalSavings = runningTotalSavings + interestReturn;
+        const endingTotalInvestments =
+            runningTotalInvestments + investmentReturn;
+
+        // Update the new entry with all calculated values
+        updatedData[i] = {
+            ...newEntry,
+            totalSavings: runningTotalSavings,
+            totalInvestments: runningTotalInvestments,
+            startingTotalSavings: runningTotalSavings,
+            startingTotalInvestments: runningTotalInvestments,
+            interestReturn,
+            investmentReturn,
+            endingTotalSavings,
+            endingTotalInvestments,
+            totalSaved: runningTotalSavings + runningTotalInvestments,
+            grandTotal:
+                runningTotalSavings +
+                runningTotalInvestments +
+                interestReturn +
+                investmentReturn,
+            goal: goalsApplied.length > 0 ? goalsApplied : null,
+        };
+
+        lastGrandTotal = updatedData[i].grandTotal;
         iterations++;
-        if (iterations > MAX_ITERATIONS) {
-            console.error('Exceeded maximum iterations in ensureNestEgg');
-            break;
-        }
-    } while (lastGrandTotal < target);
+    }
+
+    if (iterations >= MAX_ITERATIONS) {
+        console.error('Exceeded maximum iterations in ensureNestEgg');
+    }
 
     return updatedData;
 };

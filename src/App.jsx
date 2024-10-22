@@ -38,6 +38,7 @@ const App = () => {
         setRowsToDelete,
         goals,
         saveGoal,
+        fetchUserInputs,
     } = useUserData();
 
     const [tableData, setTableData] = useState(() => generateData(500, 300));
@@ -83,6 +84,10 @@ const App = () => {
                 updatedData[index].isDepositSavingsManual = true;
             } else if (field === 'depositInvestments') {
                 updatedData[index].isDepositInvestmentsManual = true;
+            } else if (field === 'totalSavings') {
+                updatedData[index].isTotalSavingsManual = true;
+            } else if (field === 'totalInvestments') {
+                updatedData[index].isTotalInvestmentsManual = true;
             }
 
             updatedData[index].isManualFromFirestore = false;
@@ -153,7 +158,9 @@ const App = () => {
     };
 
     const recalculateAllData = () => {
-        console.log('recalculateData called');
+        console.log('recalculateAllData called with:');
+        console.log('userInputs:', JSON.stringify(userInputs, null, 2));
+        console.log('tableData:', JSON.stringify(tableData, null, 2));
 
         let updatedData = tableData.map((row) => ({ ...row }));
 
@@ -230,7 +237,12 @@ const App = () => {
         // Step 3: Sort the updatedData by rowKey
         updatedData.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
 
+        console.log(
+            'updatedData before calculateCumulativeBalances:',
+            JSON.stringify(updatedData, null, 2)
+        );
         console.log('Goals before recalculation:', goals);
+
         updatedData = calculateCumulativeBalances(
             updatedData,
             interestRate,
@@ -359,11 +371,22 @@ const App = () => {
     const handleSaveClick = async () => {
         console.log('Save button clicked');
         try {
+            console.log('Before saving:');
+            console.log('userInputs:', JSON.stringify(userInputs, null, 2));
+            console.log('tableData:', JSON.stringify(tableData, null, 2));
+
             await saveInputFields();
             await saveTableData();
             await commitGoalsToFirestore();
             setUserInputs({});
             setRowsToDelete([]);
+
+            await fetchUserInputs();
+
+            console.log('After saving and clearing userInputs:');
+            console.log('userInputs:', JSON.stringify(userInputs, null, 2));
+            console.log('tableData:', JSON.stringify(tableData, null, 2));
+
             console.log('All changes saved successfully');
         } catch (error) {
             console.error('Failed to save changes:', error);

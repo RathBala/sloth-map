@@ -91,6 +91,23 @@ const useUserData = () => {
         return () => unsubscribe();
     }, []);
 
+    const fetchUserInputs = async () => {
+        if (user && user.uid) {
+            const userRef = doc(db, 'users', user.uid);
+            const tableDataRef = collection(userRef, 'tableData');
+            const snapshot = await getDocs(tableDataRef);
+            const loadedUserInputs = {};
+            snapshot.forEach((doc) => {
+                loadedUserInputs[doc.id] = doc.data();
+            });
+            setUserInputs(loadedUserInputs);
+            console.log(
+                'Re-fetched userInputs from Firestore:',
+                loadedUserInputs
+            );
+        }
+    };
+
     const fetchGoals = async (userId) => {
         const goalsRef = collection(db, 'users', userId, 'goals');
         try {
@@ -110,7 +127,6 @@ const useUserData = () => {
         return `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
     };
 
-    // useUserData.js
     const saveGoal = async (goal) => {
         if (user && user.uid) {
             const goalId = goal.id || generateGoalId();
@@ -288,6 +304,7 @@ const useUserData = () => {
         saveGoal,
         // deleteGoal,
         commitGoalsToFirestore,
+        fetchUserInputs,
     };
 };
 
