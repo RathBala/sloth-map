@@ -100,12 +100,13 @@ const useUserData = () => {
             snapshot.forEach((doc) => {
                 loadedUserInputs[doc.id] = doc.data();
             });
-            setUserInputs(loadedUserInputs);
             console.log(
                 'Re-fetched userInputs from Firestore:',
                 loadedUserInputs
             );
+            return loadedUserInputs; // Return the fetched data instead of setting it here
         }
+        return {}; // Return an empty object if no user or data
     };
 
     const fetchGoals = async (userId) => {

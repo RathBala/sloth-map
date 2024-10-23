@@ -378,12 +378,12 @@ const App = () => {
             await saveInputFields();
             await saveTableData();
             await commitGoalsToFirestore();
-            setUserInputs({});
+
+            const newInputs = await fetchUserInputs(); // Fetch and immediately update after
+            setUserInputs(newInputs);
             setRowsToDelete([]);
 
-            await fetchUserInputs();
-
-            console.log('After saving and clearing userInputs:');
+            console.log('After saving and updating userInputs:');
             console.log('userInputs:', JSON.stringify(userInputs, null, 2));
             console.log('tableData:', JSON.stringify(tableData, null, 2));
 
@@ -524,14 +524,30 @@ const App = () => {
         <Router>
             <div className="App">
                 <div className="top-nav">
-                    <div className="welcome">
-                        <h4>Welcome</h4>
-                        <span>
-                            {user && user.email
-                                ? user.email
-                                : 'No user logged in'}
-                        </span>
+                    <div className="top-nav-left">
+                        <div className="welcome">
+                            <h4>Welcome</h4>
+                            <span>
+                                {user && user.email
+                                    ? user.email
+                                    : 'No user logged in'}
+                            </span>
+                        </div>
                     </div>
+                    <div className="top-nav-center">
+                        <div className="button-group">
+                            <button onClick={handleSaveClick}>Save</button>
+                            <Link to="/map">
+                                <button type="button">Show Sloth Map</button>
+                            </Link>
+                            <button onClick={logout}>Log out</button>
+                        </div>
+                    </div>
+                    <div className="top-nav-right">
+                        {/* Empty div to balance the layout if needed */}
+                    </div>
+                </div>
+                <div className="new-goal-container">
                     <button
                         type="button"
                         onClick={handleNewGoalClick}
@@ -544,14 +560,8 @@ const App = () => {
                         />{' '}
                         New Goal
                     </button>
-                    <button type="button" onClick={handleSaveClick}>
-                        Save
-                    </button>
-                    <Link to="/map">
-                        <button type="button">Show Sloth Map</button>
-                    </Link>
-                    <button onClick={logout}>Log out</button>
                 </div>
+
                 <div className="content">
                     <Routes>
                         <Route
