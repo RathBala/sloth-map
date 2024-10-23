@@ -51,6 +51,10 @@ export const calculateCumulativeBalances = (
     for (let i = 0; i < updatedData.length; i++) {
         const entry = updatedData[i];
 
+        console.log(
+            `Processing month: ${entry.month}, Active: ${entry.isActive}`
+        );
+
         // Initialize or carry over balances
         if (i === 0) {
             runningTotalSavings = entry.isTotalSavingsManual
@@ -64,10 +68,16 @@ export const calculateCumulativeBalances = (
             runningTotalInvestments = updatedData[i - 1].endingTotalInvestments;
         }
 
+        console.log(`Carried over total savings: ${runningTotalSavings}`);
+
         // Add deposits if active
         if (entry.isActive && (i > 0 || !entry.isTotalSavingsManual)) {
             runningTotalSavings += entry.depositSavings;
+            console.log(
+                `Added deposit: ${entry.depositSavings}, New total savings: ${runningTotalSavings}`
+            );
         }
+
         if (entry.isActive && (i > 0 || !entry.isTotalInvestmentsManual)) {
             runningTotalInvestments += entry.depositInvestments;
         }
