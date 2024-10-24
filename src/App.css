@@ -15,6 +15,7 @@ th,
 td {
     border: 1px solid #ddd;
     padding: 8px;
+    color: inherit;
 }
 
 th {
@@ -24,10 +25,11 @@ th {
 
 .alt-scenario {
     background-color: #fff3cd;
+    color: #333; /* Darker text for better contrast */
 }
 
 .inactive {
-    opacity: 0.3;
+    opacity: 0.6;
 }
 
 .active {

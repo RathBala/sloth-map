@@ -100,56 +100,52 @@ const App = () => {
                     : 'isDepositInvestmentsManual';
 
             for (let i = index + 1; i < updatedData.length; i++) {
-                if (updatedData[i].isActive) {
-                    if (isManual) {
-                        // For current manual changes, overwrite all subsequent rows
-                        // Remove any manual flags and userInputs
-                        updatedData[i] = { ...updatedData[i], [field]: value };
-                        updatedData[i][isManualField] = false;
-                        updatedData[i].isManualFromFirestore = false;
+                if (isManual) {
+                    // For current manual changes, overwrite all subsequent rows
+                    // Remove any manual flags and userInputs
+                    updatedData[i] = { ...updatedData[i], [field]: value };
+                    updatedData[i][isManualField] = false;
+                    updatedData[i].isManualFromFirestore = false;
 
-                        // Remove manual changes for this field in userInputs
-                        const rowKey = updatedData[i].rowKey;
-                        setUserInputs((prevChanges) => {
-                            const newChanges = { ...prevChanges };
-                            if (
-                                newChanges[rowKey] &&
-                                newChanges[rowKey][field] !== undefined
-                            ) {
-                                delete newChanges[rowKey][field];
-                                if (
-                                    Object.keys(newChanges[rowKey]).length === 0
-                                ) {
-                                    // RowKey has no more changes, delete it from newChanges
-                                    delete newChanges[rowKey];
+                    // Remove manual changes for this field in userInputs
+                    const rowKey = updatedData[i].rowKey;
+                    setUserInputs((prevChanges) => {
+                        const newChanges = { ...prevChanges };
+                        if (
+                            newChanges[rowKey] &&
+                            newChanges[rowKey][field] !== undefined
+                        ) {
+                            delete newChanges[rowKey][field];
+                            if (Object.keys(newChanges[rowKey]).length === 0) {
+                                // RowKey has no more changes, delete it from newChanges
+                                delete newChanges[rowKey];
 
-                                    // Since we had changes for this rowKey before, and now we've removed them,
-                                    // we need to delete the document in Firestore
-                                    setRowsToDelete((prevRowsToDelete) => {
-                                        const updatedRowsToDelete = [
-                                            ...prevRowsToDelete,
-                                            rowKey,
-                                        ];
-                                        console.log(
-                                            `Row overwritten and added to rowsToDelete: ${rowKey}`
-                                        );
-                                        console.log(
-                                            'Rows to be deleted are:',
-                                            updatedRowsToDelete
-                                        );
-                                        return updatedRowsToDelete;
-                                    });
-                                }
+                                // Since we had changes for this rowKey before, and now we've removed them,
+                                // we need to delete the document in Firestore
+                                setRowsToDelete((prevRowsToDelete) => {
+                                    const updatedRowsToDelete = [
+                                        ...prevRowsToDelete,
+                                        rowKey,
+                                    ];
+                                    console.log(
+                                        `Row overwritten and added to rowsToDelete: ${rowKey}`
+                                    );
+                                    console.log(
+                                        'Rows to be deleted are:',
+                                        updatedRowsToDelete
+                                    );
+                                    return updatedRowsToDelete;
+                                });
                             }
-                            return newChanges;
-                        });
-                    } else {
-                        // For initial load, stop propagation at any manual change
-                        if (updatedData[i][isManualField]) {
-                            break;
                         }
-                        updatedData[i] = { ...updatedData[i], [field]: value };
+                        return newChanges;
+                    });
+                } else {
+                    // For initial load, stop propagation at any manual change
+                    if (updatedData[i][isManualField]) {
+                        break;
                     }
+                    updatedData[i] = { ...updatedData[i], [field]: value };
                 }
             }
         }
@@ -256,7 +252,7 @@ const App = () => {
                 (row) => row.rowKey === rowKey
             );
 
-            if (rowIndex !== -1 && updatedData[rowIndex].isActive) {
+            if (rowIndex !== -1) {
                 for (const [field, value] of Object.entries(changes)) {
                     updatedData = updateField(
                         updatedData,

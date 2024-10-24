@@ -51,9 +51,15 @@ export const calculateCumulativeBalances = (
     for (let i = 0; i < updatedData.length; i++) {
         const entry = updatedData[i];
 
-        console.log(
-            `Processing month: ${entry.month}, Active: ${entry.isActive}`
-        );
+        // if (entry.month === '2024-12' || entry.month === '2025-01') {
+        //     console.log(
+        //         `Processing month: ${entry.month}, Active: ${entry.isActive}`
+        //     );
+        //     console.log(`Carried over total savings: ${runningTotalSavings}`);
+        //     console.log(
+        //         `Added deposit: ${entry.depositSavings}, New total savings: ${runningTotalSavings}`
+        //     );
+        // }
 
         // Initialize or carry over balances
         if (i === 0) {
@@ -64,23 +70,51 @@ export const calculateCumulativeBalances = (
                 ? entry.totalInvestments || 0
                 : 0;
         } else {
-            runningTotalSavings = updatedData[i - 1].endingTotalSavings;
-            runningTotalInvestments = updatedData[i - 1].endingTotalInvestments;
+            // Find the last active entry
+            let previousEntryIndex = i - 1;
+            while (
+                previousEntryIndex >= 0 &&
+                !updatedData[previousEntryIndex].isActive
+            ) {
+                previousEntryIndex--;
+            }
+            if (previousEntryIndex >= 0) {
+                runningTotalSavings =
+                    updatedData[previousEntryIndex].endingTotalSavings;
+                runningTotalInvestments =
+                    updatedData[previousEntryIndex].endingTotalInvestments;
+            } else {
+                runningTotalSavings = 0;
+                runningTotalInvestments = 0;
+            }
         }
 
-        console.log(`Carried over total savings: ${runningTotalSavings}`);
-
-        // Add deposits if active
-        if (entry.isActive && (i > 0 || !entry.isTotalSavingsManual)) {
-            runningTotalSavings += entry.depositSavings;
-            console.log(
-                `Added deposit: ${entry.depositSavings}, New total savings: ${runningTotalSavings}`
-            );
+        if (!entry.isActive) {
+            // For inactive entries, set balances without changes
+            updatedData[i] = {
+                ...entry,
+                totalSavings: runningTotalSavings,
+                totalInvestments: runningTotalInvestments,
+                startingTotalSavings: runningTotalSavings,
+                startingTotalInvestments: runningTotalInvestments,
+                interestReturn: 0,
+                investmentReturn: 0,
+                endingTotalSavings: runningTotalSavings,
+                endingTotalInvestments: runningTotalInvestments,
+                totalSaved: runningTotalSavings + runningTotalInvestments,
+                grandTotal: runningTotalSavings + runningTotalInvestments,
+                goal: null,
+            };
+            continue; // Skip to the next iteration
         }
 
-        if (entry.isActive && (i > 0 || !entry.isTotalInvestmentsManual)) {
-            runningTotalInvestments += entry.depositInvestments;
-        }
+        // if (entry.month === '2024-12' || entry.month === '2025-01') {
+        //     console.log(`Carried over total savings: ${runningTotalSavings}`);
+        // }
+
+        // Add deposits
+        runningTotalSavings += entry.depositSavings;
+        runningTotalInvestments += entry.depositInvestments;
 
         // Apply goals if possible
         let goalsApplied = [];
