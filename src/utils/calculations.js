@@ -35,12 +35,8 @@ export const calculateCumulativeBalances = (
     investmentReturnRate,
     goals
 ) => {
-    console.log(
-        'calculateCumulativeBalances called with data:',
-        JSON.stringify(data, null, 2)
-    );
-
     let updatedData = [...data];
+
     let runningTotalSavings = 0;
     let runningTotalInvestments = 0;
     const sortedGoals = Object.values(goals).sort(
@@ -48,18 +44,39 @@ export const calculateCumulativeBalances = (
     );
     let goalIndex = 0;
 
+    // Initialize lastDepositSavings and lastDepositInvestments
+    let lastDepositSavings = 0;
+    let lastDepositInvestments = 0;
+
+    // Find the first active row to initialize lastDepositSavings and lastDepositInvestments
+    for (let i = 0; i < updatedData.length; i++) {
+        const entry = updatedData[i];
+        if (entry.isActive) {
+            lastDepositSavings = entry.depositSavings;
+            lastDepositInvestments = entry.depositInvestments;
+            break;
+        }
+    }
+
     for (let i = 0; i < updatedData.length; i++) {
         const entry = updatedData[i];
 
-        // if (entry.month === '2024-12' || entry.month === '2025-01') {
-        //     console.log(
-        //         `Processing month: ${entry.month}, Active: ${entry.isActive}`
-        //     );
-        //     console.log(`Carried over total savings: ${runningTotalSavings}`);
-        //     console.log(
-        //         `Added deposit: ${entry.depositSavings}, New total savings: ${runningTotalSavings}`
-        //     );
-        // }
+        // Set depositSavings
+        if (!(entry.isDepositSavingsManual || entry.isManualFromFirestore)) {
+            entry.depositSavings = lastDepositSavings;
+        }
+        // Set depositInvestments
+        if (
+            !(entry.isDepositInvestmentsManual || entry.isManualFromFirestore)
+        ) {
+            entry.depositInvestments = lastDepositInvestments;
+        }
+
+        // Update lastDepositSavings and lastDepositInvestments if the row is active
+        if (entry.isActive) {
+            lastDepositSavings = entry.depositSavings;
+            lastDepositInvestments = entry.depositInvestments;
+        }
 
         // Initialize or carry over balances
         if (i === 0) {
@@ -107,10 +124,6 @@ export const calculateCumulativeBalances = (
             };
             continue; // Skip to the next iteration
         }
-
-        // if (entry.month === '2024-12' || entry.month === '2025-01') {
-        //     console.log(`Carried over total savings: ${runningTotalSavings}`);
-        // }
 
         // Add deposits
         runningTotalSavings += entry.depositSavings;
