@@ -253,6 +253,11 @@ const App = () => {
             );
 
             if (rowIndex !== -1) {
+                const isActive = updatedData[rowIndex].isActive;
+                if (!isActive) {
+                    continue; // Skip inactive rows
+                }
+
                 for (const [field, value] of Object.entries(changes)) {
                     updatedData = updateField(
                         updatedData,
@@ -366,11 +371,10 @@ const App = () => {
 
     const handleSaveClick = async () => {
         console.log('Save button clicked');
-        try {
-            console.log('Before saving:');
-            console.log('userInputs:', JSON.stringify(userInputs, null, 2));
-            console.log('tableData:', JSON.stringify(tableData, null, 2));
 
+        debugger;
+
+        try {
             await saveInputFields();
             await saveTableData();
             await commitGoalsToFirestore();
@@ -378,10 +382,6 @@ const App = () => {
             const newInputs = await fetchUserInputs(); // Fetch and immediately update after
             setUserInputs(newInputs);
             setRowsToDelete([]);
-
-            console.log('After saving and updating userInputs:');
-            console.log('userInputs:', JSON.stringify(userInputs, null, 2));
-            console.log('tableData:', JSON.stringify(tableData, null, 2));
 
             console.log('All changes saved successfully');
         } catch (error) {
@@ -434,10 +434,8 @@ const App = () => {
             rowKey: `${clickedMonth}-${newVariantIndex}`,
             isAlt: true,
             isActive: true,
-            isDepositSavingsManual:
-                tableData[index].isDepositSavingsManual || false,
-            isDepositInvestmentsManual:
-                tableData[index].isDepositInvestmentsManual || false,
+            isDepositSavingsManual: true, // Ensure these are set to true
+            isDepositInvestmentsManual: true, // Ensure these are set to true
             isManualFromFirestore:
                 tableData[index].isManualFromFirestore || false,
             isTotalSavingsManual:
@@ -467,15 +465,20 @@ const App = () => {
             return row;
         });
 
-        // Update userInputs to include the new alt row
-        setUserInputs((prevUserInputs) => ({
-            ...prevUserInputs,
-            [newRow.rowKey]: {
-                isActive: true,
-            },
-        }));
+        // Update userInputs for all variants in the clickedMonth
+        const updatedUserInputs = { ...userInputs };
+        updatedTableData.forEach((row) => {
+            if (row.month === clickedMonth) {
+                if (!updatedUserInputs[row.rowKey]) {
+                    updatedUserInputs[row.rowKey] = {};
+                }
+                updatedUserInputs[row.rowKey].isActive = row.isActive;
+            }
+        });
 
+        // Update tableData and userInputs
         setTableData(updatedTableData);
+        setUserInputs(updatedUserInputs);
     };
 
     const handleRowClick = (index) => {

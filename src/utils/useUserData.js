@@ -1,3 +1,4 @@
+/* eslint-disable no-debugger */
 import { useState, useEffect } from 'react';
 import { auth, db } from '../firebase-config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -214,12 +215,16 @@ const useUserData = () => {
 
     const saveTableData = async () => {
         if (user && user.uid) {
+            debugger;
+
             const userRef = doc(db, 'users', user.uid);
             const tableDataRef = collection(userRef, 'tableData');
 
             const MAX_ALLOWED_ENTRIES = 100;
 
             const numberOfEntries = Object.keys(userInputs).length;
+
+            debugger;
 
             if (numberOfEntries > MAX_ALLOWED_ENTRIES) {
                 console.error(
@@ -234,7 +239,7 @@ const useUserData = () => {
             try {
                 // Delete only the documents explicitly marked in rowsToDelete
                 if (rowsToDelete.length > 0) {
-                    console.log('Rows to be deleted are:', rowsToDelete);
+                    debugger;
                     for (const docId of rowsToDelete) {
                         const docRef = doc(tableDataRef, docId);
                         const docSnapshot = await getDoc(docRef);
@@ -249,24 +254,31 @@ const useUserData = () => {
                             );
                         }
                     }
+                    debugger;
                 }
 
                 // Save only the entries in userInputs
                 for (const [rowKey, fields] of Object.entries(userInputs)) {
                     // Remove undefined values from fields
+                    debugger;
                     const cleanedFields = Object.fromEntries(
                         Object.entries(fields).filter(
                             ([, value]) => value !== undefined && value !== null
                         )
                     );
 
+                    debugger;
+
                     // Only save if there are fields to save
                     if (Object.keys(cleanedFields).length > 0) {
+                        debugger;
                         const tableDataDocRef = doc(tableDataRef, rowKey);
                         await setDoc(tableDataDocRef, cleanedFields, {
                             merge: true,
                         });
                     }
+
+                    debugger;
                 }
                 console.log('Table data saved successfully');
 

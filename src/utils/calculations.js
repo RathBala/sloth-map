@@ -61,22 +61,35 @@ export const calculateCumulativeBalances = (
     for (let i = 0; i < updatedData.length; i++) {
         const entry = updatedData[i];
 
+        if (!entry.isActive) {
+            // For inactive entries, preserve their deposit values and skip updates
+            continue; // Skip to the next iteration
+        }
+
         // Set depositSavings
         if (!(entry.isDepositSavingsManual || entry.isManualFromFirestore)) {
             entry.depositSavings = lastDepositSavings;
+        } else if (
+            entry.depositSavings === undefined ||
+            entry.depositSavings === null
+        ) {
+            entry.depositSavings = lastDepositSavings;
         }
+
         // Set depositInvestments
         if (
             !(entry.isDepositInvestmentsManual || entry.isManualFromFirestore)
         ) {
             entry.depositInvestments = lastDepositInvestments;
+        } else if (
+            entry.depositInvestments === undefined ||
+            entry.depositInvestments === null
+        ) {
+            entry.depositInvestments = lastDepositInvestments;
         }
 
-        // Update lastDepositSavings and lastDepositInvestments if the row is active
-        if (entry.isActive) {
-            lastDepositSavings = entry.depositSavings;
-            lastDepositInvestments = entry.depositInvestments;
-        }
+        lastDepositSavings = entry.depositSavings;
+        lastDepositInvestments = entry.depositInvestments;
 
         // Initialize or carry over balances
         if (i === 0) {
