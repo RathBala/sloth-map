@@ -35,7 +35,7 @@ const App = () => {
         saveTableData,
         commitGoalsToFirestore,
         logout,
-        setRowsToDelete,
+        setFieldsToDelete,
         goals,
         saveGoal,
         fetchUserInputs,
@@ -101,8 +101,6 @@ const App = () => {
 
             for (let i = index + 1; i < updatedData.length; i++) {
                 if (isManual) {
-                    // For current manual changes, overwrite all subsequent rows
-                    // Remove any manual flags and userInputs
                     updatedData[i] = { ...updatedData[i], [field]: value };
                     updatedData[i][isManualField] = false;
                     updatedData[i].isManualFromFirestore = false;
@@ -116,26 +114,22 @@ const App = () => {
                             newChanges[rowKey][field] !== undefined
                         ) {
                             delete newChanges[rowKey][field];
+
+                            //track fields to delete
+                            setFieldsToDelete((prevFieldsToDelete) => {
+                                const updatedFieldsToDelete = {
+                                    ...prevFieldsToDelete,
+                                };
+                                if (!updatedFieldsToDelete[rowKey]) {
+                                    updatedFieldsToDelete[rowKey] = [];
+                                }
+                                updatedFieldsToDelete[rowKey].push(field);
+                                return updatedFieldsToDelete;
+                            });
+
                             if (Object.keys(newChanges[rowKey]).length === 0) {
                                 // RowKey has no more changes, delete it from newChanges
                                 delete newChanges[rowKey];
-
-                                // Since we had changes for this rowKey before, and now we've removed them,
-                                // we need to delete the document in Firestore
-                                setRowsToDelete((prevRowsToDelete) => {
-                                    const updatedRowsToDelete = [
-                                        ...prevRowsToDelete,
-                                        rowKey,
-                                    ];
-                                    console.log(
-                                        `Row overwritten and added to rowsToDelete: ${rowKey}`
-                                    );
-                                    console.log(
-                                        'Rows to be deleted are:',
-                                        updatedRowsToDelete
-                                    );
-                                    return updatedRowsToDelete;
-                                });
                             }
                         }
                         return newChanges;
@@ -381,7 +375,6 @@ const App = () => {
 
             const newInputs = await fetchUserInputs(); // Fetch and immediately update after
             setUserInputs(newInputs);
-            setRowsToDelete([]);
 
             console.log('All changes saved successfully');
         } catch (error) {

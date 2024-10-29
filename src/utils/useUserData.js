@@ -8,7 +8,7 @@ import {
     getDoc,
     getDocs,
     setDoc,
-    deleteDoc,
+    deleteField,
 } from 'firebase/firestore';
 
 const useUserData = () => {
@@ -22,7 +22,7 @@ const useUserData = () => {
     const [userInputs, setUserInputs] = useState({});
     const [goals, setGoals] = useState({});
 
-    const [rowsToDelete, setRowsToDelete] = useState([]);
+    const [fieldsToDelete, setFieldsToDelete] = useState({});
 
     const [loading, setLoading] = useState(true);
 
@@ -215,16 +215,12 @@ const useUserData = () => {
 
     const saveTableData = async () => {
         if (user && user.uid) {
-            debugger;
-
             const userRef = doc(db, 'users', user.uid);
             const tableDataRef = collection(userRef, 'tableData');
 
             const MAX_ALLOWED_ENTRIES = 100;
 
             const numberOfEntries = Object.keys(userInputs).length;
-
-            debugger;
 
             if (numberOfEntries > MAX_ALLOWED_ENTRIES) {
                 console.error(
@@ -237,52 +233,47 @@ const useUserData = () => {
             }
 
             try {
-                // Delete only the documents explicitly marked in rowsToDelete
-                if (rowsToDelete.length > 0) {
-                    debugger;
-                    for (const docId of rowsToDelete) {
-                        const docRef = doc(tableDataRef, docId);
-                        const docSnapshot = await getDoc(docRef);
-                        if (docSnapshot.exists()) {
-                            await deleteDoc(docRef);
-                            console.log(
-                                `Deleted document with ID ${docId} from Firestore`
-                            );
-                        } else {
-                            console.log(
-                                `Document with ID ${docId} does not exist in Firestore`
-                            );
-                        }
-                    }
-                    debugger;
-                }
-
                 // Save only the entries in userInputs
                 for (const [rowKey, fields] of Object.entries(userInputs)) {
-                    // Remove undefined values from fields
-                    debugger;
                     const cleanedFields = Object.fromEntries(
                         Object.entries(fields).filter(
                             ([, value]) => value !== undefined && value !== null
                         )
                     );
 
-                    debugger;
-
-                    // Only save if there are fields to save
                     if (Object.keys(cleanedFields).length > 0) {
-                        debugger;
                         const tableDataDocRef = doc(tableDataRef, rowKey);
                         await setDoc(tableDataDocRef, cleanedFields, {
                             merge: true,
                         });
                     }
-
-                    debugger;
                 }
+
+                //delete specific fields from documents
+                if (Object.keys(fieldsToDelete).length > 0) {
+                    for (const [rowKey, fields] of Object.entries(
+                        fieldsToDelete
+                    )) {
+                        const tableDataDocRef = doc(tableDataRef, rowKey);
+                        const deleteObj = {};
+                        fields.forEach((field) => {
+                            deleteObj[field] = deleteField();
+                        });
+                        await setDoc(tableDataDocRef, deleteObj, {
+                            merge: true,
+                        });
+                        console.log(
+                            `Deleted fields ${fields} from document ${rowKey}`
+                        );
+                    }
+                    // Clear fieldsToDelete after processing
+                    setFieldsToDelete({});
+                }
+
                 console.log('Table data saved successfully');
 
-                setRowsToDelete([]);
+                // Clear fieldsToDelete
+                setFieldsToDelete({});
             } catch (error) {
                 console.error('Error saving table data:', error);
             }
@@ -312,7 +303,7 @@ const useUserData = () => {
         saveInputFields,
         saveTableData,
         logout,
-        setRowsToDelete,
+        setFieldsToDelete,
         goals,
         saveGoal,
         // deleteGoal,
