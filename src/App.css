@@ -1,5 +1,7 @@
 body {
     padding: 0 1%;
+    background-color: #171717;
+    color: #d2d2d2;
 }
 
 .input-fields {
@@ -9,18 +11,22 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
+    background-color: #0d0d0d;
+}
+
+tbody {
+    color: white;
 }
 
 th,
 td {
-    border: 1px solid #ddd;
-    padding: 8px;
+    border: 1px solid #3a3a3a;
+    padding: 8px 15px;
     color: inherit;
 }
 
 th {
-    background-color: #04aa6d;
-    color: white;
+    text-align: left;
 }
 
 .alt-scenario {
@@ -38,24 +44,23 @@ th {
 
 .add-column,
 .add-column-header {
-    background-color: white !important;
+    /* background-color: white !important; */
     border: none !important;
 }
 
 .add-icon {
-    opacity: 0.1;
-    width: 3vw; /* Use viewport width units for responsiveness */
-    height: 3vw; /* Ensure the aspect ratio is maintained */
-    max-width: 40px; /* Max size to prevent excessive scaling */
-    max-height: 40px; /* Max size to prevent excessive scaling */
-    min-width: 30px; /* Minimum size */
-    min-height: 30px; /* Minimum size */
+    width: 3vw;
+    height: 3vw;
+    max-width: 40px;
+    max-height: 40px;
+    min-width: 30px;
+    min-height: 30px;
     cursor: pointer;
-    transition: opacity 0.2s ease-in-out;
+    transition: filter 0.2s ease-in-out;
 }
 
-.add-column:hover .add-icon {
-    opacity: 1;
+.add-icon:hover {
+    filter: invert(100%);
 }
 
 .add-icon:active {
@@ -122,6 +127,18 @@ th {
     margin-right: 10px;
 }
 
+.month-column {
+    text-align: left;
+    padding-left: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.month-column .add-icon {
+    margin-right: 9px;
+    vertical-align: middle;
+}
+
 /* New Goal Container */
 .new-goal-container {
     position: fixed;
@@ -165,7 +182,7 @@ th {
     top: 0;
     left: 0;
     width: 100%;
-    background-color: #fff;
+    background-color: #0d0d0d;
     padding: 10px 20px;
     box-sizing: border-box;
     border-bottom: 1px solid #ddd;
@@ -188,10 +205,8 @@ th {
     flex: 1;
 }
 
-/* Welcome Message */
 .welcome {
     font-size: 1.2rem;
-    color: black;
     display: flex;
     flex-direction: column;
     gap: 4px;

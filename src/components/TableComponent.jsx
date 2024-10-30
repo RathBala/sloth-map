@@ -138,7 +138,6 @@ const TableComponent = ({
         <table>
             <thead>
                 <tr>
-                    <th className="add-column-header"></th>
                     <th>Month</th>
                     <th>Deposit in Savings</th>
                     <th>Deposit in Investments</th>
@@ -176,7 +175,7 @@ const TableComponent = ({
                         }
                         onClick={() => handleRowClick(index)}
                     >
-                        <td className="add-column">
+                        <td className="month-column">
                             <img
                                 src={addIcon}
                                 alt="add icon"
@@ -185,9 +184,9 @@ const TableComponent = ({
                                     e.stopPropagation();
                                     onAltScenario(index);
                                 }}
-                            />{' '}
+                            />
+                            {formatMonth(row.month)}
                         </td>
-                        <td>{formatMonth(row.month)}</td>
                         <td>
                             <input
                                 type="text"
