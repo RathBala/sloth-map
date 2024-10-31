@@ -1,11 +1,13 @@
 body {
-    padding: 0 1%;
-    background-color: #171717;
     color: #d2d2d2;
 }
 
+html {
+    background-color: #171717;
+}
+
 .input-fields {
-    padding-left: 5vw;
+    padding-left: 35px;
 }
 
 table {
@@ -139,11 +141,7 @@ th {
     vertical-align: middle;
 }
 
-/* New Goal Container */
 .new-goal-container {
-    position: fixed;
-    top: 60px; /* Adjust this value based on the height of your top-nav */
-    right: 0;
     width: 100%;
     display: flex;
     justify-content: flex-end;
@@ -152,8 +150,9 @@ th {
     z-index: 1001; /* Ensure it's below the top-nav */
 }
 
-/* New Goal Button */
 .new-goal-button {
+    position: sticky;
+    right: 35px;
     background-color: #04aa6d;
     color: white;
     padding: 10px 15px;
@@ -174,11 +173,9 @@ th {
     background-color: #039958;
 }
 
-/* Top Navigation Bar */
 .top-nav {
     display: flex;
     align-items: center;
-    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -190,7 +187,6 @@ th {
 }
 
 .top-nav-left {
-    flex: 1;
     display: flex;
     align-items: center;
 }
@@ -201,19 +197,11 @@ th {
     justify-content: center;
 }
 
-.top-nav-right {
-    flex: 1;
-}
-
 .welcome {
     font-size: 1.2rem;
-    display: flex;
+    display: inline;
     flex-direction: column;
     gap: 4px;
-}
-
-.content {
-    margin-top: 150px;
 }
 
 .slothmap-container {

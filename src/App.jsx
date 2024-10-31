@@ -518,19 +518,20 @@ const App = () => {
                 <div className="top-nav">
                     <div className="top-nav-left">
                         <div className="welcome">
-                            <h4>Welcome</h4>
-                            <span>
+                            <h4>
+                                Welcome{' '}
                                 {user && user.email
                                     ? user.email
                                     : 'No user logged in'}
-                            </span>
+                            </h4>
                         </div>
                     </div>
+
                     <div className="top-nav-center">
                         <div className="button-group">
                             <button onClick={handleSaveClick}>Save</button>
                             <Link to="/map">
-                                <button type="button">Show Sloth Map</button>
+                                <button type="button">Map</button>
                             </Link>
                             <button onClick={logout}>Log out</button>
                         </div>
