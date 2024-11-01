@@ -6,10 +6,6 @@ html {
     background-color: #171717;
 }
 
-.input-fields {
-    padding-left: 35px;
-}
-
 table {
     width: 100%;
     border-collapse: collapse;
@@ -29,6 +25,28 @@ td {
 
 th {
     text-align: left;
+}
+
+.action-buttons-container {
+    position: relative;
+    top: 100px; /* Adjust this value based on the height of your top-nav */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    overflow: visible;
+    z-index: 999;
+}
+
+.action-buttons-container button {
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.input-fields {
+    padding-left: 20px;
 }
 
 .alt-scenario {
@@ -76,6 +94,11 @@ th {
     width: 100%;
 }
 
+.content {
+    margin-top: 110px;
+    overflow-x: auto;
+}
+
 .goal-pill {
     display: inline-block;
     background-color: #e0f7fa;
@@ -83,6 +106,28 @@ th {
     padding: 5px 10px;
     border-radius: 15px;
     font-size: 0.9em;
+}
+
+.left-buttons {
+    position: sticky;
+    left: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.left-buttons button {
+    left: 0;
+    z-index: 1000; /* Ensure button stays above other content */
+    background-color: #2196f3; /* Blue */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.left-buttons button:hover {
+    background-color: #1976d2;
 }
 
 .modal-overlay {
@@ -141,19 +186,16 @@ th {
     vertical-align: middle;
 }
 
-.new-goal-container {
-    width: 100%;
+.right-buttons {
+    position: sticky;
+    right: 20px;
     display: flex;
-    justify-content: flex-end;
-    padding: 10px 20px;
-    box-sizing: border-box;
-    z-index: 1001; /* Ensure it's below the top-nav */
+    align-items: center;
 }
 
-.new-goal-button {
-    position: sticky;
-    right: 35px;
-    background-color: #04aa6d;
+.right-buttons .new-goal-button {
+    z-index: 1000; /* Ensure button stays above other content */
+    background-color: #04aa6d; /* Green */
     color: white;
     padding: 10px 15px;
     border: none;
@@ -164,21 +206,22 @@ th {
     gap: 5px;
 }
 
-.new-goal-button .add-icon {
+.right-buttons .new-goal-button:hover {
+    background-color: #039958;
+}
+
+.right-buttons .add-icon {
     width: 20px;
     height: 20px;
 }
 
-.new-goal-button:hover {
-    background-color: #039958;
-}
-
 .top-nav {
-    display: flex;
-    align-items: center;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
+    display: flex;
+    align-items: center;
     background-color: #0d0d0d;
     padding: 10px 20px;
     box-sizing: border-box;

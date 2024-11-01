@@ -529,7 +529,6 @@ const App = () => {
 
                     <div className="top-nav-center">
                         <div className="button-group">
-                            <button onClick={handleSaveClick}>Save</button>
                             <Link to="/map">
                                 <button type="button">Map</button>
                             </Link>
@@ -540,21 +539,25 @@ const App = () => {
                         {/* Empty div to balance the layout if needed */}
                     </div>
                 </div>
-                <div className="new-goal-container">
-                    <button
-                        type="button"
-                        onClick={handleNewGoalClick}
-                        className="new-goal-button"
-                    >
-                        <img
-                            src={addIcon}
-                            alt="Add Goal"
-                            className="add-icon"
-                        />{' '}
-                        New Goal
-                    </button>
+                <div className="action-buttons-container">
+                    <div className="left-buttons">
+                        <button onClick={handleSaveClick}>Save</button>
+                    </div>
+                    <div className="right-buttons">
+                        <button
+                            type="button"
+                            onClick={handleNewGoalClick}
+                            className="new-goal-button"
+                        >
+                            <img
+                                src={addIcon}
+                                alt="Add Goal"
+                                className="add-icon"
+                            />{' '}
+                            New Goal
+                        </button>
+                    </div>
                 </div>
-
                 <div className="content">
                     <Routes>
                         <Route
