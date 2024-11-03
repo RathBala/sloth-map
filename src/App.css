@@ -192,6 +192,46 @@ th {
     cursor: pointer;
 }
 
+.profile-icon-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.profile-icon {
+    fill: #d2d2d2;
+    display: block;
+    margin: auto;
+}
+
+.profile-menu {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    background-color: #0d0d0d;
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    width: 120px;
+    z-index: 1000;
+}
+
+.profile-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.profile-menu li {
+    padding: 10px;
+    cursor: pointer;
+    color: #d2d2d2;
+}
+
+.profile-menu li:hover {
+    background-color: #171717;
+}
+
 .right-buttons {
     position: sticky;
     right: 20px;

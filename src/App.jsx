@@ -1,5 +1,5 @@
 /* eslint-disable no-debugger */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import TableComponent from './components/TableComponent';
 import InputFields from './components/InputFields';
@@ -41,10 +41,39 @@ const App = () => {
         fetchUserInputs,
     } = useUserData();
 
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const profileMenuRef = useRef(null);
+    const profileIconRef = useRef(null);
+
     const [tableData, setTableData] = useState(() => generateData(500, 300));
 
     const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
     const [editingGoal, setEditingGoal] = useState(null);
+
+    const toggleProfileMenu = () => {
+        setIsProfileMenuOpen(!isProfileMenuOpen);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                profileMenuRef.current &&
+                !profileMenuRef.current.contains(event.target) &&
+                profileIconRef.current &&
+                !profileIconRef.current.contains(event.target)
+            ) {
+                setIsProfileMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    useEffect(() => {
+        setIsProfileMenuOpen(false);
+    }, [isLoggedIn]);
 
     useEffect(() => {
         if (
@@ -517,6 +546,28 @@ const App = () => {
             <div className="App">
                 <div className="top-nav">
                     <div className="top-nav-left">
+                        <div className="profile-icon-container">
+                            <svg
+                                className="profile-icon"
+                                width="44"
+                                height="44"
+                                viewBox="0 0 44 44"
+                                onClick={toggleProfileMenu}
+                                ref={profileIconRef}
+                            >
+                                <circle cx="22" cy="22" r="20" fill="#d2d2d2" />
+                            </svg>
+                            {isProfileMenuOpen && (
+                                <div
+                                    className="profile-menu"
+                                    ref={profileMenuRef}
+                                >
+                                    <ul>
+                                        <li onClick={logout}>Log out</li>
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
                         <div className="welcome">
                             <h4>
                                 Welcome{' '}
@@ -532,9 +583,9 @@ const App = () => {
                             <Link to="/map">
                                 <button type="button">Map</button>
                             </Link>
-                            <button onClick={logout}>Log out</button>
                         </div>
                     </div>
+
                     <div className="top-nav-right">
                         {/* Empty div to balance the layout if needed */}
                     </div>
