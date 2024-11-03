@@ -1,9 +1,14 @@
 body {
     color: #d2d2d2;
+    font-size: 18px;
+}
+
+body button {
+    padding: 10px 15px;
 }
 
 html {
-    background-color: #171717;
+    background-color: #171717 !important;
 }
 
 table {
@@ -29,7 +34,7 @@ th {
 
 .action-buttons-container {
     position: relative;
-    top: 100px; /* Adjust this value based on the height of your top-nav */
+    top: 118px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -41,7 +46,6 @@ th {
 
 .action-buttons-container button {
     border: none;
-    border-radius: 8px;
     cursor: pointer;
 }
 
@@ -90,12 +94,12 @@ th {
 .button-group {
     display: flex;
     justify-content: center;
-    gap: 10px; /* Spacing between buttons */
+    gap: 10px;
     width: 100%;
 }
 
 .content {
-    margin-top: 110px;
+    margin-top: 126px;
     overflow-x: auto;
 }
 
@@ -116,11 +120,9 @@ th {
 }
 
 .left-buttons button {
-    left: 0;
-    z-index: 1000; /* Ensure button stays above other content */
-    background-color: #2196f3; /* Blue */
+    z-index: 1000;
+    background-color: #2196f3;
     color: white;
-    padding: 10px 15px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -143,10 +145,9 @@ th {
     z-index: 2000;
 }
 
-/* App.css */
 .modal-content {
     background: white;
-    color: black; /* Ensure text color is black */
+    color: black;
     padding: 20px;
     border-radius: 8px;
     width: 300px;
@@ -155,15 +156,15 @@ th {
 .modal-content label {
     display: block;
     margin-bottom: 10px;
-    color: black; /* Ensure label text is black */
+    color: black;
 }
 
 .modal-content input {
     width: 100%;
     padding: 5px;
     margin-top: 5px;
-    background-color: white; /* Ensure input background is white */
-    color: black; /* Ensure input text is black */
+    background-color: white;
+    color: black;
 }
 
 .modal-content h2 {
@@ -186,6 +187,11 @@ th {
     vertical-align: middle;
 }
 
+.plus-icon {
+    max-height: 1.4rem;
+    cursor: pointer;
+}
+
 .right-buttons {
     position: sticky;
     right: 20px;
@@ -194,16 +200,15 @@ th {
 }
 
 .right-buttons .new-goal-button {
-    z-index: 1000; /* Ensure button stays above other content */
-    background-color: #04aa6d; /* Green */
+    z-index: 1000;
+    background-color: #05d875;
     color: white;
-    padding: 10px 15px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
 }
 
 .right-buttons .new-goal-button:hover {
@@ -241,7 +246,7 @@ th {
 }
 
 .welcome {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     display: inline;
     flex-direction: column;
     gap: 4px;

@@ -14,7 +14,7 @@ import {
 } from './utils/calculations';
 import './App.css';
 import GoalModal from './components/GoalModal';
-import addIcon from './assets/add.svg';
+import plusIcon from './assets/Plus.svg';
 
 const App = () => {
     const {
@@ -550,9 +550,9 @@ const App = () => {
                             className="new-goal-button"
                         >
                             <img
-                                src={addIcon}
+                                src={plusIcon}
                                 alt="Add Goal"
-                                className="add-icon"
+                                className="plus-icon"
                             />{' '}
                             New Goal
                         </button>
