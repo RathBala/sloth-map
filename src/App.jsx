@@ -1,6 +1,6 @@
 /* eslint-disable no-debugger */
 import { useState, useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { Route, Routes, Link, useLocation } from 'react-router-dom';
 import TableComponent from './components/TableComponent';
 import InputFields from './components/InputFields';
 import Authentication from './components/Auth';
@@ -15,6 +15,10 @@ import {
 import './App.css';
 import GoalModal from './components/GoalModal';
 import plusIcon from './assets/Plus.svg';
+import tableIcon from './assets/table.png';
+import mapIcon from './assets/map.png';
+import tableSelectedIcon from './assets/table-selected.png';
+import mapSelectedIcon from './assets/map-selected.png';
 
 const App = () => {
     const {
@@ -49,6 +53,12 @@ const App = () => {
 
     const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
     const [editingGoal, setEditingGoal] = useState(null);
+
+    const location = useLocation();
+
+    const isTableSelected =
+        location.pathname === '/' || location.pathname === '';
+    const isMapSelected = location.pathname === '/map';
 
     const toggleProfileMenu = () => {
         setIsProfileMenuOpen(!isProfileMenuOpen);
@@ -542,133 +552,151 @@ const App = () => {
     };
 
     return (
-        <Router>
-            <div className="App">
-                <div className="top-nav">
-                    <div className="top-nav-left">
-                        <div className="profile-icon-container">
-                            <svg
-                                className="profile-icon"
-                                width="44"
-                                height="44"
-                                viewBox="0 0 44 44"
-                                onClick={toggleProfileMenu}
-                                ref={profileIconRef}
-                            >
-                                <circle cx="22" cy="22" r="20" fill="#d2d2d2" />
-                            </svg>
-                            {isProfileMenuOpen && (
-                                <div
-                                    className="profile-menu"
-                                    ref={profileMenuRef}
-                                >
-                                    <ul>
-                                        <li onClick={logout}>Log out</li>
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-                        <div className="welcome">
-                            <h4>
-                                Welcome{' '}
-                                {user && user.email
-                                    ? user.email
-                                    : 'No user logged in'}
-                            </h4>
-                        </div>
+        <div className="App">
+            <div className="top-nav">
+                <div className="top-nav-left">
+                    <div className="profile-icon-container">
+                        <svg
+                            className="profile-icon"
+                            width="44"
+                            height="44"
+                            viewBox="0 0 44 44"
+                            onClick={toggleProfileMenu}
+                            ref={profileIconRef}
+                        >
+                            <circle cx="22" cy="22" r="20" fill="#d2d2d2" />
+                        </svg>
+                        {isProfileMenuOpen && (
+                            <div className="profile-menu" ref={profileMenuRef}>
+                                <ul>
+                                    <li onClick={logout}>Log out</li>
+                                </ul>
+                            </div>
+                        )}
                     </div>
-
-                    <div className="top-nav-center">
-                        <div className="button-group">
-                            <Link to="/map">
-                                <button type="button">Map</button>
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="top-nav-right">
-                        {/* Empty div to balance the layout if needed */}
+                    <div className="welcome">
+                        <h4>
+                            Welcome{' '}
+                            {user && user.email
+                                ? user.email
+                                : 'No user logged in'}
+                        </h4>
                     </div>
                 </div>
-                <div className="action-buttons-container">
-                    <div className="left-buttons">
-                        <button onClick={handleSaveClick}>Save</button>
-                    </div>
-                    <div className="right-buttons">
-                        <button
-                            type="button"
-                            onClick={handleNewGoalClick}
-                            className="new-goal-button"
+
+                <div className="top-nav-center">
+                    <div className="tab-group">
+                        <Link
+                            to="/"
+                            className={`tab ${isTableSelected ? 'active-tab' : ''}`}
                         >
                             <img
-                                src={plusIcon}
-                                alt="Add Goal"
-                                className="plus-icon"
+                                src={
+                                    isTableSelected
+                                        ? tableSelectedIcon
+                                        : tableIcon
+                                }
+                                alt="Table Icon"
+                                className="tab-icon"
                             />{' '}
-                            New Goal
-                        </button>
+                            Table
+                        </Link>
+                        <Link
+                            to="/map"
+                            className={`tab ${isMapSelected ? 'active-tab' : ''}`}
+                        >
+                            <img
+                                src={isMapSelected ? mapSelectedIcon : mapIcon}
+                                alt="Map Icon"
+                                className="tab-icon"
+                            />{' '}
+                            Map
+                        </Link>
                     </div>
                 </div>
-                <div className="content">
-                    <Routes>
-                        <Route
-                            path="*"
-                            element={<div>No match for this route</div>}
-                        />
-                        <Route
-                            path="/map"
-                            element={
-                                <div className="slothmap-container">
-                                    {' '}
-                                    <SlothMap data={slothMapData} />
-                                </div>
-                            }
-                        />
-                        <Route
-                            path="/"
-                            element={
-                                <>
-                                    <InputFields
-                                        interestRate={interestRate || ''}
-                                        investmentReturnRate={
-                                            investmentReturnRate || ''
-                                        }
-                                        targetNestEgg={targetNestEgg || ''}
-                                        age={age || ''}
-                                        handleInterestRateChange={
-                                            handleInterestRateChange
-                                        }
-                                        handleInvestmentReturnRateChange={
-                                            handleInvestmentReturnRateChange
-                                        }
-                                        handleTargetNestEggChange={
-                                            handleTargetNestEggChange
-                                        }
-                                        handleAgeChange={handleAgeChange}
-                                        achieveNestEggBy={achieveNestEggBy}
-                                    />
-                                    <TableComponent
-                                        data={formattedTableData}
-                                        tableData={tableData}
-                                        onFieldChange={handleFieldChange}
-                                        onAltScenario={addAltScenario}
-                                        handleRowClick={handleRowClick}
-                                        onEditGoal={handleEditGoal}
-                                    />
-                                </>
-                            }
-                        />
-                    </Routes>
-                    <GoalModal
-                        isOpen={isGoalModalOpen}
-                        onClose={() => setIsGoalModalOpen(false)}
-                        onSave={handleGoalSave}
-                        goal={editingGoal}
-                        goals={goals}
-                    />
+
+                <div className="top-nav-right">
+                    {/* Empty div to balance the layout if needed */}
                 </div>
             </div>
-        </Router>
+            <div className="action-buttons-container">
+                <div className="left-buttons">
+                    <button onClick={handleSaveClick}>Save</button>
+                </div>
+                <div className="right-buttons">
+                    <button
+                        type="button"
+                        onClick={handleNewGoalClick}
+                        className="new-goal-button"
+                    >
+                        <img
+                            src={plusIcon}
+                            alt="Add Goal"
+                            className="plus-icon"
+                        />{' '}
+                        New Goal
+                    </button>
+                </div>
+            </div>
+            <div className="content">
+                <Routes>
+                    <Route
+                        path="/map"
+                        element={
+                            <div className="slothmap-container">
+                                <SlothMap data={slothMapData} />
+                            </div>
+                        }
+                    />
+                    <Route
+                        path="/"
+                        element={
+                            <>
+                                <InputFields
+                                    interestRate={interestRate || ''}
+                                    investmentReturnRate={
+                                        investmentReturnRate || ''
+                                    }
+                                    targetNestEgg={targetNestEgg || ''}
+                                    age={age || ''}
+                                    handleInterestRateChange={
+                                        handleInterestRateChange
+                                    }
+                                    handleInvestmentReturnRateChange={
+                                        handleInvestmentReturnRateChange
+                                    }
+                                    handleTargetNestEggChange={
+                                        handleTargetNestEggChange
+                                    }
+                                    handleAgeChange={handleAgeChange}
+                                    achieveNestEggBy={achieveNestEggBy}
+                                />
+                                <TableComponent
+                                    data={formattedTableData}
+                                    tableData={tableData}
+                                    onFieldChange={handleFieldChange}
+                                    onAltScenario={addAltScenario}
+                                    handleRowClick={handleRowClick}
+                                    onEditGoal={handleEditGoal}
+                                />
+                            </>
+                        }
+                    />
+                    {/* Place the catch-all route at the end */}
+                    <Route
+                        path="*"
+                        element={<div>No match for this route</div>}
+                    />
+                </Routes>
+                <GoalModal
+                    isOpen={isGoalModalOpen}
+                    onClose={() => setIsGoalModalOpen(false)}
+                    onSave={handleGoalSave}
+                    goal={editingGoal}
+                    goals={goals}
+                />
+            </div>
+        </div>
     );
 };
 

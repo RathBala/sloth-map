@@ -260,6 +260,41 @@ th {
     height: 20px;
 }
 
+.tab {
+    cursor: pointer;
+    background-color: transparent;
+    color: #d2d2d2;
+    text-decoration: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    height: 78px;
+    width: 134px;
+    line-height: 78px;
+    padding: 0;
+    text-align: center;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tab-icon {
+    margin-right: 8px;
+}
+
+.tab-group {
+    display: flex;
+}
+
+.tab:hover {
+    background-color: rgba(100, 162, 254, 0.2);
+}
+
+.tab.active-tab {
+    background-color: rgba(100, 162, 254, 0.2);
+    border-bottom: 2px solid #64a2fe;
+}
+
 .top-nav {
     position: fixed;
     top: 0;
@@ -268,7 +303,7 @@ th {
     display: flex;
     align-items: center;
     background-color: #0d0d0d;
-    padding: 10px 20px;
+    padding: 0px 20px;
     box-sizing: border-box;
     border-bottom: 1px solid #ddd;
     z-index: 1000;
@@ -290,6 +325,10 @@ th {
     display: inline;
     flex-direction: column;
     gap: 4px;
+}
+
+.welcome h4 {
+    margin: 0;
 }
 
 .slothmap-container {
