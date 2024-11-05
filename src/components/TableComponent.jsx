@@ -1,7 +1,20 @@
 /* eslint-disable no-debugger */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect /*useRef*/ } from 'react';
 import { formatNumber, formatMonth } from '../utils/formatUtils';
 import addIcon from '../assets/add.svg';
+import monthIcon from '../assets/Month.svg';
+import depositSavingsIcon from '../assets/Deposit in Savings.svg';
+import depositInvestmentsIcon from '../assets/Deposit in Investments.svg';
+// import totalDepositIcon from '../assets/Total Deposit.svg';
+import goalIcon from '../assets/Goal.svg';
+import goalAmountIcon from '../assets/Goal Amount.svg';
+import totalSavingsAccountIcon from '../assets/Total in Savings.svg';
+import totalInvestmentsAccountIcon from '../assets/Total in Investments.svg';
+// import totalSavedIcon from '../assets/Total Saved.svg';
+import interestReturnIcon from '../assets/Interest Return.svg';
+import investmentReturnIcon from '../assets/Investment Return.svg';
+import grandTotalIcon from '../assets/Grand Total.svg';
+// import commentaryIcon from '../assets/Commentary.svg';
 
 const TableComponent = ({
     data,
@@ -11,24 +24,24 @@ const TableComponent = ({
     handleRowClick,
     onEditGoal,
 }) => {
-    const prevDataRef = useRef();
+    // const prevDataRef = useRef();
     const today = new Date();
     const currentMonth = `${today.getFullYear()}-${String(
         today.getMonth() + 1
     ).padStart(2, '0')}`;
 
-    useEffect(() => {
-        if (prevDataRef.current) {
-            const prevData = prevDataRef.current;
-            if (JSON.stringify(prevData) !== JSON.stringify(data)) {
-                // console.log(
-                //     'TableComponent received data:',
-                //     JSON.stringify(data, null, 2)
-                // );
-            }
-        }
-        prevDataRef.current = data;
-    }, [data]);
+    // useEffect(() => {
+    //     if (prevDataRef.current) {
+    //         const prevData = prevDataRef.current;
+    //         if (JSON.stringify(prevData) !== JSON.stringify(data)) {
+    //             // console.log(
+    //             //     'TableComponent received data:',
+    //             //     JSON.stringify(data, null, 2)
+    //             // );
+    //         }
+    //     }
+    //     prevDataRef.current = data;
+    // }, [data]);
 
     const [focusedIndex, setFocusedIndex] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
@@ -138,19 +151,139 @@ const TableComponent = ({
         <table>
             <thead>
                 <tr>
-                    <th>Month</th>
-                    <th>Deposit in Savings</th>
-                    <th>Deposit in Investments</th>
-                    <th>Total Deposit</th>
-                    <th>Goal</th>
-                    <th>Goal Amount</th>
-                    <th>Total in Savings Account (monzo)</th>
-                    <th>Total in Investments Account (HL, SJP ISA, bitcoin)</th>
-                    <th>Total Saved</th>
-                    <th>Interest Return</th>
-                    <th>Investment Return</th>
-                    <th>Grand Total</th>
-                    <th>Commentary</th>
+                    <th>
+                        <div className="header-content">
+                            <img
+                                src={monthIcon}
+                                alt="Month Icon"
+                                className="header-icon"
+                            />
+                            <span>Month</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            <img
+                                src={depositSavingsIcon}
+                                alt="Deposit in Savings Icon"
+                                className="header-icon"
+                            />
+                            <span>Deposit in Savings</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            <img
+                                src={depositInvestmentsIcon}
+                                alt="Deposit in Investments Icon"
+                                className="header-icon"
+                            />
+                            <span>Deposit in Investments</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            {/* <img
+                                src={totalDepositIcon}
+                                alt="Total Deposit Icon"
+                                className="header-icon"
+                            /> */}
+                            <span>Total Deposit</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            <img
+                                src={goalIcon}
+                                alt="Goal Icon"
+                                className="header-icon"
+                            />
+                            <span>Goal</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            <img
+                                src={goalAmountIcon}
+                                alt="Goal Amount Icon"
+                                className="header-icon"
+                            />
+                            <span>Goal Amount</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            <img
+                                src={totalSavingsAccountIcon}
+                                alt="Total in Savings Account Icon"
+                                className="header-icon"
+                            />
+                            <span>Total in Savings Account (monzo)</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            <img
+                                src={totalInvestmentsAccountIcon}
+                                alt="Total in Investments Account Icon"
+                                className="header-icon"
+                            />
+                            <span>
+                                Total in Investments Account (HL, SJP ISA,
+                                bitcoin)
+                            </span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            {/* <img
+                                src={totalSavedIcon}
+                                alt="Total Saved Icon"
+                                className="header-icon"
+                            /> */}
+                            <span>Total Saved</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            <img
+                                src={interestReturnIcon}
+                                alt="Interest Return Icon"
+                                className="header-icon"
+                            />
+                            <span>Interest Return</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            <img
+                                src={investmentReturnIcon}
+                                alt="Investment Return Icon"
+                                className="header-icon"
+                            />
+                            <span>Investment Return</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            <img
+                                src={grandTotalIcon}
+                                alt="Grand Total Icon"
+                                className="header-icon"
+                            />
+                            <span>Grand Total</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            {/* <img
+                                src={commentaryIcon}
+                                alt="Commentary Icon"
+                                className="header-icon"
+                            /> */}
+                            <span>Commentary</span>
+                        </div>
+                    </th>
                 </tr>
             </thead>
             <tbody>

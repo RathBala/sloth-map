@@ -614,10 +614,6 @@ const App = () => {
                         </Link>
                     </div>
                 </div>
-
-                <div className="top-nav-right">
-                    {/* Empty div to balance the layout if needed */}
-                </div>
             </div>
             <div className="action-buttons-container">
                 <div className="left-buttons">
