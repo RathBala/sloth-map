@@ -71,17 +71,10 @@ th .header-content {
 
 .add-column,
 .add-column-header {
-    /* background-color: white !important; */
     border: none !important;
 }
 
 .add-icon {
-    width: 3vw;
-    height: 3vw;
-    max-width: 40px;
-    max-height: 40px;
-    min-width: 30px;
-    min-height: 30px;
     cursor: pointer;
     transition: filter 0.2s ease-in-out;
 }
@@ -184,12 +177,12 @@ th .header-content {
     margin-right: 10px;
 }
 
-.month-column {
+/* .month-column {
     text-align: left;
     padding-left: 15px;
     display: flex;
     align-items: center;
-}
+} */
 
 .month-column .add-icon {
     margin-right: 9px;

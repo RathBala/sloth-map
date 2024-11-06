@@ -14,7 +14,7 @@ import totalInvestmentsAccountIcon from '../assets/Total in Investments.svg';
 import interestReturnIcon from '../assets/Interest Return.svg';
 import investmentReturnIcon from '../assets/Investment Return.svg';
 import grandTotalIcon from '../assets/Grand Total.svg';
-// import commentaryIcon from '../assets/Commentary.svg';
+import commentaryIcon from '../assets/Commentary.svg';
 
 const TableComponent = ({
     data,
@@ -183,16 +183,6 @@ const TableComponent = ({
                     </th>
                     <th>
                         <div className="header-content">
-                            {/* <img
-                                src={totalDepositIcon}
-                                alt="Total Deposit Icon"
-                                className="header-icon"
-                            /> */}
-                            <span>Total Deposit</span>
-                        </div>
-                    </th>
-                    <th>
-                        <div className="header-content">
                             <img
                                 src={goalIcon}
                                 alt="Goal Icon"
@@ -236,16 +226,6 @@ const TableComponent = ({
                     </th>
                     <th>
                         <div className="header-content">
-                            {/* <img
-                                src={totalSavedIcon}
-                                alt="Total Saved Icon"
-                                className="header-icon"
-                            /> */}
-                            <span>Total Saved</span>
-                        </div>
-                    </th>
-                    <th>
-                        <div className="header-content">
                             <img
                                 src={interestReturnIcon}
                                 alt="Interest Return Icon"
@@ -276,11 +256,13 @@ const TableComponent = ({
                     </th>
                     <th>
                         <div className="header-content">
-                            {/* <img
-                                src={commentaryIcon}
-                                alt="Commentary Icon"
-                                className="header-icon"
-                            /> */}
+                            {
+                                <img
+                                    src={commentaryIcon}
+                                    alt="Commentary Icon"
+                                    className="header-icon"
+                                />
+                            }
                             <span>Commentary</span>
                         </div>
                     </th>
@@ -389,7 +371,6 @@ const TableComponent = ({
                                 }
                             />
                         </td>
-                        <td>{row.totalDepositFormatted}</td>
                         <td>
                             {row.goal && Array.isArray(row.goal) ? (
                                 row.goal.map((g) => (
@@ -498,7 +479,6 @@ const TableComponent = ({
                                 formatNumber(row.totalInvestments || '')
                             )}
                         </td>
-                        <td>{row.totalSavedFormatted}</td>
                         <td>{row.interestReturnFormatted}</td>
                         <td>{row.investmentReturnFormatted}</td>
                         <td>{row.grandTotalFormatted}</td>

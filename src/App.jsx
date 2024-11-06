@@ -19,6 +19,8 @@ import tableIcon from './assets/table.png';
 import mapIcon from './assets/map.png';
 import tableSelectedIcon from './assets/table-selected.png';
 import mapSelectedIcon from './assets/map-selected.png';
+import cogIcon from './assets/Cog.svg';
+import cogSelectedIcon from './assets/Cog.svg';
 
 const App = () => {
     const {
@@ -59,6 +61,7 @@ const App = () => {
     const isTableSelected =
         location.pathname === '/' || location.pathname === '';
     const isMapSelected = location.pathname === '/map';
+    const isSettingsSelected = location.pathname === '/settings';
 
     const toggleProfileMenu = () => {
         setIsProfileMenuOpen(!isProfileMenuOpen);
@@ -426,12 +429,8 @@ const App = () => {
         ...entry,
         interestReturnFormatted: formatNumber(entry.interestReturn),
         investmentReturnFormatted: formatNumber(entry.investmentReturn),
-        totalDepositFormatted: formatNumber(
-            entry.depositSavings + entry.depositInvestments
-        ),
         totalSavingsFormatted: formatNumber(entry.totalSavings),
         totalInvestmentsFormatted: formatNumber(entry.totalInvestments),
-        totalSavedFormatted: formatNumber(entry.totalSaved),
         grandTotalFormatted: formatNumber(entry.grandTotal),
     }));
 
@@ -612,6 +611,21 @@ const App = () => {
                             />{' '}
                             Map
                         </Link>
+                        <Link
+                            to="/settings"
+                            className={`tab ${isSettingsSelected ? 'active-tab' : ''}`}
+                        >
+                            <img
+                                src={
+                                    isSettingsSelected
+                                        ? cogSelectedIcon
+                                        : cogIcon
+                                }
+                                alt="Settings Icon"
+                                className="tab-icon"
+                            />
+                            Settings
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -619,20 +633,22 @@ const App = () => {
                 <div className="left-buttons">
                     <button onClick={handleSaveClick}>Save</button>
                 </div>
-                <div className="right-buttons">
-                    <button
-                        type="button"
-                        onClick={handleNewGoalClick}
-                        className="new-goal-button"
-                    >
-                        <img
-                            src={plusIcon}
-                            alt="Add Goal"
-                            className="plus-icon"
-                        />{' '}
-                        New Goal
-                    </button>
-                </div>
+                {!isSettingsSelected && (
+                    <div className="right-buttons">
+                        <button
+                            type="button"
+                            onClick={handleNewGoalClick}
+                            className="new-goal-button"
+                        >
+                            <img
+                                src={plusIcon}
+                                alt="Add Goal"
+                                className="plus-icon"
+                            />{' '}
+                            New Goal
+                        </button>
+                    </div>
+                )}
             </div>
             <div className="content">
                 <Routes>
@@ -645,9 +661,10 @@ const App = () => {
                         }
                     />
                     <Route
-                        path="/"
+                        path="/settings"
                         element={
                             <>
+                                {' '}
                                 <InputFields
                                     interestRate={interestRate || ''}
                                     investmentReturnRate={
@@ -665,7 +682,19 @@ const App = () => {
                                         handleTargetNestEggChange
                                     }
                                     handleAgeChange={handleAgeChange}
+                                    isSettingsPage={true}
+                                />{' '}
+                            </>
+                        }
+                    />
+                    <Route
+                        path="/"
+                        element={
+                            <>
+                                <InputFields
                                     achieveNestEggBy={achieveNestEggBy}
+                                    age={age}
+                                    isSettingsPage={false}
                                 />
                                 <TableComponent
                                     data={formattedTableData}
@@ -678,7 +707,6 @@ const App = () => {
                             </>
                         }
                     />
-                    {/* Place the catch-all route at the end */}
                     <Route
                         path="*"
                         element={<div>No match for this route</div>}

@@ -6,7 +6,9 @@ const InputFields = ({
     handleInterestRateChange,
     handleInvestmentReturnRateChange,
     handleTargetNestEggChange,
+    handleAgeChange,
     achieveNestEggBy,
+    isSettingsPage,
 }) => {
     const calculateYearsRemainingToNestEgg = () => {
         const currentYear = new Date().getFullYear();
@@ -18,7 +20,7 @@ const InputFields = ({
 
     const calculateAgeToAchieveNestEgg = () => {
         const yearsRemaining = calculateYearsRemainingToNestEgg();
-        return age + yearsRemaining;
+        return age ? parseInt(age, 10) + yearsRemaining : 'N/A';
     };
 
     return (
@@ -47,7 +49,10 @@ const InputFields = ({
                     onChange={handleTargetNestEggChange}
                 />
             </label>
-            <p>Current Age: {age}</p>
+            <label>
+                Age:
+                <input type="number" value={age} onChange={handleAgeChange} />
+            </label>
             <p>Achieve Nest Egg By: {achieveNestEggBy}</p>
             <p>
                 Years Remaining To Nest Egg:{' '}
