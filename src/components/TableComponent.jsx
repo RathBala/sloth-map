@@ -43,7 +43,7 @@ const TableComponent = ({
     //     prevDataRef.current = data;
     // }, [data]);
 
-    const [focusedIndex, setFocusedIndex] = useState(null);
+    const [focusedRowKey, setFocusedRowKey] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
 
     const initialState = data.map((row) => ({
@@ -92,13 +92,12 @@ const TableComponent = ({
         );
     }, [data]);
 
-    const handleFocus = (index, field) => {
-        console.log(`Focus event on ${field} at index ${index}`);
-        setFocusedIndex(index);
+    const handleFocus = (rowKey, field) => {
+        setFocusedRowKey(rowKey);
         setFocusedField(field);
     };
 
-    const handleBlur = (index, field, value) => {
+    const handleBlur = (rowKey, field, value) => {
         const numericValue =
             field === 'goal'
                 ? value
@@ -108,42 +107,31 @@ const TableComponent = ({
             numericValue
         );
 
-        if (field === 'depositSavings') {
-            console.log(
-                `Before onBlur - depositSavings at index ${index}: ${inputValues[index][field]}`
-            );
-        }
-
-        onFieldChange(index, field, numericValue);
-
-        if (field === 'depositSavings') {
-            console.log(
-                `After onBlur - depositSavings at index ${index}: ${inputValues[index][field]}`
-            );
-        }
+        onFieldChange(rowKey, field, numericValue);
 
         setInputValues((current) =>
-            current.map((item, idx) =>
-                idx === index ? { ...item, [field]: numericValue } : item
+            current.map((item) =>
+                item.rowKey === rowKey
+                    ? { ...item, [field]: numericValue }
+                    : item
             )
         );
-        setFocusedIndex(null);
+        setFocusedRowKey(null);
         setFocusedField(null);
     };
 
-    const handleChange = (index, field, value) => {
+    const handleChange = (rowKey, field, value) => {
         setInputValues((current) =>
-            current.map((item, idx) =>
-                idx === index ? { ...item, [field]: value } : item
+            current.map((item) =>
+                item.rowKey === rowKey ? { ...item, [field]: value } : item
             )
         );
     };
 
-    const handleInputInteraction = (index, field, e) => {
-        console.log(`Interaction event on ${field} at index ${index}`);
+    const handleInputInteraction = (rowKey, field, e) => {
         e.stopPropagation();
         if (field === 'depositSavings' && e.type === 'focus') {
-            handleFocus(index, field, e);
+            handleFocus(rowKey, field);
         }
     };
 
@@ -269,7 +257,7 @@ const TableComponent = ({
                 </tr>
             </thead>
             <tbody>
-                {inputValues.map((row, index) => (
+                {inputValues.map((row) => (
                     <tr
                         key={row.rowKey}
                         className={
@@ -288,7 +276,7 @@ const TableComponent = ({
                                     ? 'inactive'
                                     : 'active'
                         }
-                        onClick={() => handleRowClick(index)}
+                        onClick={() => handleRowClick(row.rowKey)}
                     >
                         <td className="month-column">
                             <img
@@ -297,7 +285,7 @@ const TableComponent = ({
                                 className="add-icon"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    onAltScenario(index);
+                                    onAltScenario(row.rowKey);
                                 }}
                             />
                             {formatMonth(row.month)}
@@ -306,35 +294,35 @@ const TableComponent = ({
                             <input
                                 type="text"
                                 value={
-                                    focusedIndex === index &&
+                                    focusedRowKey === row.rowKey &&
                                     focusedField === 'depositSavings'
                                         ? row.depositSavings
                                         : formatNumber(row.depositSavings || '')
                                 }
                                 onFocus={(e) =>
                                     handleInputInteraction(
-                                        index,
+                                        row.rowKey,
                                         'depositSavings',
                                         e
                                     )
                                 }
                                 onClick={(e) =>
                                     handleInputInteraction(
-                                        index,
+                                        row.rowKey,
                                         'depositSavings',
                                         e
                                     )
                                 }
                                 onChange={(e) =>
                                     handleChange(
-                                        index,
+                                        row.rowKey,
                                         'depositSavings',
                                         e.target.value
                                     )
                                 }
                                 onBlur={(e) =>
                                     handleBlur(
-                                        index,
+                                        row.rowKey,
                                         'depositSavings',
                                         e.target.value
                                     )
@@ -345,26 +333,29 @@ const TableComponent = ({
                             <input
                                 type="text"
                                 value={
-                                    focusedIndex === index &&
+                                    focusedRowKey === row.rowKey &&
                                     focusedField === 'depositInvestments'
                                         ? row.depositInvestments
                                         : formatNumber(
                                               row.depositInvestments || ''
                                           )
                                 }
-                                onFocus={(e) =>
-                                    handleFocus(index, 'depositInvestments', e)
+                                onFocus={() =>
+                                    handleFocus(
+                                        row.rowKey,
+                                        'depositInvestments'
+                                    )
                                 }
                                 onChange={(e) =>
                                     handleChange(
-                                        index,
+                                        row.rowKey,
                                         'depositInvestments',
                                         e.target.value
                                     )
                                 }
                                 onBlur={(e) =>
                                     handleBlur(
-                                        index,
+                                        row.rowKey,
                                         'depositInvestments',
                                         e.target.value
                                     )
@@ -412,26 +403,26 @@ const TableComponent = ({
                                 <input
                                     type="text"
                                     value={
-                                        focusedIndex === index &&
+                                        focusedRowKey === row.rowKey &&
                                         focusedField === 'totalSavings'
                                             ? row.totalSavings.toString()
                                             : formatNumber(
                                                   row.totalSavings || ''
                                               )
                                     }
-                                    onFocus={(e) =>
-                                        handleFocus(index, 'totalSavings', e)
+                                    onFocus={() =>
+                                        handleFocus(row.rowKey, 'totalSavings')
                                     }
                                     onChange={(e) =>
                                         handleChange(
-                                            index,
+                                            row.rowKey,
                                             'totalSavings',
                                             e.target.value
                                         )
                                     }
                                     onBlur={(e) =>
                                         handleBlur(
-                                            index,
+                                            row.rowKey,
                                             'totalSavings',
                                             e.target.value
                                         )
@@ -446,30 +437,29 @@ const TableComponent = ({
                                 <input
                                     type="text"
                                     value={
-                                        focusedIndex === index &&
+                                        focusedRowKey === row.rowKey &&
                                         focusedField === 'totalInvestments'
                                             ? row.totalInvestments.toString()
                                             : formatNumber(
                                                   row.totalInvestments || ''
                                               )
                                     }
-                                    onFocus={(e) =>
+                                    onFocus={() =>
                                         handleFocus(
-                                            index,
-                                            'totalInvestments',
-                                            e
+                                            row.rowKey,
+                                            'totalInvestments'
                                         )
                                     }
                                     onChange={(e) =>
                                         handleChange(
-                                            index,
+                                            row.rowKey,
                                             'totalInvestments',
                                             e.target.value
                                         )
                                     }
                                     onBlur={(e) =>
                                         handleBlur(
-                                            index,
+                                            row.rowKey,
                                             'totalInvestments',
                                             e.target.value
                                         )
@@ -485,20 +475,20 @@ const TableComponent = ({
                         <td>
                             <input
                                 type="text"
-                                value={inputValues[index].commentary || ''}
-                                onFocus={(e) =>
-                                    handleFocus(index, 'commentary', e)
+                                value={row.commentary || ''}
+                                onFocus={() =>
+                                    handleFocus(row.rowKey, 'commentary')
                                 }
                                 onChange={(e) =>
                                     handleChange(
-                                        index,
+                                        row.rowKey,
                                         'commentary',
                                         e.target.value
                                     )
                                 }
                                 onBlur={(e) =>
                                     handleBlur(
-                                        index,
+                                        row.rowKey,
                                         'commentary',
                                         e.target.value
                                     )

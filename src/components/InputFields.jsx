@@ -25,40 +25,54 @@ const InputFields = ({
 
     return (
         <div className="input-fields">
-            <label>
-                Interest Rate (%):
-                <input
-                    type="number"
-                    value={interestRate}
-                    onChange={handleInterestRateChange}
-                />
-            </label>
-            <label>
-                Investment Return Rate (%):
-                <input
-                    type="number"
-                    value={investmentReturnRate}
-                    onChange={handleInvestmentReturnRateChange}
-                />
-            </label>
-            <label>
-                Target Nest Egg:
-                <input
-                    type="number"
-                    value={targetNestEgg}
-                    onChange={handleTargetNestEggChange}
-                />
-            </label>
-            <label>
-                Age:
-                <input type="number" value={age} onChange={handleAgeChange} />
-            </label>
-            <p>Achieve Nest Egg By: {achieveNestEggBy}</p>
-            <p>
-                Years Remaining To Nest Egg:{' '}
-                {calculateYearsRemainingToNestEgg()}
-            </p>
-            <p>Age achieved Nest Egg by: {calculateAgeToAchieveNestEgg()}</p>
+            {isSettingsPage ? (
+                <>
+                    <label>
+                        Interest Rate (%):
+                        <input
+                            type="number"
+                            value={interestRate}
+                            onChange={handleInterestRateChange}
+                        />
+                    </label>
+                    <label>
+                        Investment Return Rate (%):
+                        <input
+                            type="number"
+                            value={investmentReturnRate}
+                            onChange={handleInvestmentReturnRateChange}
+                        />
+                    </label>
+                    <label>
+                        Target Nest Egg:
+                        <input
+                            type="number"
+                            value={targetNestEgg}
+                            onChange={handleTargetNestEggChange}
+                        />
+                    </label>
+                    <label>
+                        Age:
+                        <input
+                            type="number"
+                            value={age}
+                            onChange={handleAgeChange}
+                        />
+                    </label>
+                </>
+            ) : (
+                <>
+                    <p>Achieve Nest Egg By: {achieveNestEggBy}</p>
+                    <p>
+                        Years Remaining To Nest Egg:{' '}
+                        {calculateYearsRemainingToNestEgg()}
+                    </p>
+                    <p>
+                        Age Achieved Nest Egg By:{' '}
+                        {calculateAgeToAchieveNestEgg()}
+                    </p>
+                </>
+            )}
         </div>
     );
 };

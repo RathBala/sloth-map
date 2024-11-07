@@ -53,6 +53,9 @@ const App = () => {
 
     const [tableData, setTableData] = useState(() => generateData(500, 300));
 
+    const today = new Date();
+    const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
     const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
     const [editingGoal, setEditingGoal] = useState(null);
 
@@ -386,12 +389,21 @@ const App = () => {
     const handleAgeChange = (e) =>
         setAge(e.target.value === '' ? '' : parseFloat(e.target.value));
 
-    const handleFieldChange = (index, field, value) => {
+    const handleFieldChange = (rowKey, field, value) => {
         console.log(
             `handleFieldChange called for field: ${field} with value: ${value}`
         );
 
         let updatedTableData = [...tableData];
+
+        // Find the index of the row to update
+        const index = updatedTableData.findIndex(
+            (row) => row.rowKey === rowKey
+        );
+        if (index === -1) {
+            console.warn(`No row found with rowKey: ${rowKey}`);
+            return;
+        }
 
         updatedTableData = updateField(
             updatedTableData,
@@ -425,14 +437,16 @@ const App = () => {
         }
     };
 
-    const formattedTableData = tableData.map((entry) => ({
-        ...entry,
-        interestReturnFormatted: formatNumber(entry.interestReturn),
-        investmentReturnFormatted: formatNumber(entry.investmentReturn),
-        totalSavingsFormatted: formatNumber(entry.totalSavings),
-        totalInvestmentsFormatted: formatNumber(entry.totalInvestments),
-        grandTotalFormatted: formatNumber(entry.grandTotal),
-    }));
+    const formattedTableData = tableData
+        .filter((entry) => entry.month >= currentMonth)
+        .map((entry) => ({
+            ...entry,
+            interestReturnFormatted: formatNumber(entry.interestReturn),
+            investmentReturnFormatted: formatNumber(entry.investmentReturn),
+            totalSavingsFormatted: formatNumber(entry.totalSavings),
+            totalInvestmentsFormatted: formatNumber(entry.totalInvestments),
+            grandTotalFormatted: formatNumber(entry.grandTotal),
+        }));
 
     const slothMapData = processDataForSlothMap(formattedTableData);
 
@@ -441,11 +455,18 @@ const App = () => {
 
     console.log('Achieve nest egg by: ', achieveNestEggBy);
 
-    const addAltScenario = (index) => {
-        const clickedMonth = tableData[index].month;
+    const addAltScenario = (rowKey) => {
+        // Find the base row using rowKey
+        const baseRow = tableData.find((row) => row.rowKey === rowKey);
+        if (!baseRow) {
+            console.warn(`No row found with rowKey: ${rowKey}`);
+            return;
+        }
+
+        const clickedMonth = baseRow.month;
 
         console.log(
-            `Adding new altScenario for month: ${clickedMonth}, based on row index: ${index}`
+            `Adding new altScenario for month: ${clickedMonth}, based on rowKey: ${rowKey}`
         );
 
         // Find all variants for the clicked month
@@ -458,34 +479,39 @@ const App = () => {
 
         const newVariantIndex = maxVariantIndex + 1;
 
-        // Create a new row based on the selected row
+        // Create a new row based on the base row
         const newRow = {
-            ...tableData[index],
+            ...baseRow,
             variantIndex: newVariantIndex,
             rowKey: `${clickedMonth}-${newVariantIndex}`,
             isAlt: true,
             isActive: true,
             isDepositSavingsManual: true, // Ensure these are set to true
             isDepositInvestmentsManual: true, // Ensure these are set to true
-            isManualFromFirestore:
-                tableData[index].isManualFromFirestore || false,
-            isTotalSavingsManual:
-                tableData[index].isTotalSavingsManual || false,
-            isTotalInvestmentsManual:
-                tableData[index].isTotalInvestmentsManual || false,
+            isManualFromFirestore: baseRow.isManualFromFirestore || false,
+            isTotalSavingsManual: baseRow.isTotalSavingsManual || false,
+            isTotalInvestmentsManual: baseRow.isTotalInvestmentsManual || false,
             // Set default values for fields that might be undefined
-            goal: tableData[index].goal || '',
-            depositSavings: tableData[index].depositSavings || 0,
-            depositInvestments: tableData[index].depositInvestments || 0,
+            goal: baseRow.goal || '',
+            depositSavings: baseRow.depositSavings || 0,
+            depositInvestments: baseRow.depositInvestments || 0,
         };
 
-        console.log(`New altScenario row created from index ${index}:`, newRow);
+        console.log(
+            `New altScenario row created from rowKey ${rowKey}:`,
+            newRow
+        );
+
+        // Find the index of the base row in tableData
+        const baseRowIndex = tableData.findIndex(
+            (row) => row.rowKey === rowKey
+        );
 
         // Add the new alt row to tableData
         let updatedTableData = [
-            ...tableData.slice(0, index + 1),
+            ...tableData.slice(0, baseRowIndex + 1),
             newRow,
-            ...tableData.slice(index + 1),
+            ...tableData.slice(baseRowIndex + 1),
         ];
 
         // Deactivate other variants for the same month
@@ -512,8 +538,12 @@ const App = () => {
         setUserInputs(updatedUserInputs);
     };
 
-    const handleRowClick = (index) => {
-        const clickedRow = tableData[index];
+    const handleRowClick = (rowKey) => {
+        const clickedRow = tableData.find((row) => row.rowKey === rowKey);
+        if (!clickedRow) {
+            console.warn(`No row found with rowKey: ${rowKey}`);
+            return;
+        }
 
         if (clickedRow.isActive) {
             console.log('Clicked on an already active row; no changes made.');
@@ -522,16 +552,11 @@ const App = () => {
 
         const clickedMonth = clickedRow.month;
 
-        let updatedTableData = tableData.map((row, idx) => {
+        let updatedTableData = tableData.map((row) => {
             if (row.month === clickedMonth) {
                 return { ...row, isActive: row.rowKey === clickedRow.rowKey };
-            } else if (idx > index) {
-                // For rows after the clicked row, reset isActive based on existing conditions
-                return row;
-            } else {
-                // For rows before the clicked row, do not change isActive status
-                return row;
             }
+            return row;
         });
 
         // Record the isActive status change in userInputs
@@ -725,9 +750,17 @@ const App = () => {
 };
 
 const processDataForSlothMap = (data) => {
+    const today = new Date();
+    const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
     const nodes = [];
     for (let i = 0; i < data.length; i++) {
         const current = data[i];
+
+        if (current.month < currentMonth) {
+            continue;
+        }
+
         const previous = data[i - 1] || {};
 
         if (
