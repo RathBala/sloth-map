@@ -292,6 +292,7 @@ const TableComponent = ({
                         </td>
                         <td>
                             <input
+                                data-cy={`depositSavings-${row.rowKey}`}
                                 type="text"
                                 value={
                                     focusedRowKey === row.rowKey &&
