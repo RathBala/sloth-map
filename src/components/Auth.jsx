@@ -1,3 +1,4 @@
+// Auth.jsx
 import { useState } from 'react';
 import {
     createUserWithEmailAndPassword,
@@ -60,18 +61,22 @@ function Authentication() {
             <div className="log__in">
                 <h3>Log in</h3>
                 <input
+                    data-cy="login-email"
                     placeholder="Email"
                     onChange={(event) => {
                         setLoginEmail(event.target.value);
                     }}
                 />
                 <input
+                    data-cy="login-password"
                     placeholder="Password"
                     onChange={(event) => {
                         setLoginPassword(event.target.value);
                     }}
                 />
-                <button onClick={login}>Log in</button>
+                <button data-cy="login-button" onClick={login}>
+                    Log in
+                </button>
             </div>
         </div>
     );

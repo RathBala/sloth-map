@@ -12,15 +12,30 @@ const InputFields = ({
 }) => {
     const calculateYearsRemainingToNestEgg = () => {
         const currentYear = new Date().getFullYear();
-        const targetYear = achieveNestEggBy
-            ? parseInt(achieveNestEggBy.split(' ')[1], 10)
-            : currentYear;
-        return targetYear - currentYear;
+        if (achieveNestEggBy && achieveNestEggBy !== 'TBC') {
+            const parts = achieveNestEggBy.split(' ');
+            const yearPart = parts[1];
+            const targetYear = parseInt(yearPart, 10);
+            if (!isNaN(targetYear)) {
+                return targetYear - currentYear;
+            }
+        }
+        // If achieveNestEggBy is 'TBC' or cannot be parsed, return null or a default value
+        return null; // or return 0 if that's more appropriate
     };
 
     const calculateAgeToAchieveNestEgg = () => {
         const yearsRemaining = calculateYearsRemainingToNestEgg();
-        return age ? parseInt(age, 10) + yearsRemaining : 'N/A';
+        if (
+            yearsRemaining !== null &&
+            age !== null &&
+            age !== undefined &&
+            !isNaN(age)
+        ) {
+            return parseInt(age, 10) + yearsRemaining;
+        } else {
+            return 'N/A';
+        }
     };
 
     return (
@@ -31,7 +46,12 @@ const InputFields = ({
                         Interest Rate (%):
                         <input
                             type="number"
-                            value={interestRate}
+                            value={
+                                interestRate !== null &&
+                                interestRate !== undefined
+                                    ? interestRate
+                                    : ''
+                            }
                             onChange={handleInterestRateChange}
                         />
                     </label>
@@ -39,7 +59,12 @@ const InputFields = ({
                         Investment Return Rate (%):
                         <input
                             type="number"
-                            value={investmentReturnRate}
+                            value={
+                                investmentReturnRate !== null &&
+                                investmentReturnRate !== undefined
+                                    ? investmentReturnRate
+                                    : ''
+                            }
                             onChange={handleInvestmentReturnRateChange}
                         />
                     </label>
@@ -47,7 +72,12 @@ const InputFields = ({
                         Target Nest Egg:
                         <input
                             type="number"
-                            value={targetNestEgg}
+                            value={
+                                targetNestEgg !== null &&
+                                targetNestEgg !== undefined
+                                    ? targetNestEgg
+                                    : ''
+                            }
                             onChange={handleTargetNestEggChange}
                         />
                     </label>
@@ -55,17 +85,19 @@ const InputFields = ({
                         Age:
                         <input
                             type="number"
-                            value={age}
+                            value={age !== null && age !== undefined ? age : ''}
                             onChange={handleAgeChange}
                         />
                     </label>
                 </>
             ) : (
                 <>
-                    <p>Achieve Nest Egg By: {achieveNestEggBy}</p>
+                    <p>Achieve Nest Egg By: {achieveNestEggBy || 'TBC'}</p>
                     <p>
                         Years Remaining To Nest Egg:{' '}
-                        {calculateYearsRemainingToNestEgg()}
+                        {calculateYearsRemainingToNestEgg() !== null
+                            ? calculateYearsRemainingToNestEgg()
+                            : 'N/A'}
                     </p>
                     <p>
                         Age Achieved Nest Egg By:{' '}

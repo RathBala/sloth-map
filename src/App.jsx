@@ -386,8 +386,9 @@ const App = () => {
         setTargetNestEgg(
             e.target.value === '' ? '' : parseFloat(e.target.value)
         );
+    // App.jsx
     const handleAgeChange = (e) =>
-        setAge(e.target.value === '' ? '' : parseFloat(e.target.value));
+        setAge(e.target.value === '' ? null : parseFloat(e.target.value));
 
     const handleFieldChange = (rowKey, field, value) => {
         console.log(
@@ -718,7 +719,7 @@ const App = () => {
                             <>
                                 <InputFields
                                     achieveNestEggBy={achieveNestEggBy}
-                                    age={age}
+                                    age={age || 'N/A'}
                                     isSettingsPage={false}
                                 />
                                 <TableComponent

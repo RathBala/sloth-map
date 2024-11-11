@@ -26,13 +26,6 @@ const useUserData = () => {
 
     const [loading, setLoading] = useState(true);
 
-    const calculateAge = (dateOfBirth) => {
-        const dob = new Date(dateOfBirth.seconds * 1000);
-        const ageDifMs = Date.now() - dob.getTime();
-        const ageDate = new Date(ageDifMs);
-        return Math.abs(ageDate.getUTCFullYear() - 1970);
-    };
-
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
@@ -45,6 +38,25 @@ const useUserData = () => {
                         const userData = userDoc.data();
                         console.log('User data from Firestore:', userData);
 
+                        // Check if userData is empty or missing required fields
+                        if (!userData || Object.keys(userData).length === 0) {
+                            // Initialise userData with default values
+                            userData = {
+                                interestRate: 5,
+                                investmentReturnRate: 10,
+                                targetNestEgg: 0,
+                                age: null,
+                                userInputs: {},
+                                goals: {},
+                                // any other default fields your application requires
+                            };
+                            // Save the default data to Firestore
+                            await setDoc(userRef, userData);
+                            console.log(
+                                'User data was empty, initialized with default values'
+                            );
+                        }
+
                         setUser({
                             ...userData,
                             email: currentUser.email,
@@ -52,12 +64,13 @@ const useUserData = () => {
                         });
                         setIsLoggedIn(true);
 
+                        setAge(userData.age || null);
+
                         setInterestRate(userData.interestRate || 5);
                         setInvestmentReturnRate(
                             userData.investmentReturnRate || 10
                         );
                         setTargetNestEgg(userData.targetNestEgg || 0);
-                        setAge(calculateAge(userData.dateOfBirth));
 
                         const tableDataRef = collection(userRef, 'tableData');
                         const snapshot = await getDocs(tableDataRef);
@@ -187,6 +200,7 @@ const useUserData = () => {
     //     }
     // };
 
+    // useUserData.js
     const saveInputFields = async () => {
         if (user && user.uid) {
             const userRef = doc(db, 'users', user.uid);
@@ -194,6 +208,7 @@ const useUserData = () => {
             console.log('Interest Rate:', interestRate);
             console.log('Investment Return Rate:', investmentReturnRate);
             console.log('Target Nest Egg:', targetNestEgg);
+            console.log('Age:', age);
             try {
                 await setDoc(
                     userRef,
@@ -201,6 +216,7 @@ const useUserData = () => {
                         interestRate: interestRate,
                         investmentReturnRate: investmentReturnRate,
                         targetNestEgg: targetNestEgg,
+                        age: age,
                     },
                     { merge: true }
                 );
