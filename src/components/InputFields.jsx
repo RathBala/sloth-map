@@ -2,14 +2,47 @@ const InputFields = ({
     interestRate,
     investmentReturnRate,
     targetNestEgg,
-    age,
+    dateOfBirth,
     handleInterestRateChange,
     handleInvestmentReturnRateChange,
     handleTargetNestEggChange,
-    handleAgeChange,
+    handleDateOfBirthChange,
     achieveNestEggBy,
     isSettingsPage,
 }) => {
+    const formatDateForInput = (date) => {
+        if (!date) return '';
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const onDateOfBirthChange = (e) => {
+        const selectedDate = e.target.value ? new Date(e.target.value) : null;
+        handleDateOfBirthChange(selectedDate);
+    };
+
+    const calculateCurrentAge = () => {
+        if (
+            !dateOfBirth ||
+            !(dateOfBirth instanceof Date) ||
+            isNaN(dateOfBirth.getTime())
+        ) {
+            return 'N/A';
+        }
+        const now = new Date();
+        let age = now.getFullYear() - dateOfBirth.getFullYear();
+        const monthDiff = now.getMonth() - dateOfBirth.getMonth();
+        if (
+            monthDiff < 0 ||
+            (monthDiff === 0 && now.getDate() < dateOfBirth.getDate())
+        ) {
+            age--;
+        }
+        return age;
+    };
+
     const calculateYearsRemainingToNestEgg = () => {
         const currentYear = new Date().getFullYear();
         if (achieveNestEggBy && achieveNestEggBy !== 'TBC') {
@@ -26,13 +59,13 @@ const InputFields = ({
 
     const calculateAgeToAchieveNestEgg = () => {
         const yearsRemaining = calculateYearsRemainingToNestEgg();
+        const currentAge = calculateCurrentAge();
         if (
             yearsRemaining !== null &&
-            age !== null &&
-            age !== undefined &&
-            !isNaN(age)
+            currentAge !== 'N/A' &&
+            !isNaN(currentAge)
         ) {
-            return parseInt(age, 10) + yearsRemaining;
+            return parseInt(currentAge, 10) + yearsRemaining;
         } else {
             return 'N/A';
         }
@@ -82,26 +115,26 @@ const InputFields = ({
                         />
                     </label>
                     <label>
-                        Age:
+                        Date of Birth:
                         <input
-                            type="number"
-                            value={age !== null && age !== undefined ? age : ''}
-                            onChange={handleAgeChange}
+                            type="date"
+                            value={formatDateForInput(dateOfBirth)}
+                            onChange={onDateOfBirthChange}
                         />
                     </label>
                 </>
             ) : (
                 <>
-                    <p>Achieve Nest Egg By: {achieveNestEggBy || 'TBC'}</p>
+                    <p>Current Age: {calculateCurrentAge()}</p>
+                    <p>
+                        Age Achieved Nest Egg By:{' '}
+                        {calculateAgeToAchieveNestEgg()}
+                    </p>
                     <p>
                         Years Remaining To Nest Egg:{' '}
                         {calculateYearsRemainingToNestEgg() !== null
                             ? calculateYearsRemainingToNestEgg()
                             : 'N/A'}
-                    </p>
-                    <p>
-                        Age Achieved Nest Egg By:{' '}
-                        {calculateAgeToAchieveNestEgg()}
                     </p>
                 </>
             )}

@@ -33,8 +33,8 @@ const App = () => {
         setInvestmentReturnRate,
         targetNestEgg,
         setTargetNestEgg,
-        age,
-        setAge,
+        dateOfBirth,
+        setDateOfBirth,
         userInputs,
         setUserInputs,
         saveInputFields,
@@ -386,10 +386,9 @@ const App = () => {
         setTargetNestEgg(
             e.target.value === '' ? '' : parseFloat(e.target.value)
         );
-    // App.jsx
-    const handleAgeChange = (e) =>
-        setAge(e.target.value === '' ? null : parseFloat(e.target.value));
-
+    const handleDateOfBirthChange = (date) => {
+        setDateOfBirth(date);
+    };
     const handleFieldChange = (rowKey, field, value) => {
         console.log(
             `handleFieldChange called for field: ${field} with value: ${value}`
@@ -697,7 +696,10 @@ const App = () => {
                                         investmentReturnRate || ''
                                     }
                                     targetNestEgg={targetNestEgg || ''}
-                                    age={age || ''}
+                                    dateOfBirth={dateOfBirth}
+                                    handleDateOfBirthChange={
+                                        handleDateOfBirthChange
+                                    }
                                     handleInterestRateChange={
                                         handleInterestRateChange
                                     }
@@ -707,9 +709,8 @@ const App = () => {
                                     handleTargetNestEggChange={
                                         handleTargetNestEggChange
                                     }
-                                    handleAgeChange={handleAgeChange}
                                     isSettingsPage={true}
-                                />{' '}
+                                />
                             </>
                         }
                     />
@@ -719,7 +720,7 @@ const App = () => {
                             <>
                                 <InputFields
                                     achieveNestEggBy={achieveNestEggBy}
-                                    age={age || 'N/A'}
+                                    dateOfBirth={dateOfBirth || null}
                                     isSettingsPage={false}
                                 />
                                 <TableComponent

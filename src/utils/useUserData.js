@@ -9,6 +9,7 @@ import {
     getDocs,
     setDoc,
     deleteField,
+    Timestamp,
 } from 'firebase/firestore';
 
 const useUserData = () => {
@@ -18,7 +19,8 @@ const useUserData = () => {
     const [interestRate, setInterestRate] = useState(null);
     const [investmentReturnRate, setInvestmentReturnRate] = useState(null);
     const [targetNestEgg, setTargetNestEgg] = useState(null);
-    const [age, setAge] = useState(null);
+    const [dateOfBirth, setDateOfBirth] = useState(null);
+
     const [userInputs, setUserInputs] = useState({});
     const [goals, setGoals] = useState({});
 
@@ -35,22 +37,31 @@ const useUserData = () => {
                 try {
                     const userDoc = await getDoc(userRef);
                     if (userDoc.exists()) {
-                        const userData = userDoc.data();
+                        let userData = userDoc.data() || {};
                         console.log('User data from Firestore:', userData);
+
+                        // Handle dateOfBirth
+                        let dob = userData.dateOfBirth || null;
+                        if (dob && dob.toDate) {
+                            // It's a Firestore Timestamp
+                            dob = dob.toDate();
+                        } else if (dob && typeof dob === 'string') {
+                            // If it's a string, parse it as a Date
+                            dob = new Date(dob);
+                        }
+
+                        setDateOfBirth(dob);
 
                         // Check if userData is empty or missing required fields
                         if (!userData || Object.keys(userData).length === 0) {
                             // Initialise userData with default values
-                            userData = {
-                                interestRate: 5,
-                                investmentReturnRate: 10,
-                                targetNestEgg: 0,
-                                age: null,
-                                userInputs: {},
-                                goals: {},
-                                // any other default fields your application requires
+                            const defaultUserData = {
+                                interestRate: 3,
+                                investmentReturnRate: 5,
+                                targetNestEgg: 100000,
+                                dateOfBirth: null,
                             };
-                            // Save the default data to Firestore
+                            userData = defaultUserData;
                             await setDoc(userRef, userData);
                             console.log(
                                 'User data was empty, initialized with default values'
@@ -64,7 +75,7 @@ const useUserData = () => {
                         });
                         setIsLoggedIn(true);
 
-                        setAge(userData.age || null);
+                        setDateOfBirth(userData.dateOfBirth || null);
 
                         setInterestRate(userData.interestRate || 5);
                         setInvestmentReturnRate(
@@ -86,8 +97,36 @@ const useUserData = () => {
                             'No user document exists:',
                             currentUser.uid
                         );
-                        setIsLoggedIn(false);
-                        setUser(null);
+                        // Initialize userData with default values
+                        let userData = {
+                            interestRate: 3,
+                            investmentReturnRate: 5,
+                            targetNestEgg: 100000,
+                            dateOfBirth: null,
+                        };
+                        // Save the default data to Firestore
+                        await setDoc(userRef, userData);
+                        console.log(
+                            'User document created with default values'
+                        );
+
+                        setUser({
+                            ...userData,
+                            email: currentUser.email,
+                            uid: currentUser.uid,
+                        });
+                        setIsLoggedIn(true);
+
+                        setDateOfBirth(userData.dateOfBirth || null);
+                        setInterestRate(userData.interestRate || 5);
+                        setInvestmentReturnRate(
+                            userData.investmentReturnRate || 10
+                        );
+                        setTargetNestEgg(userData.targetNestEgg || 0);
+
+                        // Initialize userInputs and goals as empty
+                        setUserInputs({});
+                        setGoals({});
                     }
                 } catch (error) {
                     console.error('Failed to fetch user document:', error);
@@ -200,23 +239,21 @@ const useUserData = () => {
     //     }
     // };
 
-    // useUserData.js
     const saveInputFields = async () => {
         if (user && user.uid) {
             const userRef = doc(db, 'users', user.uid);
-            console.log('Saving user data for user:', user.uid);
-            console.log('Interest Rate:', interestRate);
-            console.log('Investment Return Rate:', investmentReturnRate);
-            console.log('Target Nest Egg:', targetNestEgg);
-            console.log('Age:', age);
             try {
+                const dobTimestamp = dateOfBirth
+                    ? Timestamp.fromDate(dateOfBirth)
+                    : null;
+
                 await setDoc(
                     userRef,
                     {
                         interestRate: interestRate,
                         investmentReturnRate: investmentReturnRate,
                         targetNestEgg: targetNestEgg,
-                        age: age,
+                        dateOfBirth: dobTimestamp,
                     },
                     { merge: true }
                 );
@@ -312,8 +349,8 @@ const useUserData = () => {
         setInvestmentReturnRate,
         targetNestEgg,
         setTargetNestEgg,
-        age,
-        setAge,
+        dateOfBirth,
+        setDateOfBirth,
         userInputs,
         setUserInputs,
         saveInputFields,
