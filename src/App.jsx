@@ -101,6 +101,12 @@ const App = () => {
         }
     }, [interestRate, investmentReturnRate, targetNestEgg, userInputs, goals]);
 
+    useEffect(() => {
+        if (!isLoggedIn) {
+            setTableData(generateData(500, 300));
+        }
+    }, [isLoggedIn]);
+
     const updateField = (
         data,
         index,

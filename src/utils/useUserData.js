@@ -75,8 +75,6 @@ const useUserData = () => {
                         });
                         setIsLoggedIn(true);
 
-                        setDateOfBirth(userData.dateOfBirth || null);
-
                         setInterestRate(userData.interestRate || 5);
                         setInvestmentReturnRate(
                             userData.investmentReturnRate || 10
@@ -137,6 +135,13 @@ const useUserData = () => {
                 console.log('No user logged in');
                 setIsLoggedIn(false);
                 setUser(null);
+                setInterestRate(null);
+                setInvestmentReturnRate(null);
+                setTargetNestEgg(null);
+                setDateOfBirth(null);
+                setUserInputs({});
+                setGoals({});
+                setFieldsToDelete({});
             }
             setLoading(false); // Ensure loading is set to false regardless of the outcome
         });

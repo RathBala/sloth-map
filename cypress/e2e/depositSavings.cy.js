@@ -1,4 +1,25 @@
 describe('Deposit Savings Recurrence Test', () => {
+    beforeEach(() => {
+        // Clear cookies and local storage to start with a fresh session
+        cy.clearCookies();
+        cy.clearLocalStorage();
+
+        cy.window().then((win) => {
+            const deleteReq = win.indexedDB.deleteDatabase(
+                'firebaseLocalStorageDb'
+            );
+            return new Promise((resolve, reject) => {
+                deleteReq.onsuccess = resolve;
+                deleteReq.onerror = reject;
+                deleteReq.onblocked = () => {
+                    // Handle the case where the deletion is blocked
+                    console.warn('IndexedDB deletion blocked');
+                    resolve();
+                };
+            });
+        });
+    });
+
     it('should recur depositSavings to all subsequent rows', () => {
         // Visit your app
         cy.visit('/');
