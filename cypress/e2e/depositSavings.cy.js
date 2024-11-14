@@ -166,5 +166,70 @@ describe('Deposit Savings Recurrence Test', () => {
         cy.get('@newAltRow')
             .invoke('attr', 'data-rowkey')
             .should('match', /-1$/);
+
+        // Step 8: Change the alt row's depositInvestments
+        cy.get('@newAltRow')
+            .find('[data-cy^=depositInvestments-]')
+            .clear()
+            .type('200')
+            .blur();
+
+        // Step 9: Verify the alt row's depositInvestments updated to 200.00
+        cy.get('@newAltRow')
+            .find('[data-cy^=depositInvestments-]')
+            .should('have.value', '200.00');
+
+        // Step 10: Then verify this alt row's depositInvestments value recurs to subsequent active rows (not inactive ones)
+        cy.get('tbody tr').then(($rows) => {
+            const newAltRowIndex = $rows.index($rows.filter('.active'));
+            if (newAltRowIndex > -1) {
+                cy.get('[data-cy^=depositInvestments-]').each(
+                    ($input, index) => {
+                        if (index > newAltRowIndex) {
+                            cy.wrap($input).should('have.value', '200.00');
+                        }
+                    }
+                );
+            }
+        });
+
+        // Step 11: When the user clicks on the original row
+        cy.get('@originalRow').click();
+
+        // Step 12: Then the original row becomes active and the alt row becomes inactive
+        cy.get('@originalRow').should('have.class', 'active');
+        cy.get('@newAltRow').should('have.class', 'inactive');
+
+        // Step 13: And the original row's depositInvestments hasn't changed from the original value
+        cy.get('@originalDepositInvestments').then(
+            (originalDepositInvestments) => {
+                cy.get('@originalRow')
+                    .find('[data-cy^=depositInvestments-]')
+                    .should('have.value', originalDepositInvestments);
+            }
+        );
+
+        // Step 14: The original row's depositInvestments recurs to all subsequent active rows (not inactive rows)
+        cy.get('@originalDepositInvestments').then(
+            (originalDepositInvestments) => {
+                cy.get('tbody tr').then(($rows) => {
+                    const originalRowIndex = $rows.index(
+                        $rows.filter('.active')
+                    );
+                    if (originalRowIndex > -1) {
+                        cy.get('[data-cy^=depositInvestments-]').each(
+                            ($input, index) => {
+                                if (index > originalRowIndex) {
+                                    cy.wrap($input).should(
+                                        'have.value',
+                                        originalDepositInvestments
+                                    );
+                                }
+                            }
+                        );
+                    }
+                });
+            }
+        );
     });
 });
