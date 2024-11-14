@@ -260,6 +260,7 @@ const TableComponent = ({
                 {inputValues.map((row) => (
                     <tr
                         key={row.rowKey}
+                        data-rowkey={row.rowKey}
                         className={
                             row.isAlt
                                 ? row.isActive
