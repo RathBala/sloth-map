@@ -193,8 +193,11 @@ describe('Deposit Savings Recurrence Test', () => {
             }
         });
 
-        // Step 11: When the user clicks on the original row
-        cy.get('@originalRow').click();
+        // Step 11: When the user clicks on the original row’s goal amount cell
+        cy.get('@originalRow')
+            .find('.goal-amount-column')
+            .scrollIntoView()
+            .click();
 
         // Step 12: Then the original row becomes active and the alt row becomes inactive
         cy.get('@originalRow').should('have.class', 'active');
@@ -212,24 +215,65 @@ describe('Deposit Savings Recurrence Test', () => {
         // Step 14: The original row's depositInvestments recurs to all subsequent active rows (not inactive rows)
         cy.get('@originalDepositInvestments').then(
             (originalDepositInvestments) => {
-                cy.get('tbody tr').then(($rows) => {
-                    const originalRowIndex = $rows.index(
-                        $rows.filter('.active')
-                    );
-                    if (originalRowIndex > -1) {
-                        cy.get('[data-cy^=depositInvestments-]').each(
-                            ($input, index) => {
-                                if (index > originalRowIndex) {
-                                    cy.wrap($input).should(
-                                        'have.value',
-                                        originalDepositInvestments
-                                    );
-                                }
-                            }
-                        );
+                cy.get('tbody tr.active').each(
+                    ($activeRow, index, $activeRows) => {
+                        if (index > 0) {
+                            // Skip the first active row
+                            cy.wrap($activeRow)
+                                .find('[data-cy^=depositInvestments-]')
+                                .should(
+                                    'have.value',
+                                    originalDepositInvestments
+                                );
+                        }
                     }
-                });
+                );
             }
         );
+
+        // Step 15: The user changes the original row's depositInvestments to a new value (e.g., 500)
+        cy.get('@originalRow')
+            .find('[data-cy^=depositInvestments-]')
+            .clear()
+            .type('500')
+            .blur();
+
+        // Step 16: Verify that this new depositInvestments value (500.00) recurs to subsequent active rows
+        cy.get('@originalRow')
+            .find('[data-cy^=depositInvestments-]')
+            .should('have.value', '500.00');
+        cy.get('tbody tr.active').each(($activeRow, index, $activeRows) => {
+            if (index > 0) {
+                // Skip the first active row
+                cy.wrap($activeRow)
+                    .find('[data-cy^=depositInvestments-]')
+                    .should('have.value', '500.00');
+            }
+        });
+
+        // Step 17: When the user clicks on the alt row again to make it active
+        cy.get('@newAltRow')
+            .find('.goal-amount-column')
+            .scrollIntoView()
+            .click();
+
+        // Step 18: Verify that the alt row becomes active and the original row becomes inactive
+        cy.get('@newAltRow').should('have.class', 'active');
+        cy.get('@originalRow').should('have.class', 'inactive');
+
+        // Step 19: Verify that the alt row's depositInvestments value (200.00) now recurs to subsequent active rows (not the original row's 500.00)
+        cy.get('@newAltRow')
+            .find('[data-cy^=depositInvestments-]')
+            .should('have.value', '200.00');
+
+        // Step 20: All subsequent active rows should have depositInvestments of 200.00
+        cy.get('tbody tr.active').each(($activeRow, index, $activeRows) => {
+            if (index > 0) {
+                // Skip the first active row
+                cy.wrap($activeRow)
+                    .find('[data-cy^=depositInvestments-]')
+                    .should('have.value', '200.00');
+            }
+        });
     });
 });

@@ -391,7 +391,7 @@ const TableComponent = ({
                                 </span>
                             ) : null}
                         </td>
-                        <td>
+                        <td className="goal-amount-column">
                             {row.goal && Array.isArray(row.goal)
                                 ? row.goal
                                       .map((g) => formatNumber(g.amount))
