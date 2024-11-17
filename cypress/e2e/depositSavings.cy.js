@@ -1,4 +1,18 @@
+const { exec } = require('child_process');
+
 describe('Deposit Savings Recurrence Test', () => {
+    before((done) => {
+        // Seed Firestore data before tests
+        exec('node seedFirestore.js', (err, stdout, stderr) => {
+            if (err) {
+                console.error(`Error seeding Firestore: ${stderr}`);
+                return done(err);
+            }
+            console.log(stdout);
+            done();
+        });
+    });
+
     beforeEach(() => {
         // Clear cookies and local storage to start with a fresh session
         cy.clearCookies();
