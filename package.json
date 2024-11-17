@@ -5,9 +5,9 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
-        "cypress:open": "firebase emulators:start --only firestore & cypress open",
-        "test": "firebase emulators:exec --only firestore 'cypress run'",
+        "dev:test": "vite --mode test",
+        "cypress:open": "firebase emulators:start --only firestore,auth & cypress open",
+        "test": "firebase emulators:exec --only firestore,auth 'cypress run'",
         "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
         "format": "prettier --write ."

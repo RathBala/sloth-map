@@ -1,16 +1,7 @@
-const { exec } = require('child_process');
-
 describe('Firestore Data Load Test', () => {
-    before((done) => {
-        // Seed Firestore data before tests
-        exec('node seedFirestore.js', (err, stdout, stderr) => {
-            if (err) {
-                console.error(`Error seeding Firestore: ${stderr}`);
-                return done(err);
-            }
-            console.log(stdout);
-            done();
-        });
+    before(() => {
+        // Seed Firestore and Auth Emulator data before tests
+        cy.task('seedFirestore');
     });
 
     beforeEach(() => {

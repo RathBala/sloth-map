@@ -1,8 +1,9 @@
 // seedFirestore.js
 const admin = require('firebase-admin');
 
-// Set environment variable to connect to Firestore Emulator
+// Set environment variables to connect to Emulators
 process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
+process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
 
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
@@ -10,13 +11,24 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+const auth = admin.auth();
 
 const seedFirestore = async () => {
     try {
-        const userId = 'hgpHx7zChugsZ2t3Q16TcqqG3ik1';
+        // Create test user in Auth Emulator
+        const userRecord = await auth.createUser({
+            uid: 'test-user-id',
+            email: 'testmctesttest@testmcface.com',
+            emailVerified: true,
+            password: 'booyaWhat5%',
+            displayName: 'Test User',
+            disabled: false,
+        });
 
-        // Seed user data in Firestore
-        const userRef = db.collection('users').doc(userId);
+        console.log('Test user created:', userRecord.uid);
+
+        // Seed user data in Firestore Emulator
+        const userRef = db.collection('users').doc(userRecord.uid);
 
         await userRef.set({
             interestRate: 3,
