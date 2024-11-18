@@ -43,12 +43,15 @@ export default defineConfig({
                     framework: 'react',
                     viteConfig: {
                         configFile: path.resolve(__dirname, 'vite.config.js'),
-                        mode: 'test', // Ensure Vite runs in test mode
+                        mode: 'test',
                     },
                 });
             });
 
             return config;
+        },
+        env: {
+            VITE_USE_FIREBASE_EMULATORS: 'true',
         },
     },
 });

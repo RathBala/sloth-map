@@ -16,12 +16,19 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const useEmulators = import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true';
+const useEmulators = Cypress.env('VITE_USE_FIREBASE_EMULATORS') === 'true';
+
+console.log(
+    'VITE_USE_FIREBASE_EMULATORS:',
+    Cypress.env('VITE_USE_FIREBASE_EMULATORS')
+);
 
 if (useEmulators) {
     console.log('Connecting to Firebase emulators');
     connectFirestoreEmulator(db, 'localhost', 8080);
     connectAuthEmulator(auth, 'http://localhost:9099');
+} else {
+    console.log('Connecting to production Firebase');
 }
 
 export { auth, db };
