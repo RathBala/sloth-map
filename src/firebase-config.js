@@ -16,11 +16,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const useEmulators = Cypress.env('VITE_USE_FIREBASE_EMULATORS') === 'true';
+const useEmulators = import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true';
 
 console.log(
     'VITE_USE_FIREBASE_EMULATORS:',
-    Cypress.env('VITE_USE_FIREBASE_EMULATORS')
+    import.meta.env.VITE_USE_FIREBASE_EMULATORS
 );
 
 if (useEmulators) {
