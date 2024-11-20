@@ -16,6 +16,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+console.log('import.meta.env:', import.meta.env);
+
 const useEmulators = import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true';
 
 console.log(

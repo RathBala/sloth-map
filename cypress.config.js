@@ -1,5 +1,4 @@
 import { defineConfig } from 'cypress';
-import { devServer } from '@cypress/vite-dev-server';
 import { exec } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -38,20 +37,7 @@ export default defineConfig({
                 },
             });
 
-            on('dev-server:start', (options) => {
-                return devServer({
-                    framework: 'react',
-                    viteConfig: {
-                        configFile: path.resolve(__dirname, 'vite.config.js'),
-                        mode: 'test',
-                    },
-                });
-            });
-
             return config;
-        },
-        env: {
-            VITE_USE_FIREBASE_EMULATORS: 'true',
         },
     },
 });

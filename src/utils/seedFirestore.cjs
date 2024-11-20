@@ -33,7 +33,7 @@ const seedFirestore = async () => {
         await userRef.set({
             interestRate: 3,
             investmentReturnRate: 5,
-            targetNestEgg: 100000,
+            targetNestEgg: 200000,
             dateOfBirth: admin.firestore.Timestamp.fromDate(
                 new Date(1990, 0, 1)
             ),
