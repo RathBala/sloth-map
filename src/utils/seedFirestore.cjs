@@ -1,5 +1,13 @@
-// seedFirestore.js
 const admin = require('firebase-admin');
+
+console.log('seedFirestore started...');
+
+// Log environment variables
+console.log('FIRESTORE_EMULATOR_HOST:', process.env.FIRESTORE_EMULATOR_HOST);
+console.log(
+    'FIREBASE_AUTH_EMULATOR_HOST:',
+    process.env.FIREBASE_AUTH_EMULATOR_HOST
+);
 
 // Set environment variables to connect to Emulators
 process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
@@ -7,7 +15,7 @@ process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
 
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
-    projectId: 'budgie-dc9f6', // Replace with your actual project ID
+    projectId: 'budgie-dc9f6',
 });
 
 const db = admin.firestore();

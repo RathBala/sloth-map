@@ -20,8 +20,17 @@ export default defineConfig({
                             'utils',
                             'seedFirestore.cjs'
                         );
+
+                        // Pass environment variables to the child process
+                        const env = {
+                            ...process.env,
+                            FIRESTORE_EMULATOR_HOST: 'localhost:8080',
+                            FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099',
+                        };
+
                         exec(
                             `node "${seedScriptPath}"`,
+                            { env },
                             (err, stdout, stderr) => {
                                 if (err) {
                                     console.error(

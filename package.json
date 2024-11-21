@@ -7,7 +7,7 @@
         "dev": "vite",
         "dev:test": "vite --mode test",
         "start:test": "vite --mode test",
-        "cypress:open": "concurrently \"npm run start:test\" \"firebase emulators:start --only firestore,auth\" \"wait-on tcp:5173 tcp:8080 && cypress open\"",
+        "cypress:open": "concurrently \"npm run start:test\" \"firebase emulators:start --only firestore,auth\" \"wait-on tcp:5173 tcp:8080 tcp:9099 && cypress open\"",
         "test": "firebase emulators:exec --only firestore,auth 'cypress run'",
         "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
