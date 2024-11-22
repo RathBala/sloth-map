@@ -1,8 +1,8 @@
 describe('Deposit Savings Recurrence Test', () => {
-    before(() => {
-        // Seed Firestore and Auth Emulator data before tests
-        cy.task('seedFirestore');
-    });
+    // before(() => {
+    //     // Seed Firestore and Auth Emulator data before tests
+    //     cy.task('seedFirestore');
+    // });
 
     beforeEach(() => {
         // Clear cookies and local storage to start with a fresh session
