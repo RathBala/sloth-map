@@ -1,39 +1,31 @@
 describe('Firestore Data Load Test', () => {
-    // before(() => {
-    //     // Seed Firestore and Auth Emulator data before tests
-    //     cy.task('seedFirestore');
-    // });
-
     beforeEach(() => {
-        // Clear cookies and local storage to start with a fresh session
+        // Clear session data
         cy.clearCookies();
         cy.clearLocalStorage();
-
-        // Clear IndexedDB (if needed)
         cy.window().then((win) => {
             indexedDB.deleteDatabase('firebaseLocalStorageDb');
         });
 
-        // Visit your app
+        // Visit the app
         cy.visit('/');
 
-        // Automate the login process using data-cy attributes
+        // Log in
         cy.get('[data-cy="login-email"]').type('testmctesttest@testmcface.com');
         cy.get('[data-cy="login-password"]').type('booyaWhat5%');
         cy.get('[data-cy="login-button"]').click();
 
-        // Wait for the main app to load after login
+        // Wait for the main app to load
         cy.contains('Welcome').should('be.visible');
     });
 
     it('should load user data from Firestore and display it in the table', () => {
-        // **Step 1: Select the row with rowkey '2025-01-0'**
-        cy.get('tr[data-rowkey="2025-01-0"]').as('specificRow');
-
-        // **Step 2: Verify that the depositSavings input has value '1,000.00'**
-        cy.get('@specificRow')
+        // Verify that depositSavings for January 2025 is 1,000.00
+        cy.get('tr[data-rowkey="2025-01-0"]')
             .find('[data-cy^="depositSavings-"]')
             .should('have.value', '1,000.00');
+
+        // Add additional checks as needed
     });
 
     it('should have "Car purchase" and "Holiday" goals with correct amounts and in correct order', () => {

@@ -401,7 +401,7 @@ const TableComponent = ({
                                   : ''}
                         </td>
 
-                        <td>
+                        <td data-cy={`totalSavings-${row.rowKey}`}>
                             {row.month === currentMonth ? (
                                 <input
                                     type="text"
@@ -435,7 +435,7 @@ const TableComponent = ({
                                 formatNumber(row.totalSavings || '')
                             )}
                         </td>
-                        <td>
+                        <td data-cy={`totalInvestments-${row.rowKey}`}>
                             {row.month === currentMonth ? (
                                 <input
                                     type="text"
@@ -472,10 +472,16 @@ const TableComponent = ({
                                 formatNumber(row.totalInvestments || '')
                             )}
                         </td>
-                        <td>{row.interestReturnFormatted}</td>
-                        <td>{row.investmentReturnFormatted}</td>
-                        <td>{row.grandTotalFormatted}</td>
-                        <td>
+                        <td data-cy={`interestReturn-${row.rowKey}`}>
+                            {row.interestReturnFormatted}
+                        </td>
+                        <td data-cy={`investmentReturn-${row.rowKey}`}>
+                            {row.investmentReturnFormatted}
+                        </td>
+                        <td data-cy={`grandTotal-${row.rowKey}`}>
+                            {row.grandTotalFormatted}
+                        </td>
+                        <td data-cy={`commentary-${row.rowKey}`}>
                             <input
                                 type="text"
                                 value={row.commentary || ''}

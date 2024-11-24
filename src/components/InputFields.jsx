@@ -78,6 +78,7 @@ const InputFields = ({
                     <label>
                         Interest Rate (%):
                         <input
+                            data-cy="interest-rate-input"
                             type="number"
                             value={
                                 interestRate !== null &&
@@ -91,6 +92,7 @@ const InputFields = ({
                     <label>
                         Investment Return Rate (%):
                         <input
+                            data-cy="investment-return-rate-input"
                             type="number"
                             value={
                                 investmentReturnRate !== null &&
@@ -104,6 +106,7 @@ const InputFields = ({
                     <label>
                         Target Nest Egg:
                         <input
+                            data-cy="target-nest-egg-input"
                             type="number"
                             value={
                                 targetNestEgg !== null &&
@@ -117,6 +120,7 @@ const InputFields = ({
                     <label>
                         Date of Birth:
                         <input
+                            data-cy="date-of-birth-input"
                             type="date"
                             value={formatDateForInput(dateOfBirth)}
                             onChange={onDateOfBirthChange}
@@ -125,12 +129,14 @@ const InputFields = ({
                 </>
             ) : (
                 <>
-                    <p>Current Age: {calculateCurrentAge()}</p>
-                    <p>
+                    <p data-cy="current-age">
+                        Current Age: {calculateCurrentAge()}
+                    </p>
+                    <p data-cy="age-achieved-nest-egg-by">
                         Age Achieved Nest Egg By:{' '}
                         {calculateAgeToAchieveNestEgg()}
                     </p>
-                    <p>
+                    <p data-cy="years-remaining-to-nest-egg">
                         Years Remaining To Nest Egg:{' '}
                         {calculateYearsRemainingToNestEgg() !== null
                             ? calculateYearsRemainingToNestEgg()
