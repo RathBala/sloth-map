@@ -94,7 +94,9 @@ describe('Calculations Correctness Test', () => {
         // Step 1: Modify totalSavings and totalInvestments on the first row
         cy.get(`tr[data-rowkey="${firstRowKey}"]`)
             .find(`[data-cy="totalSavings-${firstRowKey}"] input`)
-            .scrollIntoView()
+            .scrollIntoView({ offset: { top: -200, left: 0 } }) // Adjust offset as needed
+            .should('be.visible')
+            .click()
             .clear()
             .type('5000')
             .blur();
