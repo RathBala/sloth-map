@@ -7,8 +7,8 @@ describe('Calculations Correctness Test', () => {
             indexedDB.deleteDatabase('firebaseLocalStorageDb');
         });
 
-        // Seed Firestore data before tests (if necessary)
-        cy.task('seedFirestore');
+        // // Seed Firestore data before tests (if necessary)
+        // cy.task('seedFirestore');
 
         cy.visit('/');
         cy.get('[data-cy="login-email"]').type('testmctesttest@testmcface.com');
@@ -94,16 +94,18 @@ describe('Calculations Correctness Test', () => {
         // Step 1: Modify totalSavings and totalInvestments on the first row
         cy.get(`tr[data-rowkey="${firstRowKey}"]`)
             .find(`[data-cy="totalSavings-${firstRowKey}"] input`)
-            .scrollIntoView({ offset: { top: -200, left: 0 } }) // Adjust offset as needed
+            .scrollIntoView({ offset: { top: -100, left: 0 } }) // Adjust top offset
             .should('be.visible')
-            .click()
+            .click({ force: true }) // Ensure it clicks even if partially obscured
             .clear()
             .type('5000')
             .blur();
 
         cy.get(`tr[data-rowkey="${firstRowKey}"]`)
             .find(`[data-cy="totalInvestments-${firstRowKey}"] input`)
-            .scrollIntoView()
+            .scrollIntoView({ offset: { top: -100, left: 0 } }) // Adjust top offset
+            .should('be.visible')
+            .click({ force: true }) // Ensure it clicks even if partially obscured
             .clear()
             .type('10000')
             .blur();

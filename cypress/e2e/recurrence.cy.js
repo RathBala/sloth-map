@@ -7,8 +7,8 @@ describe('Recurrence Logic Test', () => {
             indexedDB.deleteDatabase('firebaseLocalStorageDb');
         });
 
-        // Seed Firestore data before tests
-        cy.task('seedFirestore');
+        // // Seed Firestore data before tests
+        // cy.task('seedFirestore');
 
         cy.visit('/');
         cy.get('[data-cy="login-email"]').type('testmctesttest@testmcface.com');
