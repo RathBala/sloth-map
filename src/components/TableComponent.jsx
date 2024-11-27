@@ -365,7 +365,7 @@ const TableComponent = ({
                                 }
                             />
                         </td>
-                        <td>
+                        <td data-cy="goalColumn">
                             {row.goal && Array.isArray(row.goal) ? (
                                 row.goal.map((g) => (
                                     <span

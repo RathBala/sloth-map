@@ -49,7 +49,7 @@ describe('Goal Management Test', () => {
         cy.contains('label', 'Priority:')
             .find('input')
             .clear() // Clear the default priority
-            .type('1');
+            .type('2');
 
         // And clicks 'save'
         cy.get('.modal-content').within(() => {
@@ -67,8 +67,8 @@ describe('Goal Management Test', () => {
         cy.get('tbody tr').then(($rows) => {
             $rows.each((index, row) => {
                 const $row = Cypress.$(row);
-                const goalCell = $row.find('td').eq(3); // Assuming the 'Goal' column is the 4th column (index 3)
-                const goalText = goalCell.text();
+                const goalColumn = $row.find('td').eq(3); // Assuming the 'Goal' column is the 4th column (index 3)
+                const goalText = goalColumn.text();
 
                 if (goalText.includes('Emergency fund')) {
                     goalData.emergencyFund = {
@@ -97,41 +97,175 @@ describe('Goal Management Test', () => {
                 .undefined;
             expect(goalData.holiday, '"Holiday" data').to.not.be.undefined;
 
-            // Then the table reflects 'Emergency fund' as the first goal that appears in the table
+            // Then the table reflects 'Emergency fund' as the 2nd goal that appears in the table
             expect(goalData.emergencyFund.index).to.be.lessThan(
-                goalData.carPurchase.index
-            );
-            expect(goalData.carPurchase.index).to.be.lessThan(
                 goalData.holiday.index
             );
 
             // And each goal only appears once
-            cy.get('tbody tr td')
-                .eq(3) // 'Goal' column
-                .then(($cells) => {
-                    const goalTexts = $cells
-                        .map((i, el) => Cypress.$(el).text())
-                        .get();
+            cy.get('[data-cy="goalColumn"]').then(($cells) => {
+                const goalTexts = $cells
+                    .map((i, el) => Cypress.$(el).text())
+                    .get();
 
-                    const emergencyFundOccurrences = goalTexts.filter((text) =>
-                        text.includes('Emergency fund')
-                    ).length;
-                    const carPurchaseOccurrences = goalTexts.filter((text) =>
-                        text.includes('Car purchase')
-                    ).length;
-                    const holidayOccurrences = goalTexts.filter((text) =>
-                        text.includes('Holiday')
-                    ).length;
+                const emergencyFundOccurrences = goalTexts.filter((text) =>
+                    text.includes('Emergency fund')
+                ).length;
+                const carPurchaseOccurrences = goalTexts.filter((text) =>
+                    text.includes('Car purchase')
+                ).length;
+                const holidayOccurrences = goalTexts.filter((text) =>
+                    text.includes('Holiday')
+                ).length;
 
-                    expect(emergencyFundOccurrences).to.equal(1);
-                    expect(carPurchaseOccurrences).to.equal(1);
-                    expect(holidayOccurrences).to.equal(1);
-                });
+                expect(emergencyFundOccurrences).to.equal(1);
+                expect(carPurchaseOccurrences).to.equal(1);
+                expect(holidayOccurrences).to.equal(1);
+            });
 
             // And both 'Emergency fund' and 'Car purchase' feature in the same row
             expect(goalData.emergencyFund.index).to.equal(
                 goalData.carPurchase.index
             );
         });
+    });
+
+    it('should correctly allocate funds when adding a new goal "Coffee machine"', () => {
+        // **Action: Add 'Coffee machine' goal**
+        // When the user clicks on 'New Goal'
+        cy.get('.new-goal-button').click();
+
+        // Then the Goal modal opens up
+        cy.get('.modal-content').should('be.visible');
+
+        // And the user types in goal with a goal name of 'Coffee machine'
+        cy.contains('label', 'Goal Name:').find('input').type('Coffee machine');
+
+        // And types in an amount of '4000'
+        cy.contains('label', 'Goal Amount:').find('input').type('4000');
+
+        // And sets priority to '4'
+        cy.contains('label', 'Priority:').find('input').clear().type('3');
+
+        // And clicks 'save'
+        cy.get('.modal-content').within(() => {
+            cy.contains('button', 'Save').click();
+        });
+
+        // Wait for the modal to close
+        cy.get('.modal-content').should('not.exist');
+
+        // **Assertion: Verify 'Coffee machine' appears after 'Holiday'**
+        cy.get('[data-cy="goalColumn"]').then(($cells) => {
+            const goalTexts = $cells.map((i, el) => Cypress.$(el).text()).get();
+
+            // Flatten the goals in case of multiple goals per cell
+            const allGoals = goalTexts.flatMap((text) =>
+                text.trim().split(/\s*,\s*/)
+            );
+
+            // Verify that 'Coffee machine' appears after 'Holiday'
+            const holidayIndex = allGoals.indexOf('Holiday');
+            const coffeeMachineIndex = allGoals.indexOf('Coffee machine');
+
+            expect(holidayIndex).to.be.greaterThan(-1);
+            expect(coffeeMachineIndex).to.be.greaterThan(-1);
+            expect(coffeeMachineIndex).to.be.greaterThan(holidayIndex);
+        });
+
+        // **Assertion: Verify 'Total in Savings' and 'Total in Investments' values**
+        // Find the row where 'Coffee machine' appears
+        cy.get('tbody tr').each(($row) => {
+            cy.wrap($row)
+                .find('[data-cy="goalColumn"]')
+                .then(($goalColumn) => {
+                    const goalText = $goalColumn.text();
+
+                    if (goalText.includes('Coffee machine')) {
+                        // Verify 'Total in Savings' is £0
+                        cy.wrap($row)
+                            .find('[data-cy^="totalSavings-"]')
+                            .should('contain', '0.00');
+
+                        // Verify 'Total in Investments' is £533.49
+                        cy.wrap($row)
+                            .find('[data-cy^="totalInvestments-"]')
+                            .invoke('text')
+                            .then((text) => {
+                                const numericValue = parseFloat(
+                                    text.replace(/[^0-9.-]+/g, '')
+                                );
+                                expect(numericValue).to.be.closeTo(
+                                    533.48,
+                                    0.01
+                                );
+                            });
+                    }
+                });
+        });
+    });
+
+    it('should adjust totals correctly when adding a goal to current row', () => {
+        // **Step 1: Change 'Total in Savings' for the first row to £1000**
+
+        // First, we need to get the `rowKey` of the first row
+        cy.get('tbody tr')
+            .first()
+            .invoke('attr', 'data-rowkey')
+            .then((firstRowKey) => {
+                // Use your method to edit 'Total in Savings'
+                cy.get(`tr[data-rowkey="${firstRowKey}"]`)
+                    .find(`[data-cy="totalSavings-${firstRowKey}"] input`)
+                    .scrollIntoView({ offset: { top: -100, left: 0 } }) // Adjust top offset
+                    .should('be.visible')
+                    .click({ force: true }) // Ensure it clicks even if partially obscured
+                    .clear()
+                    .type('1000')
+                    .blur();
+
+                // **Step 2: Add a new goal 'Mini holiday' with amount £100 and priority 1**
+
+                // Click on 'New Goal' button
+                cy.get('.new-goal-button').click();
+
+                // Ensure the modal is visible
+                cy.get('.modal-content').should('be.visible');
+
+                // Fill in the goal details
+                cy.contains('label', 'Goal Name:')
+                    .find('input')
+                    .type('Mini holiday');
+                cy.contains('label', 'Goal Amount:').find('input').type('100');
+                cy.contains('label', 'Priority:')
+                    .find('input')
+                    .clear()
+                    .type('1');
+
+                // Save the goal
+                cy.get('.modal-content').within(() => {
+                    cy.contains('button', 'Save').click();
+                });
+
+                // Wait for the modal to close
+                cy.get('.modal-content').should('not.exist');
+
+                // **Step 3: Verify that 'Mini holiday' appears in the first row**
+
+                cy.get(`tr[data-rowkey="${firstRowKey}"]`)
+                    .find('[data-cy="goalColumn"]')
+                    .should('contain', 'Mini holiday');
+
+                // **Step 4: Verify that 'Total in Savings' is £900 in that row**
+
+                cy.get(`tr[data-rowkey="${firstRowKey}"]`)
+                    .find(`[data-cy="totalSavings-${firstRowKey}"]`)
+                    .should('contain', '900.00');
+
+                // **Step 5: Verify that 'Total in Investments' is £300 in that row**
+
+                cy.get(`tr[data-rowkey="${firstRowKey}"]`)
+                    .find(`[data-cy="totalInvestments-${firstRowKey}"]`)
+                    .should('contain', '300.00');
+            });
     });
 });
