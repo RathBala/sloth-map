@@ -167,7 +167,7 @@ describe('Alternative Rows Test', () => {
         cy.get('@originalRow')
             .find('.goal-amount-column')
             .scrollIntoView()
-            .click();
+            .click({ force: true });
 
         // Step 12: Then the original row becomes active and the alt row becomes inactive
         cy.get('@originalRow').should('have.class', 'active');

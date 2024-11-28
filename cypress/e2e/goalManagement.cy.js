@@ -268,4 +268,100 @@ describe('Goal Management Test', () => {
                     .should('contain', '300.00');
             });
     });
+
+    it('should adjust goal timelines when increasing depositSavings in a future date', () => {
+        // **Assumption: There are 2 goals already in the table**
+
+        // Wait for the table to load if necessary
+        cy.wait(1000);
+
+        // **Step 1: Record the positions of the goals before the change**
+
+        cy.get('tbody tr').then(($rows) => {
+            const goalPositionsBefore = {};
+
+            $rows.each((index, row) => {
+                const $row = Cypress.$(row);
+                const $goalCell = $row.find('[data-cy="goalColumn"]');
+                const goalText = $goalCell.text();
+
+                if (goalText.includes('Car purchase')) {
+                    goalPositionsBefore['Car purchase'] = index;
+                }
+                if (goalText.includes('Holiday')) {
+                    goalPositionsBefore['Holiday'] = index;
+                }
+            });
+
+            // **Step 2: Calculate the date 4 months from now and find the corresponding row**
+
+            const today = new Date();
+            const futureDate = new Date(
+                today.getFullYear(),
+                today.getMonth() + 4,
+                1
+            );
+            const futureMonthFormatted = futureDate.toLocaleString('default', {
+                month: 'long',
+                year: 'numeric',
+            });
+
+            let targetRowKey;
+
+            $rows.each((index, row) => {
+                const $row = Cypress.$(row);
+                const rowKey = $row.attr('data-rowkey');
+                const monthCellText = $row.find('td').first().text().trim();
+
+                if (monthCellText === futureMonthFormatted) {
+                    targetRowKey = rowKey;
+                    return false; // Break the each loop
+                }
+            });
+
+            expect(targetRowKey, 'Target row for future month').to.exist;
+
+            // **Step 3: Change depositSavings for that date to 2000.00**
+
+            cy.get(`tr[data-rowkey="${targetRowKey}"]`)
+                .find(`[data-cy="depositSavings-${targetRowKey}"]`)
+                .scrollIntoView({ offset: { top: -100, left: 0 } })
+                .should('be.visible')
+                .click({ force: true })
+                .clear()
+                .type('2000.00')
+                .blur();
+
+            // Wait for the table to update if necessary
+            cy.wait(500); // Adjust the wait time as needed
+
+            // **Step 4: Record the positions of the goals after the change**
+
+            cy.get('tbody tr').then(($updatedRows) => {
+                const goalPositionsAfter = {};
+
+                $updatedRows.each((index, row) => {
+                    const $row = Cypress.$(row);
+                    const $goalCell = $row.find('[data-cy="goalColumn"]');
+                    const goalText = $goalCell.text();
+
+                    if (goalText.includes('Car purchase')) {
+                        goalPositionsAfter['Car purchase'] = index;
+                    }
+                    if (goalText.includes('Holiday')) {
+                        goalPositionsAfter['Holiday'] = index;
+                    }
+                });
+
+                // **Step 5: Assert that the goals have moved up
+
+                expect(goalPositionsAfter['Car purchase']).to.equal(
+                    goalPositionsBefore['Car purchase'] - 2
+                );
+                expect(goalPositionsAfter['Holiday']).to.equal(
+                    goalPositionsBefore['Holiday'] - 3
+                );
+            });
+        });
+    });
 });
