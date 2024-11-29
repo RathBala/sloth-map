@@ -138,9 +138,13 @@ export const calculateCumulativeBalances = (
             continue; // Skip to the next iteration
         }
 
-        // Add deposits
-        runningTotalSavings += entry.depositSavings;
-        runningTotalInvestments += entry.depositInvestments;
+        // Add deposits except when totalSavings / totalInvestments is manually set in the 1st row
+        if (!(i === 0 && entry.isTotalSavingsManual)) {
+            runningTotalSavings += entry.depositSavings;
+        }
+        if (!(i === 0 && entry.isTotalInvestmentsManual)) {
+            runningTotalInvestments += entry.depositInvestments;
+        }
 
         // Apply goals if possible
         let goalsApplied = [];

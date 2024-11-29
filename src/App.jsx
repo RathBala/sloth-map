@@ -119,17 +119,19 @@ const App = () => {
 
         updatedData[index] = { ...updatedData[index], [field]: value };
 
-        if (trackChange && isManual) {
+        if (isManual) {
             const rowKey = updatedData[index].rowKey;
 
-            setUserInputs((prevChanges) => {
-                const newChanges = { ...prevChanges };
-                if (!newChanges[rowKey]) {
-                    newChanges[rowKey] = {};
-                }
-                newChanges[rowKey][field] = value;
-                return newChanges;
-            });
+            if (trackChange) {
+                setUserInputs((prevChanges) => {
+                    const newChanges = { ...prevChanges };
+                    if (!newChanges[rowKey]) {
+                        newChanges[rowKey] = {};
+                    }
+                    newChanges[rowKey][field] = value;
+                    return newChanges;
+                });
+            }
 
             if (field === 'depositSavings') {
                 updatedData[index].isDepositSavingsManual = true;
@@ -156,35 +158,39 @@ const App = () => {
                     updatedData[i][isManualField] = false;
                     updatedData[i].isManualFromFirestore = false;
 
-                    // Remove manual changes for this field in userInputs
-                    const rowKey = updatedData[i].rowKey;
-                    setUserInputs((prevChanges) => {
-                        const newChanges = { ...prevChanges };
-                        if (
-                            newChanges[rowKey] &&
-                            newChanges[rowKey][field] !== undefined
-                        ) {
-                            delete newChanges[rowKey][field];
+                    if (trackChange) {
+                        // Remove manual changes for this field in userInputs
+                        const rowKey = updatedData[i].rowKey;
+                        setUserInputs((prevChanges) => {
+                            const newChanges = { ...prevChanges };
+                            if (
+                                newChanges[rowKey] &&
+                                newChanges[rowKey][field] !== undefined
+                            ) {
+                                delete newChanges[rowKey][field];
 
-                            //track fields to delete
-                            setFieldsToDelete((prevFieldsToDelete) => {
-                                const updatedFieldsToDelete = {
-                                    ...prevFieldsToDelete,
-                                };
-                                if (!updatedFieldsToDelete[rowKey]) {
-                                    updatedFieldsToDelete[rowKey] = [];
+                                //track fields to delete
+                                setFieldsToDelete((prevFieldsToDelete) => {
+                                    const updatedFieldsToDelete = {
+                                        ...prevFieldsToDelete,
+                                    };
+                                    if (!updatedFieldsToDelete[rowKey]) {
+                                        updatedFieldsToDelete[rowKey] = [];
+                                    }
+                                    updatedFieldsToDelete[rowKey].push(field);
+                                    return updatedFieldsToDelete;
+                                });
+
+                                if (
+                                    Object.keys(newChanges[rowKey]).length === 0
+                                ) {
+                                    // RowKey has no more changes, delete it from newChanges
+                                    delete newChanges[rowKey];
                                 }
-                                updatedFieldsToDelete[rowKey].push(field);
-                                return updatedFieldsToDelete;
-                            });
-
-                            if (Object.keys(newChanges[rowKey]).length === 0) {
-                                // RowKey has no more changes, delete it from newChanges
-                                delete newChanges[rowKey];
                             }
-                        }
-                        return newChanges;
-                    });
+                            return newChanges;
+                        });
+                    }
                 } else {
                     // For initial load, stop propagation at any manual change
                     if (updatedData[i][isManualField]) {
@@ -309,7 +315,8 @@ const App = () => {
                         rowIndex,
                         field,
                         value,
-                        false
+                        false,
+                        true
                     );
 
                     // Set manual flags if necessary
