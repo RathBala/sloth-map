@@ -148,6 +148,7 @@ export const calculateCumulativeBalances = (
         ) {
             previousEntryIndex--;
         }
+
         if (previousEntryIndex >= 0) {
             runningTotalSavings =
                 updatedData[previousEntryIndex].endingTotalSavings;
