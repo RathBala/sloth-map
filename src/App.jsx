@@ -92,6 +92,8 @@ const App = () => {
     }, [isLoggedIn]);
 
     useEffect(() => {
+        debugger;
+
         if (
             interestRate !== null &&
             investmentReturnRate !== null &&
@@ -115,6 +117,8 @@ const App = () => {
         trackChange = true,
         isManual = false
     ) => {
+        debugger;
+
         let updatedData = [...data];
 
         updatedData[index] = { ...updatedData[index], [field]: value };
@@ -290,12 +294,16 @@ const App = () => {
         );
         console.log('Goals before recalculation:', goals);
 
+        debugger;
+
         updatedData = calculateCumulativeBalances(
             updatedData,
             interestRate,
             investmentReturnRate,
             goals
         );
+
+        debugger;
 
         // Apply userInputs to updatedData
         for (const [rowKey, changes] of Object.entries(userInputs)) {
@@ -406,6 +414,8 @@ const App = () => {
         console.log(
             `handleFieldChange called for field: ${field} with value: ${value}`
         );
+
+        debugger;
 
         let updatedTableData = [...tableData];
 

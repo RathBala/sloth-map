@@ -92,57 +92,90 @@ export const calculateCumulativeBalances = (
         lastDepositInvestments = entry.depositInvestments;
 
         // Initialize or carry over balances
-        if (i === 0) {
-            runningTotalSavings = entry.isTotalSavingsManual
-                ? entry.totalSavings || 0
-                : 0;
-            runningTotalInvestments = entry.isTotalInvestmentsManual
-                ? entry.totalInvestments || 0
-                : 0;
+        // if (i === 0) {
+        //     debugger;
+        //     runningTotalSavings = entry.isTotalSavingsManual
+        //         ? entry.totalSavings || 0
+        //         : 0;
+        //     runningTotalInvestments = entry.isTotalInvestmentsManual
+        //         ? entry.totalInvestments || 0
+        //         : 0;
+        // } else {
+        //     // Find the last active entry
+        //     let previousEntryIndex = i - 1;
+        //     while (
+        //         previousEntryIndex >= 0 &&
+        //         !updatedData[previousEntryIndex].isActive
+        //     ) {
+        //         previousEntryIndex--;
+        //     }
+        //     if (previousEntryIndex >= 0) {
+        //         runningTotalSavings =
+        //             updatedData[previousEntryIndex].endingTotalSavings;
+        //         runningTotalInvestments =
+        //             updatedData[previousEntryIndex].endingTotalInvestments;
+        //     } else {
+        //         runningTotalSavings = 0;
+        //         runningTotalInvestments = 0;
+        //     }
+        // }
+
+        // if (!entry.isActive) {
+        //     // For inactive entries, set balances without changes
+        //     updatedData[i] = {
+        //         ...entry,
+        //         totalSavings: runningTotalSavings,
+        //         totalInvestments: runningTotalInvestments,
+        //         startingTotalSavings: runningTotalSavings,
+        //         startingTotalInvestments: runningTotalInvestments,
+        //         interestReturn: 0,
+        //         investmentReturn: 0,
+        //         endingTotalSavings: runningTotalSavings,
+        //         endingTotalInvestments: runningTotalInvestments,
+        //         totalSaved: runningTotalSavings + runningTotalInvestments,
+        //         grandTotal: runningTotalSavings + runningTotalInvestments,
+        //         goal: null,
+        //     };
+        //     continue; // Skip to the next iteration
+        // }
+
+        // Find the last active entry
+        let previousEntryIndex = i - 1;
+
+        while (
+            previousEntryIndex >= 0 &&
+            !updatedData[previousEntryIndex].isActive
+        ) {
+            previousEntryIndex--;
+        }
+        if (previousEntryIndex >= 0) {
+            runningTotalSavings =
+                updatedData[previousEntryIndex].endingTotalSavings;
+            runningTotalInvestments =
+                updatedData[previousEntryIndex].endingTotalInvestments;
         } else {
-            // Find the last active entry
-            let previousEntryIndex = i - 1;
-            while (
-                previousEntryIndex >= 0 &&
-                !updatedData[previousEntryIndex].isActive
-            ) {
-                previousEntryIndex--;
-            }
-            if (previousEntryIndex >= 0) {
-                runningTotalSavings =
-                    updatedData[previousEntryIndex].endingTotalSavings;
-                runningTotalInvestments =
-                    updatedData[previousEntryIndex].endingTotalInvestments;
-            } else {
-                runningTotalSavings = 0;
-                runningTotalInvestments = 0;
-            }
+            runningTotalSavings = 0;
+            runningTotalInvestments = 0;
         }
 
-        if (!entry.isActive) {
-            // For inactive entries, set balances without changes
-            updatedData[i] = {
-                ...entry,
-                totalSavings: runningTotalSavings,
-                totalInvestments: runningTotalInvestments,
-                startingTotalSavings: runningTotalSavings,
-                startingTotalInvestments: runningTotalInvestments,
-                interestReturn: 0,
-                investmentReturn: 0,
-                endingTotalSavings: runningTotalSavings,
-                endingTotalInvestments: runningTotalInvestments,
-                totalSaved: runningTotalSavings + runningTotalInvestments,
-                grandTotal: runningTotalSavings + runningTotalInvestments,
-                goal: null,
-            };
-            continue; // Skip to the next iteration
-        }
+        // // Add deposits except when totalSavings / totalInvestments is manually set in the 1st row
+        // if (!(i === 0 && entry.isTotalSavingsManual)) {
+        //     runningTotalSavings += entry.depositSavings;
+        // }
+        // if (!(i === 0 && entry.isTotalInvestmentsManual)) {
+        //     runningTotalInvestments += entry.depositInvestments;
+        // }
 
-        // Add deposits except when totalSavings / totalInvestments is manually set in the 1st row
-        if (!(i === 0 && entry.isTotalSavingsManual)) {
+        // Modified: Handle manual totalSavings and totalInvestments in any row
+        if (entry.isTotalSavingsManual) {
+            runningTotalSavings = entry.totalSavings || 0;
+        } else {
             runningTotalSavings += entry.depositSavings;
         }
-        if (!(i === 0 && entry.isTotalInvestmentsManual)) {
+
+        if (entry.isTotalInvestmentsManual) {
+            runningTotalInvestments = entry.totalInvestments || 0;
+        } else {
             runningTotalInvestments += entry.depositInvestments;
         }
 
@@ -172,13 +205,10 @@ export const calculateCumulativeBalances = (
         // Calculate returns unless manual totals are set on the first row
         let interestReturn = 0;
         let investmentReturn = 0;
-        if (
-            !(
-                i === 0 &&
-                (entry.isTotalSavingsManual || entry.isTotalInvestmentsManual)
-            )
-        ) {
+        if (!entry.isTotalSavingsManual) {
             interestReturn = runningTotalSavings * (interestRate / 12 / 100);
+        }
+        if (!entry.isTotalInvestmentsManual) {
             investmentReturn =
                 runningTotalInvestments * (investmentReturnRate / 12 / 100);
         }
@@ -207,6 +237,10 @@ export const calculateCumulativeBalances = (
                 investmentReturn,
             goal: goalsApplied.length > 0 ? goalsApplied : null,
         };
+
+        // Update running totals for the next iteration
+        runningTotalSavings = endingTotalSavings;
+        runningTotalInvestments = endingTotalInvestments;
     }
 
     return updatedData;
