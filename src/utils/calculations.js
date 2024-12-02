@@ -51,6 +51,7 @@ export const calculateCumulativeBalances = (
     // Find the first active row to initialize lastDepositSavings and lastDepositInvestments
     for (let i = 0; i < updatedData.length; i++) {
         const entry = updatedData[i];
+
         if (entry.isActive) {
             lastDepositSavings = entry.depositSavings;
             lastDepositInvestments = entry.depositInvestments;
@@ -155,8 +156,14 @@ export const calculateCumulativeBalances = (
             runningTotalInvestments =
                 updatedData[previousEntryIndex].endingTotalInvestments;
         } else {
-            runningTotalSavings = 0;
-            runningTotalInvestments = 0;
+            runningTotalSavings =
+                entry.totalSavings !== undefined
+                    ? entry.totalSavings
+                    : entry.depositSavings || 0;
+            runningTotalInvestments =
+                entry.totalInvestments !== undefined
+                    ? entry.totalInvestments
+                    : entry.depositInvestments || 0;
         }
 
         // // Add deposits except when totalSavings / totalInvestments is manually set in the 1st row
@@ -242,6 +249,10 @@ export const calculateCumulativeBalances = (
         // Update running totals for the next iteration
         runningTotalSavings = endingTotalSavings;
         runningTotalInvestments = endingTotalInvestments;
+
+        if (entry.rowKey === '2024-12-1') {
+            debugger;
+        }
     }
 
     return updatedData;

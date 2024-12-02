@@ -92,8 +92,6 @@ const App = () => {
     }, [isLoggedIn]);
 
     useEffect(() => {
-        debugger;
-
         if (
             interestRate !== null &&
             investmentReturnRate !== null &&
@@ -117,8 +115,6 @@ const App = () => {
         trackChange = true,
         isManual = false
     ) => {
-        debugger;
-
         let updatedData = [...data];
 
         updatedData[index] = { ...updatedData[index], [field]: value };
@@ -294,16 +290,12 @@ const App = () => {
         );
         console.log('Goals before recalculation:', goals);
 
-        debugger;
-
         updatedData = calculateCumulativeBalances(
             updatedData,
             interestRate,
             investmentReturnRate,
             goals
         );
-
-        debugger;
 
         // Apply userInputs to updatedData
         for (const [rowKey, changes] of Object.entries(userInputs)) {
@@ -415,8 +407,6 @@ const App = () => {
             `handleFieldChange called for field: ${field} with value: ${value}`
         );
 
-        debugger;
-
         let updatedTableData = [...tableData];
 
         // Find the index of the row to update
@@ -442,8 +432,6 @@ const App = () => {
 
     const handleSaveClick = async () => {
         console.log('Save button clicked');
-
-        debugger;
 
         try {
             await saveInputFields();
@@ -519,6 +507,8 @@ const App = () => {
             depositSavings: baseRow.depositSavings || 0,
             depositInvestments: baseRow.depositInvestments || 0,
         };
+
+        debugger;
 
         console.log(
             `New altScenario row created from rowKey ${rowKey}:`,
