@@ -35,6 +35,8 @@ export const calculateCumulativeBalances = (
     investmentReturnRate,
     goals
 ) => {
+    debugger;
+
     let updatedData = [...data];
 
     let runningTotalSavings = 0;
@@ -67,6 +69,10 @@ export const calculateCumulativeBalances = (
             continue; // Skip to the next iteration
         }
 
+        if (entry.month === '2024-10') {
+            debugger;
+        }
+
         // Set depositSavings
         if (!(entry.isDepositSavingsManual || entry.isManualFromFirestore)) {
             entry.depositSavings = lastDepositSavings;
@@ -91,54 +97,6 @@ export const calculateCumulativeBalances = (
 
         lastDepositSavings = entry.depositSavings;
         lastDepositInvestments = entry.depositInvestments;
-
-        // Initialize or carry over balances
-        // if (i === 0) {
-        //     debugger;
-        //     runningTotalSavings = entry.isTotalSavingsManual
-        //         ? entry.totalSavings || 0
-        //         : 0;
-        //     runningTotalInvestments = entry.isTotalInvestmentsManual
-        //         ? entry.totalInvestments || 0
-        //         : 0;
-        // } else {
-        //     // Find the last active entry
-        //     let previousEntryIndex = i - 1;
-        //     while (
-        //         previousEntryIndex >= 0 &&
-        //         !updatedData[previousEntryIndex].isActive
-        //     ) {
-        //         previousEntryIndex--;
-        //     }
-        //     if (previousEntryIndex >= 0) {
-        //         runningTotalSavings =
-        //             updatedData[previousEntryIndex].endingTotalSavings;
-        //         runningTotalInvestments =
-        //             updatedData[previousEntryIndex].endingTotalInvestments;
-        //     } else {
-        //         runningTotalSavings = 0;
-        //         runningTotalInvestments = 0;
-        //     }
-        // }
-
-        // if (!entry.isActive) {
-        //     // For inactive entries, set balances without changes
-        //     updatedData[i] = {
-        //         ...entry,
-        //         totalSavings: runningTotalSavings,
-        //         totalInvestments: runningTotalInvestments,
-        //         startingTotalSavings: runningTotalSavings,
-        //         startingTotalInvestments: runningTotalInvestments,
-        //         interestReturn: 0,
-        //         investmentReturn: 0,
-        //         endingTotalSavings: runningTotalSavings,
-        //         endingTotalInvestments: runningTotalInvestments,
-        //         totalSaved: runningTotalSavings + runningTotalInvestments,
-        //         grandTotal: runningTotalSavings + runningTotalInvestments,
-        //         goal: null,
-        //     };
-        //     continue; // Skip to the next iteration
-        // }
 
         // Find the last active entry
         let previousEntryIndex = i - 1;
@@ -166,15 +124,7 @@ export const calculateCumulativeBalances = (
                     : entry.depositInvestments || 0;
         }
 
-        // // Add deposits except when totalSavings / totalInvestments is manually set in the 1st row
-        // if (!(i === 0 && entry.isTotalSavingsManual)) {
-        //     runningTotalSavings += entry.depositSavings;
-        // }
-        // if (!(i === 0 && entry.isTotalInvestmentsManual)) {
-        //     runningTotalInvestments += entry.depositInvestments;
-        // }
-
-        // Modified: Handle manual totalSavings and totalInvestments in any row
+        // Handle manual totalSavings and totalInvestments in any row
         if (entry.isTotalSavingsManual) {
             runningTotalSavings = entry.totalSavings || 0;
         } else {
@@ -249,10 +199,6 @@ export const calculateCumulativeBalances = (
         // Update running totals for the next iteration
         runningTotalSavings = endingTotalSavings;
         runningTotalInvestments = endingTotalInvestments;
-
-        if (entry.rowKey === '2024-12-1') {
-            debugger;
-        }
     }
 
     return updatedData;

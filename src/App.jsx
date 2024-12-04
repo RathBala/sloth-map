@@ -92,6 +92,8 @@ const App = () => {
     }, [isLoggedIn]);
 
     useEffect(() => {
+        debugger;
+
         if (
             interestRate !== null &&
             investmentReturnRate !== null &&
@@ -107,14 +109,13 @@ const App = () => {
         }
     }, [isLoggedIn]);
 
-    const updateField = (
-        data,
-        index,
-        field,
-        value,
-        trackChange = true,
-        isManual = false
-    ) => {
+    const updateField = (data, index, field, value, options = {}) => {
+        const {
+            trackChange = true,
+            isManual = false,
+            isManualFromFirestore = false,
+        } = options;
+
         let updatedData = [...data];
 
         updatedData[index] = { ...updatedData[index], [field]: value };
@@ -143,7 +144,7 @@ const App = () => {
                 updatedData[index].isTotalInvestmentsManual = true;
             }
 
-            updatedData[index].isManualFromFirestore = false;
+            updatedData[index].isManualFromFirestore = isManualFromFirestore;
         }
 
         if (field === 'depositSavings' || field === 'depositInvestments') {
@@ -271,6 +272,7 @@ const App = () => {
                     changes.isActive !== undefined ? changes.isActive : true,
                 // Apply only defined fields from changes
                 ...changes,
+                isManualFromFirestore: true,
             };
 
             // Ensure newRow has all necessary properties
@@ -278,8 +280,21 @@ const App = () => {
             if (newRow.variantIndex === undefined)
                 newRow.variantIndex = variantIndex;
 
+            debugger;
+
             updatedData.push(newRow);
         });
+
+        const today = new Date();
+        const currentMonth = `${today.getFullYear()}-${String(
+            today.getMonth() + 1
+        ).padStart(2, '0')}`;
+
+        updatedData = updatedData.filter(
+            (entry) => entry.month >= currentMonth
+        );
+
+        debugger;
 
         // Step 3: Sort the updatedData by rowKey
         updatedData.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
@@ -315,8 +330,11 @@ const App = () => {
                         rowIndex,
                         field,
                         value,
-                        false,
-                        true
+                        {
+                            trackChange: false,
+                            isManual: true,
+                            isManualFromFirestore: true,
+                        }
                     );
 
                     // Set manual flags if necessary
@@ -418,14 +436,10 @@ const App = () => {
             return;
         }
 
-        updatedTableData = updateField(
-            updatedTableData,
-            index,
-            field,
-            value,
-            true,
-            true
-        );
+        updatedTableData = updateField(updatedTableData, index, field, value, {
+            trackChange: true,
+            isManual: true,
+        });
 
         setTableData(updatedTableData);
     };
@@ -507,8 +521,6 @@ const App = () => {
             depositSavings: baseRow.depositSavings || 0,
             depositInvestments: baseRow.depositInvestments || 0,
         };
-
-        debugger;
 
         console.log(
             `New altScenario row created from rowKey ${rowKey}:`,
