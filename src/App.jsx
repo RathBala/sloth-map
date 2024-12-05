@@ -92,7 +92,7 @@ const App = () => {
     }, [isLoggedIn]);
 
     useEffect(() => {
-        debugger;
+        // debugger;
 
         if (
             interestRate !== null &&
@@ -220,9 +220,8 @@ const App = () => {
 
         // Step 2: Create missing rows
         missingRowKeys.forEach((rowKey) => {
-            // Find the last hyphen in the rowKey
-            const lastHyphenIndex = rowKey.lastIndexOf('-');
             // Extract the month and variantIndex from the rowKey
+            const lastHyphenIndex = rowKey.lastIndexOf('-');
             const month = rowKey.substring(0, lastHyphenIndex);
             const variantIndexStr = rowKey.substring(lastHyphenIndex + 1);
             const variantIndex = parseInt(variantIndexStr, 10);
@@ -280,27 +279,125 @@ const App = () => {
             if (newRow.variantIndex === undefined)
                 newRow.variantIndex = variantIndex;
 
-            debugger;
-
             updatedData.push(newRow);
         });
 
+        // Define parseMonth function
+        const parseMonth = (monthStr) => {
+            const [year, month] = monthStr.split('-').map(Number);
+            return new Date(year, month - 1); // JS months are 0-based
+        };
+
+        // Get current month and date
         const today = new Date();
         const currentMonth = `${today.getFullYear()}-${String(
             today.getMonth() + 1
         ).padStart(2, '0')}`;
+        const currentMonthDate = parseMonth(currentMonth);
 
+        // Determine earliest month
+        const allMonthsSet = new Set();
+        updatedData.forEach((entry) => allMonthsSet.add(entry.month));
+        Object.keys(userInputs).forEach((rowKey) => {
+            const lastHyphenIndex = rowKey.lastIndexOf('-');
+            const month = rowKey.substring(0, lastHyphenIndex);
+            allMonthsSet.add(month);
+        });
+        const allMonthsArray = Array.from(allMonthsSet).sort();
+        const earliestMonth = allMonthsArray[0];
+
+        // Generate all months between earliest and current month
+        const generateMonthsBetween = (startMonth, endMonth) => {
+            const months = [];
+            let current = parseMonth(startMonth);
+            const end = parseMonth(endMonth);
+
+            while (current <= end) {
+                const year = current.getFullYear();
+                const month = String(current.getMonth() + 1).padStart(2, '0');
+                months.push(`${year}-${month}`);
+                current.setMonth(current.getMonth() + 1);
+            }
+            return months;
+        };
+
+        const allMonths = generateMonthsBetween(earliestMonth, currentMonth);
+
+        // Initialize lastDepositSavings and lastDepositInvestments
+        let lastDepositSavings = 0;
+        let lastDepositInvestments = 0;
+
+        // Update last deposits based on the earliest active entry
+        for (let i = 0; i < updatedData.length; i++) {
+            const entry = updatedData[i];
+            if (entry.isActive) {
+                lastDepositSavings = entry.depositSavings || 0;
+                lastDepositInvestments = entry.depositInvestments || 0;
+                break;
+            }
+        }
+
+        // Populate missing months
+        allMonths.forEach((month) => {
+            if (!updatedData.some((entry) => entry.month === month)) {
+                const newRow = {
+                    month: month,
+                    variantIndex: 0,
+                    rowKey: `${month}-0`,
+                    depositSavings: lastDepositSavings,
+                    depositInvestments: lastDepositInvestments,
+                    totalSavings: 0,
+                    totalInvestments: 0,
+                    isTotalSavingsManual: false,
+                    isTotalInvestmentsManual: false,
+                    isDepositSavingsManual: false,
+                    isDepositInvestmentsManual: false,
+                    totalSaved: 0,
+                    interestReturn: 0,
+                    investmentReturn: 0,
+                    grandTotal: 0,
+                    commentary: '',
+                    isActive: true,
+                    isManualFromFirestore: false,
+                };
+                updatedData.push(newRow);
+            } else {
+                // Update last deposits
+                const entries = updatedData.filter(
+                    (entry) => entry.month === month && entry.isActive
+                );
+                if (entries.length > 0) {
+                    lastDepositSavings =
+                        entries[0].depositSavings || lastDepositSavings;
+                    lastDepositInvestments =
+                        entries[0].depositInvestments || lastDepositInvestments;
+                }
+            }
+        });
+
+        console.log(
+            'debug 051224: Data before filtering previous months:',
+            JSON.stringify(updatedData, null, 2)
+        );
+
+        // Filter out previous months (keep current and future months)
         updatedData = updatedData.filter(
             (entry) => entry.month >= currentMonth
         );
 
-        debugger;
-
-        // Step 3: Sort the updatedData by rowKey
-        updatedData.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
+        // Sort updatedData by month date and then by variantIndex
+        updatedData.sort((a, b) => {
+            const dateA = parseMonth(a.month);
+            const dateB = parseMonth(b.month);
+            if (dateA.getTime() !== dateB.getTime()) {
+                return dateA - dateB; // Sort by month
+            } else {
+                return a.variantIndex - b.variantIndex; // Sort by variantIndex
+            }
+        });
 
         console.log(
-            'updatedData before calculateCumulativeBalances:',
+            'debug 051224: updatedData before calculateCumulativeBalances:',
             JSON.stringify(updatedData, null, 2)
         );
         console.log('Goals before recalculation:', goals);
@@ -310,6 +407,11 @@ const App = () => {
             interestRate,
             investmentReturnRate,
             goals
+        );
+
+        console.log(
+            'debug 051224: Data after calculateCumulativeBalances:',
+            JSON.stringify(updatedData, null, 2)
         );
 
         // Apply userInputs to updatedData
@@ -354,6 +456,12 @@ const App = () => {
             }
         }
 
+        console.log(
+            'debug 051224: Data after applying userInputs:',
+            JSON.stringify(updatedData, null, 2)
+        );
+
+        // Reset cumulative fields before recalculation
         updatedData = updatedData.map((entry) => ({
             ...entry,
             totalSaved: 0,
@@ -369,6 +477,12 @@ const App = () => {
             goals
         );
 
+        console.log(
+            'debug 051224: Data after recalculating cumulative balances:',
+            JSON.stringify(updatedData, null, 2)
+        );
+
+        // Ensure target nest egg is met
         updatedData = ensureNestEgg(
             targetNestEgg,
             updatedData,
@@ -378,8 +492,12 @@ const App = () => {
             goals
         );
 
+        // Update state if data has changed
         if (JSON.stringify(tableData) !== JSON.stringify(updatedData)) {
+            console.log('Data has changed, updating tableData state.');
             setTableData(updatedData);
+        } else {
+            console.log('No changes detected in data; state not updated.');
         }
     };
 
