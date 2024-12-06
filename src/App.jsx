@@ -52,6 +52,7 @@ const App = () => {
     const profileIconRef = useRef(null);
 
     const [tableData, setTableData] = useState(() => generateData(500, 300));
+    const [showHistoricRows, setShowHistoricRows] = useState(false);
 
     const today = new Date();
     const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
@@ -375,16 +376,6 @@ const App = () => {
             }
         });
 
-        console.log(
-            'debug 051224: Data before filtering previous months:',
-            JSON.stringify(updatedData, null, 2)
-        );
-
-        // Filter out previous months (keep current and future months)
-        updatedData = updatedData.filter(
-            (entry) => entry.month >= currentMonth
-        );
-
         // Sort updatedData by month date and then by variantIndex
         updatedData.sort((a, b) => {
             const dateA = parseMonth(a.month);
@@ -395,6 +386,11 @@ const App = () => {
                 return a.variantIndex - b.variantIndex; // Sort by variantIndex
             }
         });
+
+        console.log(
+            'debug 051224: Data before filtering previous months:',
+            JSON.stringify(updatedData, null, 2)
+        );
 
         console.log(
             'debug 051224: updatedData before calculateCumulativeBalances:',
@@ -580,16 +576,18 @@ const App = () => {
         }
     };
 
-    const formattedTableData = tableData
-        .filter((entry) => entry.month >= currentMonth)
-        .map((entry) => ({
-            ...entry,
-            interestReturnFormatted: formatNumber(entry.interestReturn),
-            investmentReturnFormatted: formatNumber(entry.investmentReturn),
-            totalSavingsFormatted: formatNumber(entry.totalSavings),
-            totalInvestmentsFormatted: formatNumber(entry.totalInvestments),
-            grandTotalFormatted: formatNumber(entry.grandTotal),
-        }));
+    const filteredTableData = showHistoricRows
+        ? tableData
+        : tableData.filter((entry) => entry.month >= currentMonth);
+
+    const formattedTableData = filteredTableData.map((entry) => ({
+        ...entry,
+        interestReturnFormatted: formatNumber(entry.interestReturn),
+        investmentReturnFormatted: formatNumber(entry.investmentReturn),
+        totalSavingsFormatted: formatNumber(entry.totalSavings),
+        totalInvestmentsFormatted: formatNumber(entry.totalInvestments),
+        grandTotalFormatted: formatNumber(entry.grandTotal),
+    }));
 
     const slothMapData = processDataForSlothMap(formattedTableData);
 
@@ -619,25 +617,36 @@ const App = () => {
         const maxVariantIndex = Math.max(
             ...variantsForMonth.map((row) => row.variantIndex)
         );
-
         const newVariantIndex = maxVariantIndex + 1;
+        const newRowKey = `${clickedMonth}-${newVariantIndex}`;
 
-        // Create a new row based on the base row
+        // Create a new alt scenario row by cloning the base row
         const newRow = {
             ...baseRow,
             variantIndex: newVariantIndex,
-            rowKey: `${clickedMonth}-${newVariantIndex}`,
+            rowKey: newRowKey,
             isAlt: true,
             isActive: true,
-            isDepositSavingsManual: true, // Ensure these are set to true
-            isDepositInvestmentsManual: true, // Ensure these are set to true
-            isManualFromFirestore: baseRow.isManualFromFirestore || false,
-            isTotalSavingsManual: baseRow.isTotalSavingsManual || false,
-            isTotalInvestmentsManual: baseRow.isTotalInvestmentsManual || false,
-            // Set default values for fields that might be undefined
-            goal: baseRow.goal || '',
-            depositSavings: baseRow.depositSavings || 0,
-            depositInvestments: baseRow.depositInvestments || 0,
+
+            // Inherit manual flags exactly from the baseRow
+            isDepositSavingsManual: baseRow.isDepositSavingsManual,
+            isDepositInvestmentsManual: baseRow.isDepositInvestmentsManual,
+            isTotalSavingsManual: baseRow.isTotalSavingsManual,
+            isTotalInvestmentsManual: baseRow.isTotalInvestmentsManual,
+            isManualFromFirestore: baseRow.isManualFromFirestore,
+
+            // Copy the current displayed values
+            depositSavings: baseRow.depositSavings,
+            depositInvestments: baseRow.depositInvestments,
+            totalSavings: baseRow.totalSavings,
+            totalInvestments: baseRow.totalInvestments,
+            interestReturn: baseRow.interestReturn,
+            investmentReturn: baseRow.investmentReturn,
+            grandTotal: baseRow.grandTotal,
+
+            // Copy over goal and commentary if needed
+            goal: baseRow.goal,
+            commentary: baseRow.commentary,
         };
 
         console.log(
@@ -645,38 +654,78 @@ const App = () => {
             newRow
         );
 
-        // Find the index of the base row in tableData
+        // Insert the new alt row into tableData
         const baseRowIndex = tableData.findIndex(
             (row) => row.rowKey === rowKey
         );
-
-        // Add the new alt row to tableData
         let updatedTableData = [
             ...tableData.slice(0, baseRowIndex + 1),
             newRow,
             ...tableData.slice(baseRowIndex + 1),
         ];
 
-        // Deactivate other variants for the same month
+        // Deactivate other variants for the same month, leaving only the new one active
         updatedTableData = updatedTableData.map((row) => {
             if (row.month === clickedMonth) {
-                return { ...row, isActive: row.rowKey === newRow.rowKey };
+                return { ...row, isActive: row.rowKey === newRowKey };
             }
             return row;
         });
 
-        // Update userInputs for all variants in the clickedMonth
+        // Update userInputs accordingly
         const updatedUserInputs = { ...userInputs };
-        updatedTableData.forEach((row) => {
-            if (row.month === clickedMonth) {
+
+        // Copy base scenario's userInputs to the new alt scenario if they exist
+        if (userInputs[baseRow.rowKey]) {
+            updatedUserInputs[newRowKey] = { ...userInputs[baseRow.rowKey] };
+        } else {
+            updatedUserInputs[newRowKey] = {};
+        }
+
+        // Ensure isActive is set for all variants in userInputs
+        updatedTableData
+            .filter((row) => row.month === clickedMonth)
+            .forEach((row) => {
                 if (!updatedUserInputs[row.rowKey]) {
                     updatedUserInputs[row.rowKey] = {};
                 }
                 updatedUserInputs[row.rowKey].isActive = row.isActive;
-            }
-        });
+            });
 
-        // Update tableData and userInputs
+        // Now preserve manual fields for the original scenario if it's now inactive
+        const originalScenarioRow = updatedTableData.find(
+            (row) => row.month === clickedMonth && row.rowKey !== newRowKey
+        );
+
+        if (originalScenarioRow && !originalScenarioRow.isActive) {
+            if (!updatedUserInputs[originalScenarioRow.rowKey]) {
+                updatedUserInputs[originalScenarioRow.rowKey] = {};
+            }
+
+            // Only store values in userInputs if they were originally manual
+            if (originalScenarioRow.isDepositSavingsManual) {
+                updatedUserInputs[originalScenarioRow.rowKey].depositSavings =
+                    originalScenarioRow.depositSavings;
+            }
+            if (originalScenarioRow.isDepositInvestmentsManual) {
+                updatedUserInputs[
+                    originalScenarioRow.rowKey
+                ].depositInvestments = originalScenarioRow.depositInvestments;
+            }
+            if (originalScenarioRow.isTotalSavingsManual) {
+                updatedUserInputs[originalScenarioRow.rowKey].totalSavings =
+                    originalScenarioRow.totalSavings;
+            }
+            if (originalScenarioRow.isTotalInvestmentsManual) {
+                updatedUserInputs[originalScenarioRow.rowKey].totalInvestments =
+                    originalScenarioRow.totalInvestments;
+            }
+
+            // Also preserve isActive flag in userInputs
+            updatedUserInputs[originalScenarioRow.rowKey].isActive =
+                originalScenarioRow.isActive;
+        }
+
         setTableData(updatedTableData);
         setUserInputs(updatedUserInputs);
     };
@@ -866,6 +915,25 @@ const App = () => {
                                     dateOfBirth={dateOfBirth || null}
                                     isSettingsPage={false}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setShowHistoricRows((prev) => !prev)
+                                    }
+                                    className="toggle-historic-button"
+                                >
+                                    {showHistoricRows ? (
+                                        <>
+                                            <span className="icon-collapse" /> ▼
+                                            Hide historic rows
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="icon-expand" /> ▶
+                                            Show historic rows
+                                        </>
+                                    )}
+                                </button>
                                 <TableComponent
                                     data={formattedTableData}
                                     tableData={tableData}
