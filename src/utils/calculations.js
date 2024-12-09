@@ -35,7 +35,7 @@ export const calculateCumulativeBalances = (
     investmentReturnRate,
     goals
 ) => {
-    debugger;
+    // debugger;
 
     let updatedData = [...data];
 
@@ -64,13 +64,8 @@ export const calculateCumulativeBalances = (
     for (let i = 0; i < updatedData.length; i++) {
         const entry = updatedData[i];
 
-        if (!entry.isActive) {
-            // For inactive entries, preserve their deposit values and skip updates
-            continue; // Skip to the next iteration
-        }
-
         if (entry.month === '2024-10') {
-            debugger;
+            // debugger;
         }
 
         // Set depositSavings

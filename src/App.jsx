@@ -410,19 +410,31 @@ const App = () => {
             JSON.stringify(updatedData, null, 2)
         );
 
+        // debugger;
+
         // Apply userInputs to updatedData
         for (const [rowKey, changes] of Object.entries(userInputs)) {
+            // debugger;
+
+            console.log(`About to apply userInputs for rowKey: ${rowKey}`);
+            console.log('Changes:', changes);
+
             const rowIndex = updatedData.findIndex(
                 (row) => row.rowKey === rowKey
             );
 
             if (rowIndex !== -1) {
-                const isActive = updatedData[rowIndex].isActive;
-                if (!isActive) {
-                    continue; // Skip inactive rows
-                }
-
                 for (const [field, value] of Object.entries(changes)) {
+                    console.log(
+                        `Applying change to field: ${field}, value: ${value}`
+                    );
+
+                    // Before applying the update, log the current state of the row
+                    console.log(
+                        'Row state before change:',
+                        JSON.stringify(updatedData[rowIndex], null, 2)
+                    );
+
                     updatedData = updateField(
                         updatedData,
                         rowIndex,
@@ -448,9 +460,16 @@ const App = () => {
 
                     // Set the isManualFromFirestore flag
                     updatedData[rowIndex].isManualFromFirestore = true;
+
+                    console.log(
+                        'Row state after change:',
+                        JSON.stringify(updatedData[rowIndex], null, 2)
+                    );
                 }
             }
         }
+
+        // debugger;
 
         console.log(
             'debug 051224: Data after applying userInputs:',
@@ -697,33 +716,53 @@ const App = () => {
             (row) => row.month === clickedMonth && row.rowKey !== newRowKey
         );
 
-        if (originalScenarioRow && !originalScenarioRow.isActive) {
+        if (
+            originalScenarioRow &&
+            !originalScenarioRow.isActive &&
+            originalScenarioRow.isManualFromFirestore
+        ) {
+            // If isManualFromFirestore is true, we preserve its values in userInputs
             if (!updatedUserInputs[originalScenarioRow.rowKey]) {
                 updatedUserInputs[originalScenarioRow.rowKey] = {};
             }
 
-            // Only store values in userInputs if they were originally manual
-            if (originalScenarioRow.isDepositSavingsManual) {
+            // Store its fields as they are
+            if (
+                originalScenarioRow.isDepositSavingsManual ||
+                originalScenarioRow.isManualFromFirestore
+            ) {
                 updatedUserInputs[originalScenarioRow.rowKey].depositSavings =
                     originalScenarioRow.depositSavings;
             }
-            if (originalScenarioRow.isDepositInvestmentsManual) {
+            if (
+                originalScenarioRow.isDepositInvestmentsManual ||
+                originalScenarioRow.isManualFromFirestore
+            ) {
                 updatedUserInputs[
                     originalScenarioRow.rowKey
                 ].depositInvestments = originalScenarioRow.depositInvestments;
             }
-            if (originalScenarioRow.isTotalSavingsManual) {
+            if (
+                originalScenarioRow.isTotalSavingsManual ||
+                originalScenarioRow.isManualFromFirestore
+            ) {
                 updatedUserInputs[originalScenarioRow.rowKey].totalSavings =
                     originalScenarioRow.totalSavings;
             }
-            if (originalScenarioRow.isTotalInvestmentsManual) {
+            if (
+                originalScenarioRow.isTotalInvestmentsManual ||
+                originalScenarioRow.isManualFromFirestore
+            ) {
                 updatedUserInputs[originalScenarioRow.rowKey].totalInvestments =
                     originalScenarioRow.totalInvestments;
             }
 
-            // Also preserve isActive flag in userInputs
+            // Preserve isActive and isManualFromFirestore
             updatedUserInputs[originalScenarioRow.rowKey].isActive =
                 originalScenarioRow.isActive;
+            updatedUserInputs[
+                originalScenarioRow.rowKey
+            ].isManualFromFirestore = true;
         }
 
         setTableData(updatedTableData);
