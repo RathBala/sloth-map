@@ -196,7 +196,7 @@ const TableComponent = ({
                                 alt="Total in Savings Account Icon"
                                 className="header-icon"
                             />
-                            <span>Total in Savings Account (monzo)</span>
+                            <span>Total in Savings Account</span>
                         </div>
                     </th>
                     <th>
@@ -206,10 +206,7 @@ const TableComponent = ({
                                 alt="Total in Investments Account Icon"
                                 className="header-icon"
                             />
-                            <span>
-                                Total in Investments Account (HL, SJP ISA,
-                                bitcoin)
-                            </span>
+                            <span>Total in Investments Account</span>
                         </div>
                     </th>
                     <th>
