@@ -11,7 +11,8 @@
         "test": "firebase emulators:exec --only firestore,auth 'cypress run'",
         "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "build": "vite build"
     },
     "dependencies": {
         "d3": "^7.9.0",
