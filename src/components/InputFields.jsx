@@ -10,6 +10,7 @@ const InputFields = ({
     achieveNestEggBy,
     isSettingsPage,
 }) => {
+    
     const formatDateForInput = (date) => {
         if (!date) return '';
         const year = date.getFullYear();
@@ -23,6 +24,7 @@ const InputFields = ({
         handleDateOfBirthChange(selectedDate);
     };
 
+    
     const calculateCurrentAge = () => {
         if (
             !dateOfBirth ||
@@ -73,7 +75,7 @@ const InputFields = ({
 
     return (
         <div className="input-fields">
-            {isSettingsPage ? (
+            {isSettingsPage ? ( 
                 <>
                     <label>
                         Interest Rate (%):
@@ -81,6 +83,7 @@ const InputFields = ({
                             data-cy="interest-rate-input"
                             type="number"
                             value={
+
                                 interestRate !== null &&
                                 interestRate !== undefined
                                     ? interestRate
@@ -130,6 +133,7 @@ const InputFields = ({
             ) : (
                 <>
                     <p data-cy="current-age">
+
                         Current Age: {calculateCurrentAge()}
                     </p>
                     <p data-cy="age-achieved-nest-egg-by">
