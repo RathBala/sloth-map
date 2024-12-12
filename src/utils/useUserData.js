@@ -1,5 +1,5 @@
 /* eslint-disable no-debugger */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { auth, db } from '../firebase-config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
@@ -11,6 +11,7 @@ import {
     deleteField,
     Timestamp,
 } from 'firebase/firestore';
+import { AuthContext } from '../AuthContext.js';
 
 const useUserData = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
