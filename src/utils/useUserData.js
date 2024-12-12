@@ -30,7 +30,7 @@ const useUserData = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => { 
             if (currentUser) {
                 const userRef = doc(db, 'users', currentUser.uid);
                 setLoading(true);
@@ -128,7 +128,7 @@ const useUserData = () => {
                         setGoals({});
                     }
                 } catch (error) {
-                    console.error('Failed to fetch user document:', error);
+                    console.error('Failed to fetch user document:', error); 
                     setIsLoggedIn(false);
                     setUser(null);
                 }
@@ -341,7 +341,7 @@ const useUserData = () => {
         }
     };
 
-    const logout = async () => {
+    const logout = async () => { 
         await signOut(auth);
     };
 
