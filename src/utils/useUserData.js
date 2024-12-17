@@ -14,7 +14,7 @@ import {
 import { AuthContext } from '../AuthContext.js';
 
 const useUserData = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    // const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
 
     const [interestRate, setInterestRate] = useState(null);
