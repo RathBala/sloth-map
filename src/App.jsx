@@ -769,7 +769,7 @@ const App = () => {
         setUserInputs(updatedUserInputs);
     };
 
-    const handleRowClick = (rowKey) => {
+    const handleRowClick = (rowKey) => { 
         const clickedRow = tableData.find((row) => row.rowKey === rowKey);
         if (!clickedRow) {
             console.warn(`No row found with rowKey: ${rowKey}`);
@@ -808,7 +808,7 @@ const App = () => {
 
     return (
         <div className="App">
-            <div className="top-nav">
+             <div className="top-nav">
                 <div className="top-nav-left">
                     <div className="profile-icon-container">
                         <svg
@@ -885,7 +885,7 @@ const App = () => {
                     </div>
                 </div>
             </div>
-            <div className="action-buttons-container">
+             <div className="action-buttons-container">
                 <div className="left-buttons">
                     <button onClick={handleSaveClick}>Save</button>
                 </div>
@@ -921,7 +921,7 @@ const App = () => {
                         element={
                             <>
                                 {' '}
-                                <InputFields
+                                <InputFields 
                                     interestRate={interestRate || ''}
                                     investmentReturnRate={
                                         investmentReturnRate || ''
@@ -949,7 +949,7 @@ const App = () => {
                         path="/"
                         element={
                             <>
-                                <InputFields
+                                <InputFields 
                                     achieveNestEggBy={achieveNestEggBy}
                                     dateOfBirth={dateOfBirth || null}
                                     isSettingsPage={false}
