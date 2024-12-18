@@ -24,8 +24,8 @@ import cogSelectedIcon from './assets/Cog.svg';
 
 const App = () => {
     const {
-        loading,
-        isLoggedIn,
+        // loading,
+        // isLoggedIn,
         user,
         interestRate,
         setInterestRate,
@@ -90,7 +90,7 @@ const App = () => {
 
     useEffect(() => {
         setIsProfileMenuOpen(false);
-    }, [isLoggedIn]);
+    }, [user]);
 
     useEffect(() => {
         // debugger;
@@ -105,10 +105,10 @@ const App = () => {
     }, [interestRate, investmentReturnRate, targetNestEgg, userInputs, goals]);
 
     useEffect(() => {
-        if (!isLoggedIn) {
+        if (!user) {
             setTableData(generateData(500, 300));
         }
-    }, [isLoggedIn]);
+    }, [user]);
 
     const updateField = (data, index, field, value, options = {}) => {
         const {
@@ -530,11 +530,11 @@ const App = () => {
         setIsGoalModalOpen(true);
     };
 
-    if (loading) {
-        return <div>Loading user data...</div>;
-    }
+    // if (loading) {
+    //     return <div>Loading user data...</div>;
+    // }
 
-    if (!isLoggedIn) {
+    if (!user) {
         return <Authentication />;
     }
 
