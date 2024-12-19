@@ -808,6 +808,7 @@ const App = () => {
 
     return (
         <div className="App">
+            {/* TODO: make these below components */}
             <div className="top-nav">
                 <div className="top-nav-left">
                     <div className="profile-icon-container">
@@ -919,30 +920,27 @@ const App = () => {
                     <Route
                         path="/settings"
                         element={
-                            <>
-                                {' '}
-                                <InputFields
-                                    interestRate={interestRate || ''}
-                                    investmentReturnRate={
-                                        investmentReturnRate || ''
-                                    }
-                                    targetNestEgg={targetNestEgg || ''}
-                                    dateOfBirth={dateOfBirth}
-                                    handleDateOfBirthChange={
-                                        handleDateOfBirthChange
-                                    }
-                                    handleInterestRateChange={
-                                        handleInterestRateChange
-                                    }
-                                    handleInvestmentReturnRateChange={
-                                        handleInvestmentReturnRateChange
-                                    }
-                                    handleTargetNestEggChange={
-                                        handleTargetNestEggChange
-                                    }
-                                    isSettingsPage={true}
-                                />
-                            </>
+                            <InputFields
+                                interestRate={interestRate || ''}
+                                investmentReturnRate={
+                                    investmentReturnRate || ''
+                                }
+                                targetNestEgg={targetNestEgg || ''}
+                                dateOfBirth={dateOfBirth}
+                                handleDateOfBirthChange={
+                                    handleDateOfBirthChange
+                                }
+                                handleInterestRateChange={
+                                    handleInterestRateChange
+                                }
+                                handleInvestmentReturnRateChange={
+                                    handleInvestmentReturnRateChange
+                                }
+                                handleTargetNestEggChange={
+                                    handleTargetNestEggChange
+                                }
+                                isSettingsPage={true}
+                            />
                         }
                     />
                     <Route
