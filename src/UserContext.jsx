@@ -4,6 +4,7 @@ import {
     useContext,
     useEffect,
     useMemo,
+    useState,
 } from 'react';
 import { AuthContext } from './AuthContext';
 import { convertDatabaseTimestamp } from './utils/dateUtils';
@@ -17,12 +18,13 @@ const defaultUserData = {
 
 export const UserContext = createContext(defaultUserData);
 
-export const UserContextProvider = () => {
+export const UserContextProvider = ({ children }) => {
     const currentUser = useContext(AuthContext);
     const [userData, setUserData] = useState(null);
 
+    const userRef = currentUser ? doc(db, 'users', currentUser.uid) : null;
+
     const initUserData = async (currentUser) => {
-        const userRef = currentUser ? doc(db, 'users', currentUser.uid) : null;
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {

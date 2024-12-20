@@ -946,40 +946,18 @@ const App = () => {
                     <Route
                         path="/"
                         element={
-                            <>
-                                <InputFields
-                                    achieveNestEggBy={achieveNestEggBy}
-                                    dateOfBirth={dateOfBirth || null}
-                                    isSettingsPage={false}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setShowHistoricRows((prev) => !prev)
-                                    }
-                                    className="toggle-historic-button"
-                                >
-                                    {showHistoricRows ? (
-                                        <>
-                                            <span className="icon-collapse" /> ▼
-                                            Hide historic rows
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="icon-expand" /> ▶
-                                            Show historic rows
-                                        </>
-                                    )}
-                                </button>
-                                <TableComponent
-                                    data={formattedTableData}
-                                    tableData={tableData}
-                                    onFieldChange={handleFieldChange}
-                                    onAltScenario={addAltScenario}
-                                    handleRowClick={handleRowClick}
-                                    onEditGoal={handleEditGoal}
-                                />
-                            </>
+                            <TableView
+                                formattedTableData={formattedTableData}
+                                tableData={tableData}
+                                onFieldChange={handleFieldChange}
+                                onAltScenario={addAltScenario}
+                                handleRowClick={handleRowClick}
+                                onEditGoal={handleEditGoal}
+                                showHistoricRows={showHistoricRows}
+                                setShowHistoricRows={setShowHistoricRows}
+                                achieveNestEggBy={achieveNestEggBy}
+                                dateOfBirth={dateOfBirth}
+                            />
                         }
                     />
                     <Route

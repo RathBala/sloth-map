@@ -12,9 +12,11 @@ import {
     Timestamp,
 } from 'firebase/firestore';
 import { AuthContext } from '../AuthContext.jsx';
+import { UserContext } from '../UserContext.jsx';
 
 const useUserData = () => {
-    const { currentUser, userData } = useContext(AuthContext);
+    const { currentUser } = useContext(AuthContext);
+    const { userData } = useContext(UserContext);
 
     const [interestRate, setInterestRate] = useState(
         userData?.interestRate || 5
@@ -93,6 +95,7 @@ const useUserData = () => {
 
     //                     const tableDataRef = collection(userRef, 'tableData');
     //                     const snapshot = await getDocs(tableDataRef);
+    //
     //                     const loadedUserInputs = {};
     //                     snapshot.forEach((doc) => {
     //                         loadedUserInputs[doc.id] = doc.data();
