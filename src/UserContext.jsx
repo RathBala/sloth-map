@@ -22,7 +22,7 @@ export const UserContextProvider = () => {
     const [userData, setUserData] = useState(null);
 
     const initUserData = async (currentUser) => {
-        const userRef = doc(db, 'users', currentUser.uid);
+        const userRef = currentUser ? doc(db, 'users', currentUser.uid) : null;
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {
@@ -47,6 +47,7 @@ export const UserContextProvider = () => {
         return {
             userData,
             setUserData,
+            userRef,
         };
     }, [userData]);
 

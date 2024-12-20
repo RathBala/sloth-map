@@ -1,11 +1,10 @@
 import { useContext, useEffect } from 'react';
 import { UserContext } from '../UserContext';
 
-export function Dashboard() {
+export function TableView() {
     const userData = useContext(UserContext);
 
     const fetchData = async () => {
-        // TODO: re-use userRef from UserContext
         const tableDataRef = collection(userRef, 'tableData');
         const snapshot = await getDocs(tableDataRef);
 
