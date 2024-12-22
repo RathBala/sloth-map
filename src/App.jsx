@@ -1,7 +1,7 @@
 /* eslint-disable no-debugger */
 import { useState, useEffect, useRef } from 'react';
 import { Route, Routes, Link, useLocation } from 'react-router-dom';
-import TableComponent from './components/TableComponent';
+import TableView from './components/TableView';
 import InputFields from './components/InputFields';
 import Authentication from './components/Auth';
 import SlothMap from './components/SlothMap';

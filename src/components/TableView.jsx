@@ -1,7 +1,8 @@
 import { useContext, useEffect } from 'react';
 import { UserContext } from '../UserContext';
+import InputFields from './InputFields';
 
-export function TableView() {
+export default function TableView() {
     const userData = useContext(UserContext);
 
     const fetchData = async () => {

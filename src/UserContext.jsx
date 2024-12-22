@@ -6,8 +6,10 @@ import {
     useMemo,
     useState,
 } from 'react';
+import { getDoc, setDoc } from 'firebase/firestore';
 import { AuthContext } from './AuthContext';
 import { convertDatabaseTimestamp } from './utils/dateUtils';
+import { getUserRef } from './utils/getUserRef';
 
 const defaultUserData = {
     interestRate: 3,
@@ -22,20 +24,25 @@ export const UserContextProvider = ({ children }) => {
     const currentUser = useContext(AuthContext);
     const [userData, setUserData] = useState(null);
 
-    const userRef = currentUser ? doc(db, 'users', currentUser.uid) : null;
-
     const initUserData = async (currentUser) => {
-        const userDoc = await getDoc(userRef);
+        try {
+            const userRef = getUserRef(currentUser);
+            const userDoc = await getDoc(userRef);
 
-        if (userDoc.exists()) {
-            setUserData({
-                ...userDoc.data(),
-                email: currentUser.email,
-                uid: currentUser.uid,
-                dateOfBirth: convertDatabaseTimestamp(userDoc.dateOfBirth),
-            });
-        } else {
-            await setDoc(userRef, defaultUserData);
+            if (userDoc.exists()) {
+                setUserData({
+                    ...userDoc.data(),
+                    email: currentUser.email,
+                    uid: currentUser.uid,
+                    dateOfBirth: convertDatabaseTimestamp(
+                        userDoc.data().dateOfBirth
+                    ),
+                });
+            } else {
+                await setDoc(userRef, defaultUserData);
+            }
+        } catch (error) {
+            console.error('Failed to initialise user data:', error);
         }
     };
 
@@ -49,7 +56,6 @@ export const UserContextProvider = ({ children }) => {
         return {
             userData,
             setUserData,
-            userRef,
         };
     }, [userData]);
 

@@ -15,7 +15,7 @@ import { AuthContext } from '../AuthContext.jsx';
 import { UserContext } from '../UserContext.jsx';
 
 const useUserData = () => {
-    const { currentUser } = useContext(AuthContext);
+    const currentUser = useContext(AuthContext);
     const { userData } = useContext(UserContext);
 
     const [interestRate, setInterestRate] = useState(
