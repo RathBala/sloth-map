@@ -11,66 +11,18 @@ import { formatNumber, formatMonth } from '../utils/formatUtils';
 
 export default function TableView() {
     const currentUser = useContext(AuthContext);
-
-    const [tableData, setTableData] = useState(() => generateData(500, 300));
     const [showHistoricRows, setShowHistoricRows] = useState(false);
-    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
-    const [editingGoal, setEditingGoal] = useState(null);
-
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    useEffect(() => {
-        if (
-            interestRate !== null &&
-            investmentReturnRate !== null &&
-            targetNestEgg !== null
-        ) {
-            recalculateAllData();
-        }
-    }, [interestRate, investmentReturnRate, targetNestEgg, userInputs, goals]);
 
     const {
-        interestRate,
-        investmentReturnRate,
-        targetNestEgg,
-        userInputs,
+        tableData,
+        setTableData,
+        formattedTableData,
+        slothMapData,
+        userData,
         setUserInputs,
-        fetchGoals,
         goals,
+        setFieldsToDelete,
     } = useUserData();
-
-    const userRef = getUserRef(currentUser);
-
-    const today = new Date();
-    const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-
-    const filteredTableData = showHistoricRows
-        ? tableData
-        : tableData.filter((entry) => entry.month >= currentMonth);
-
-    const formattedTableData = filteredTableData.map((entry) => ({
-        ...entry,
-        interestReturnFormatted: formatNumber(entry.interestReturn),
-        investmentReturnFormatted: formatNumber(entry.investmentReturn),
-        totalSavingsFormatted: formatNumber(entry.totalSavings),
-        totalInvestmentsFormatted: formatNumber(entry.totalInvestments),
-        grandTotalFormatted: formatNumber(entry.grandTotal),
-    }));
-
-    const fetchData = async () => {
-        const tableDataRef = collection(userRef, 'tableData');
-        const snapshot = await getDocs(tableDataRef);
-
-        const loadedUserInputs = {};
-        snapshot.forEach((doc) => {
-            loadedUserInputs[doc.id] = doc.data();
-        });
-        setUserInputs(loadedUserInputs);
-
-        await fetchGoals(currentUser.uid);
-    };
 
     const lastEntry = tableData[tableData.length - 1];
     const achieveNestEggBy = lastEntry ? formatMonth(lastEntry.month) : 'TBC';
@@ -386,11 +338,6 @@ export default function TableView() {
         setUserInputs(updatedUserInputs);
     };
 
-    const handleEditGoal = (goal) => {
-        setEditingGoal(goal);
-        setIsGoalModalOpen(true);
-    };
-
     return (
         <>
             <InputFields
@@ -419,7 +366,6 @@ export default function TableView() {
                 onFieldChange={handleFieldChange}
                 onAltScenario={addAltScenario}
                 handleRowClick={handleRowClick}
-                onEditGoal={handleEditGoal}
             />
         </>
     );
