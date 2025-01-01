@@ -65,7 +65,10 @@ export const UserContextProvider = ({ children }) => {
 
         const loadedTableData = [];
         snapshot.forEach((doc) => {
-            loadedTableData.push(doc.data());
+            const data = doc.data();
+            const rowKey = doc.id; // e.g., "2024-10-0"
+            const month = rowKey.split('-').slice(0, 2).join('-'); // Extract "2024-10"
+            loadedTableData.push({ ...data, rowKey, month });
         });
         setTableData(loadedTableData);
     };
@@ -77,6 +80,14 @@ export const UserContextProvider = ({ children }) => {
         const nodes = [];
         for (let i = 0; i < data.length; i++) {
             const current = data[i];
+
+            if (!current.month) {
+                console.warn(
+                    `Entry at index ${i} is missing 'month':`,
+                    current
+                );
+                continue;
+            }
 
             if (current.month < currentMonth) {
                 continue;
@@ -129,7 +140,7 @@ export const UserContextProvider = ({ children }) => {
     useEffect(() => {
         if (currentUser) {
             initUserData(currentUser);
-            fetchTableData;
+            fetchTableData();
         }
     }, [currentUser]);
 

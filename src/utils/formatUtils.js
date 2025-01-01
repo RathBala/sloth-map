@@ -10,7 +10,18 @@ export function formatNumber(num) {
 }
 
 export const formatMonth = (monthString) => {
-    const [year, month] = monthString.split('-').map(Number);
+    if (!monthString || typeof monthString !== 'string') {
+        console.warn(`Invalid monthString: ${monthString}`);
+        return 'Unknown Month';
+    }
+
+    const parts = monthString.split('-').map(Number);
+    if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
+        console.warn(`Invalid month format: ${monthString}`);
+        return 'Invalid Month Format';
+    }
+
+    const [year, month] = parts;
     const date = new Date(year, month - 1);
     return date.toLocaleString('default', { month: 'long', year: 'numeric' });
 };

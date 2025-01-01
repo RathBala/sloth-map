@@ -22,7 +22,7 @@ const TableComponent = ({
     onFieldChange,
     onAltScenario,
     handleRowClick,
-    onEditGoal,
+    // onEditGoal,
 }) => {
     // const prevDataRef = useRef();
     const today = new Date();

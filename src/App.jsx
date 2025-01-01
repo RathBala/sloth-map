@@ -83,7 +83,7 @@ const App = () => {
     // probably doesn't need to be a userEffect
     useEffect(() => {
         setIsProfileMenuOpen(false);
-    }, [user]);
+    }, [userData]);
 
     // TODO: separate component
     const handleNewGoalClick = () => {
