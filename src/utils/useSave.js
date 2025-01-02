@@ -6,7 +6,7 @@ export const handleSaveClick = async () => {
         await saveTableData();
         await commitGoalsToFirestore();
 
-        const newInputs = await fetchUserInputs(); // Fetch and immediately update after
+        const newInputs = await fetchUserInputs();
         setUserInputs(newInputs);
 
         console.log('All changes saved successfully');

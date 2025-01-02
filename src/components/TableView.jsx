@@ -10,7 +10,6 @@ import { recalculateAllData } from '../utils/recalculateAllData';
 import { formatNumber, formatMonth } from '../utils/formatUtils';
 
 export default function TableView() {
-    const currentUser = useContext(AuthContext);
     const [showHistoricRows, setShowHistoricRows] = useState(false);
 
     const {
@@ -342,7 +341,7 @@ export default function TableView() {
         <>
             <InputFields
                 achieveNestEggBy={achieveNestEggBy}
-                dateOfBirth={currentUser.dateOfBirth}
+                dateOfBirth={userData.dateOfBirth}
                 isSettingsPage={false}
             />
             <button

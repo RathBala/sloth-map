@@ -15,6 +15,8 @@ const defaultUserData = {
 export const UserContext = createContext({
     userData: defaultUserData,
     setUserData: () => {},
+    loading: true,
+    setLoading: () => {},
     tableData: [],
     setTableData: () => {},
     formattedTableData: [],
@@ -25,6 +27,7 @@ export const UserContext = createContext({
 export const UserContextProvider = ({ children }) => {
     const currentUser = useContext(AuthContext);
     const [userData, setUserData] = useState(defaultUserData);
+    const [loading, setLoading] = useState(true);
     const [tableData, setTableData] = useState([]);
     const [formattedTableData, setFormattedTableData] = useState([]);
     const [slothMapData, setSlothMapData] = useState([]);
@@ -35,24 +38,30 @@ export const UserContextProvider = ({ children }) => {
             const userDoc = await getDoc(userRef);
 
             if (userDoc.exists()) {
-                setUserData({
+                const newUserData = {
                     ...userDoc.data(),
                     email: currentUser.email,
                     uid: currentUser.uid,
                     dateOfBirth: convertDatabaseTimestamp(
                         userDoc.data().dateOfBirth
                     ),
-                });
+                };
+                console.log('Setting userData:', newUserData);
+                setUserData(newUserData);
             } else {
                 await setDoc(userRef, defaultUserData);
-                setUserData({
+                const newUserData = {
                     ...defaultUserData,
                     email: currentUser.email,
                     uid: currentUser.uid,
-                });
+                };
+                console.log('Creating and setting new userData:', newUserData);
+                setUserData(newUserData);
             }
         } catch (error) {
             console.error('Failed to initialise user data:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -141,6 +150,8 @@ export const UserContextProvider = ({ children }) => {
         if (currentUser) {
             initUserData(currentUser);
             fetchTableData();
+        } else {
+            setLoading(false);
         }
     }, [currentUser]);
 
@@ -157,6 +168,8 @@ export const UserContextProvider = ({ children }) => {
             formattedTableData,
             slothMapData,
             updateFormattedData,
+            loading,
+            setLoading,
         };
     }, [userData, tableData, formattedTableData, slothMapData]);
 
@@ -164,5 +177,3 @@ export const UserContextProvider = ({ children }) => {
         <UserContext.Provider value={value}>{children}</UserContext.Provider>
     );
 };
-
-export const useUserData = () => useContext(UserContext);

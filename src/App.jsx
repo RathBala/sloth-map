@@ -6,6 +6,7 @@ import InputFields from './components/InputFields';
 import Authentication from './components/Auth';
 import SlothMap from './components/SlothMap';
 import useUserData from './utils/useUserData';
+import { handleSaveClick } from './utils/useSave';
 import './App.css';
 import GoalModal from './components/GoalModal';
 import plusIcon from './assets/Plus.svg';
@@ -19,6 +20,7 @@ import cogSelectedIcon from './assets/Cog.svg';
 const App = () => {
     const {
         userData,
+        loading,
         tableData,
         formattedTableData,
         slothMapData,
@@ -94,6 +96,12 @@ const App = () => {
     const handleGoalSave = (goal) => {
         saveGoal(goal);
     };
+
+    console.log('App userData:', userData);
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
     if (!userData || !userData.email) {
         return <Authentication />;
