@@ -4,6 +4,8 @@ import { AuthContext } from './AuthContext';
 import { convertDatabaseTimestamp } from './utils/dateUtils';
 import { getUserRef } from './utils/getUserRef';
 import { formatNumber, formatMonth } from './utils/formatUtils';
+import { recalculateAllData } from './utils/recalculateAllData';
+import useUserData from './utils/useUserData';
 
 const defaultUserData = {
     interestRate: 3,
@@ -31,6 +33,8 @@ export const UserContextProvider = ({ children }) => {
     const [tableData, setTableData] = useState([]);
     const [formattedTableData, setFormattedTableData] = useState([]);
     const [slothMapData, setSlothMapData] = useState([]);
+
+    const { userInputs, goals, interestRate, investmentReturnRate, targetNestEgg } = useUserData();
 
     const initUserData = async (currentUser) => {
         try {
@@ -79,7 +83,10 @@ export const UserContextProvider = ({ children }) => {
             const month = rowKey.split('-').slice(0, 2).join('-'); // Extract "2024-10"
             loadedTableData.push({ ...data, rowKey, month });
         });
-        setTableData(loadedTableData);
+        
+        const data = recalculateAllData(loadedTableData, userInputs, goals, interestRate, investmentReturnRate, targetNestEgg);
+
+        setTableData(data);
     };
 
     const processDataForSlothMap = (data) => {

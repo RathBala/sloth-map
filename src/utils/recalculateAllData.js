@@ -1,4 +1,18 @@
-export const recalculateAllData = () => {
+import { calculateCumulativeBalances, ensureNestEgg } from "./calculations";
+
+/* tableData = loaded data from firestore
+** userInputs = changes the user makes beyond data from firestore (ideally - but initially,
+** it would be the same as tableData?)
+** so missingRowKeys needs to NOT use userInputs when generating rowKeys, but actually
+** it should be all row keys between today and the nest egg month.
+** That could be its own utility function.
+** However, ensureNestEgg already generates rows between a start date and the end date.
+** It DOESN'T generate rows in between rows, so we would need to do this:
+** generateRowKeys to generate row keys between today and the last month in firestore.
+** ensureNestEgg to generate all subsequent rows.
+** although this feels like it could all be done by a single utility function?
+*/
+export const recalculateAllData = (tableData, userInputs, goals, interestRate, investmentReturnRate, targetNestEgg) => {
     console.log('recalculateAllData called with:');
     console.log('userInputs:', JSON.stringify(userInputs, null, 2));
     console.log('tableData:', JSON.stringify(tableData, null, 2));
@@ -201,8 +215,6 @@ export const recalculateAllData = () => {
         JSON.stringify(updatedData, null, 2)
     );
 
-    // debugger;
-
     // Apply userInputs to updatedData
     for (const [rowKey, changes] of Object.entries(userInputs)) {
         // debugger;
@@ -252,8 +264,6 @@ export const recalculateAllData = () => {
         }
     }
 
-    // debugger;
-
     console.log(
         'debug 051224: Data after applying userInputs:',
         JSON.stringify(updatedData, null, 2)
@@ -291,10 +301,11 @@ export const recalculateAllData = () => {
     );
 
     // Update state if data has changed
-    if (JSON.stringify(tableData) !== JSON.stringify(updatedData)) {
-        console.log('Data has changed, updating tableData state.');
-        setTableData(updatedData);
-    } else {
-        console.log('No changes detected in data; state not updated.');
-    }
+    // if (JSON.stringify(tableData) !== JSON.stringify(updatedData)) {
+    //     console.log('Data has changed, updating tableData state.');
+    // } else {
+    //     console.log('No changes detected in data; state not updated.');
+    // }
+
+    return updatedData;
 };
