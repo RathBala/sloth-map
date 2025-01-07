@@ -1,21 +1,47 @@
-import { calculateCumulativeBalances, ensureNestEgg } from "./calculations";
+import { calculateCumulativeBalances, ensureNestEgg } from './calculations';
+import { generateMissingRowKeys } from './[unused]generateRowKeys';
 
 /* tableData = loaded data from firestore
-** userInputs = changes the user makes beyond data from firestore (ideally - but initially,
-** it would be the same as tableData?)
-** so missingRowKeys needs to NOT use userInputs when generating rowKeys, but actually
-** it should be all row keys between today and the nest egg month.
-** That could be its own utility function.
-** However, ensureNestEgg already generates rows between a start date and the end date.
-** It DOESN'T generate rows in between rows, so we would need to do this:
-** generateRowKeys to generate row keys between today and the last month in firestore.
-** ensureNestEgg to generate all subsequent rows.
-** although this feels like it could all be done by a single utility function?
+userInputs = changes the user makes beyond data from firestore (ideally - but initially,
+it would be the same as tableData?)
+1. Load Firestore data + user inputs → unify them (merging by rowKey).
+2. Sort them chronologically.
+3. Call a generateMissingMonths utility (or similarly named) to fill any gaps between the earliest known month and the last known (or current) month.
+4. Pass the resulting array to your calculation logic.
+5. If the goal is not reached, pass the results into ensureNestEgg which either (a) calls the same “generate missing month” mechanism to continue adding months or (b) uses its own approach to tack on months until the target is reached.
+6. Return the final array.
 */
-export const recalculateAllData = (tableData, userInputs, goals, interestRate, investmentReturnRate, targetNestEgg) => {
-    console.log('recalculateAllData called with:');
-    console.log('userInputs:', JSON.stringify(userInputs, null, 2));
-    console.log('tableData:', JSON.stringify(tableData, null, 2));
+
+export const recalculateAllData = (
+    tableData,
+    userInputs,
+    goals,
+    interestRate,
+    investmentReturnRate,
+    targetNestEgg
+) => {
+    const mergedUserDataMap = new Map();
+
+    tableData.forEach((row) => {
+        mergedUserDataMap.set(row.rowKey, { rowKey: row.rowKey, ...row });
+    });
+
+    Object.entries(userInputs).forEach(([rowKey, changes]) => {
+        if (mergedUserDataMap.has(rowKey)) {
+            const existingRow = mergedUserDataMap.get(rowKey);
+            mergedUserDataMap.set(rowKey, { ...existingRow, ...changes });
+        } else {
+            mergedUserDataMap.set(rowKey, { rowKey, ...changes });
+        }
+    });
+
+    let mergedUserDataArray = Array.from(mergedUserDataMap.values());
+
+    mergedUserDataArray.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
+
+    mergedUserDataArray = generateMissingRowKeys(mergedUserDataArray);
+
+    // ...
 
     let updatedData = tableData.map((row) => ({ ...row }));
 
