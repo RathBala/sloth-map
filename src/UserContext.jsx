@@ -28,13 +28,22 @@ export const UserContext = createContext({
 
 export const UserContextProvider = ({ children }) => {
     const currentUser = useContext(AuthContext);
+
     const [userData, setUserData] = useState(defaultUserData);
     const [loading, setLoading] = useState(true);
+
+    const [rawTableData, setRawTableData] = useState([]);
     const [tableData, setTableData] = useState([]);
     const [formattedTableData, setFormattedTableData] = useState([]);
     const [slothMapData, setSlothMapData] = useState([]);
 
-    const { userInputs, goals, interestRate, investmentReturnRate, targetNestEgg } = useUserData();
+    const {
+        userInputs,
+        goals,
+        interestRate,
+        investmentReturnRate,
+        targetNestEgg,
+    } = useUserData();
 
     const initUserData = async (currentUser) => {
         try {
@@ -72,22 +81,68 @@ export const UserContextProvider = ({ children }) => {
     const fetchTableData = async () => {
         if (!currentUser) return;
 
-        const userRef = getUserRef(currentUser);
-        const tableDataRef = collection(userRef, 'tableData');
-        const snapshot = await getDocs(tableDataRef);
+        try {
+            const userRef = getUserRef(currentUser);
+            const tableDataRef = collection(userRef, 'tableData');
+            const snapshot = await getDocs(tableDataRef);
 
-        const loadedTableData = [];
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const rowKey = doc.id; // e.g., "2024-10-0"
-            const month = rowKey.split('-').slice(0, 2).join('-'); // Extract "2024-10"
-            loadedTableData.push({ ...data, rowKey, month });
-        });
-        
-        const data = recalculateAllData(loadedTableData, userInputs, goals, interestRate, investmentReturnRate, targetNestEgg);
+            const loadedTableData = [];
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const rowKey = doc.id;
+                const [year, month] = rowKey.split('-');
+                loadedTableData.push({
+                    ...data,
+                    rowKey,
+                    month: `${year}-${month}`,
+                });
+            });
+
+            setRawTableData(loadedTableData);
+        } catch (error) {
+            console.error('Error fetching table data:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (currentUser) {
+            initUserData(currentUser);
+            fetchTableData();
+        } else {
+            setLoading(false);
+        }
+    }, [currentUser]);
+
+    useEffect(() => {
+        updateFormattedData();
+    }, [tableData]);
+
+    useEffect(() => {
+        if (loading) return; // wait until user doc is loaded
+        if (!rawTableData || rawTableData.length === 0) {
+            setTableData([]);
+            return;
+        }
+
+        const data = recalculateAllData(
+            rawTableData,
+            userInputs,
+            goals,
+            interestRate,
+            investmentReturnRate,
+            targetNestEgg
+        );
 
         setTableData(data);
-    };
+    }, [
+        loading,
+        rawTableData,
+        userInputs,
+        goals,
+        interestRate,
+        investmentReturnRate,
+        targetNestEgg,
+    ]);
 
     const processDataForSlothMap = (data) => {
         const today = new Date();
@@ -138,6 +193,12 @@ export const UserContextProvider = ({ children }) => {
     };
 
     const updateFormattedData = () => {
+        if (!tableData || tableData.length === 0) {
+            setFormattedTableData([]);
+            setSlothMapData([]);
+            return;
+        }
+
         const formatted = tableData.map((entry) => ({
             ...entry,
             interestReturnFormatted: formatNumber(entry.interestReturn),
@@ -153,32 +214,31 @@ export const UserContextProvider = ({ children }) => {
         setSlothMapData(mapData);
     };
 
-    useEffect(() => {
-        if (currentUser) {
-            initUserData(currentUser);
-            fetchTableData();
-        } else {
-            setLoading(false);
-        }
-    }, [currentUser]);
-
-    useEffect(() => {
-        updateFormattedData();
-    }, [tableData]);
-
     const value = useMemo(() => {
         return {
             userData,
             setUserData,
+            loading,
+            setLoading,
+
+            rawTableData,
+            setRawTableData,
+
             tableData,
             setTableData,
+
             formattedTableData,
             slothMapData,
             updateFormattedData,
-            loading,
-            setLoading,
         };
-    }, [userData, tableData, formattedTableData, slothMapData]);
+    }, [
+        userData,
+        loading,
+        rawTableData,
+        tableData,
+        formattedTableData,
+        slothMapData,
+    ]);
 
     return (
         <UserContext.Provider value={value}>{children}</UserContext.Provider>
