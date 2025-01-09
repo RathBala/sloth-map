@@ -1,13 +1,8 @@
-import { useContext, useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { AuthContext } from '../AuthContext';
-import { getUserRef } from '../utils/getUserRef';
+import { useState } from 'react';
 import InputFields from './InputFields';
 import TableComponent from './TableComponent';
-import { generateData } from '../utils/calculations';
 import useUserData from '../utils/useUserData';
-import { recalculateAllData } from '../utils/recalculateAllData';
-import { formatNumber, formatMonth } from '../utils/formatUtils';
+import { formatMonth } from '../utils/formatUtils';
 
 export default function TableView() {
     const [showHistoricRows, setShowHistoricRows] = useState(false);

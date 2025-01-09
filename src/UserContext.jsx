@@ -8,8 +8,8 @@ import { recalculateAllData } from './utils/recalculateAllData';
 import useUserData from './utils/useUserData';
 
 const defaultUserData = {
-    interestRate: 3,
-    investmentReturnRate: 5,
+    interestRate: 5,
+    investmentReturnRate: 10,
     targetNestEgg: 100000,
     dateOfBirth: null,
 };
@@ -30,11 +30,12 @@ export const UserContextProvider = ({ children }) => {
     const currentUser = useContext(AuthContext);
 
     const [userData, setUserData] = useState(defaultUserData);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     const [rawTableData, setRawTableData] = useState([]);
     const [tableData, setTableData] = useState([]);
     const [formattedTableData, setFormattedTableData] = useState([]);
+
     const [slothMapData, setSlothMapData] = useState([]);
 
     const {
@@ -45,87 +46,58 @@ export const UserContextProvider = ({ children }) => {
         targetNestEgg,
     } = useUserData();
 
-    const initUserData = async (currentUser) => {
-        try {
-            const userRef = getUserRef(currentUser);
-            const userDoc = await getDoc(userRef);
+    const initUserData = async () => {
+        const userRef = getUserRef(currentUser);
+        const userDoc = await getDoc(userRef);
 
-            if (userDoc.exists()) {
-                const newUserData = {
-                    ...userDoc.data(),
-                    email: currentUser.email,
-                    uid: currentUser.uid,
-                    dateOfBirth: convertDatabaseTimestamp(
-                        userDoc.data().dateOfBirth
-                    ),
-                };
-                console.log('Setting userData:', newUserData);
-                setUserData(newUserData);
-            } else {
-                await setDoc(userRef, defaultUserData);
-                const newUserData = {
-                    ...defaultUserData,
-                    email: currentUser.email,
-                    uid: currentUser.uid,
-                };
-                console.log('Creating and setting new userData:', newUserData);
-                setUserData(newUserData);
-            }
-        } catch (error) {
-            console.error('Failed to initialise user data:', error);
-        } finally {
-            setLoading(false);
+        if (userDoc.exists()) {
+            const newUserData = {
+                ...userDoc.data(),
+                email: currentUser.email,
+                uid: currentUser.uid,
+                dateOfBirth: convertDatabaseTimestamp(
+                    userDoc.data().dateOfBirth
+                ),
+            };
+            console.log('Setting userData:', newUserData);
+            setUserData(newUserData);
+        } else {
+            await setDoc(userRef, defaultUserData);
+            const newUserData = {
+                ...defaultUserData,
+                email: currentUser.email,
+                uid: currentUser.uid,
+            };
+            console.log('Creating and setting new userData:', newUserData);
+            setUserData(newUserData);
         }
     };
 
     const fetchTableData = async () => {
-        if (!currentUser) return;
+        const userRef = getUserRef(currentUser);
+        const tableDataRef = collection(userRef, 'tableData');
+        const snapshot = await getDocs(tableDataRef);
 
-        try {
-            const userRef = getUserRef(currentUser);
-            const tableDataRef = collection(userRef, 'tableData');
-            const snapshot = await getDocs(tableDataRef);
-
-            const loadedTableData = [];
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const rowKey = doc.id;
-                const [year, month] = rowKey.split('-');
-                loadedTableData.push({
-                    ...data,
-                    rowKey,
-                    month: `${year}-${month}`,
-                });
+        const loadedTableData = [];
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const rowKey = doc.id;
+            const [year, month] = rowKey.split('-');
+            loadedTableData.push({
+                ...data,
+                rowKey,
+                month: `${year}-${month}`,
             });
+        });
 
-            setRawTableData(loadedTableData);
-        } catch (error) {
-            console.error('Error fetching table data:', error);
-        }
+        setRawTableData(loadedTableData);
+
+        return loadedTableData;
     };
 
-    useEffect(() => {
-        if (currentUser) {
-            initUserData(currentUser);
-            fetchTableData();
-        } else {
-            setLoading(false);
-        }
-    }, [currentUser]);
-
-    useEffect(() => {
-        updateFormattedData();
-    }, [tableData]);
-
-    useEffect(() => {
-        if (loading) return; // wait until user doc is loaded
-        if (!rawTableData || rawTableData.length === 0) {
-            setTableData([]);
-            return;
-        }
-
+    const transformData = (rawData) => {
         const data = recalculateAllData(
-            rawTableData,
+            rawData,
             userInputs,
             goals,
             interestRate,
@@ -134,15 +106,7 @@ export const UserContextProvider = ({ children }) => {
         );
 
         setTableData(data);
-    }, [
-        loading,
-        rawTableData,
-        userInputs,
-        goals,
-        interestRate,
-        investmentReturnRate,
-        targetNestEgg,
-    ]);
+    };
 
     const processDataForSlothMap = (data) => {
         const today = new Date();
@@ -192,13 +156,7 @@ export const UserContextProvider = ({ children }) => {
         return nodes;
     };
 
-    const updateFormattedData = () => {
-        if (!tableData || tableData.length === 0) {
-            setFormattedTableData([]);
-            setSlothMapData([]);
-            return;
-        }
-
+    const updateFormattedData = (tableData) => {
         const formatted = tableData.map((entry) => ({
             ...entry,
             interestReturnFormatted: formatNumber(entry.interestReturn),
@@ -213,6 +171,27 @@ export const UserContextProvider = ({ children }) => {
         const mapData = processDataForSlothMap(formatted);
         setSlothMapData(mapData);
     };
+
+    const initData = async () => {
+        try {
+            setLoading(true);
+
+            await initUserData();
+            const tableData = await fetchTableData();
+            transformData(tableData);
+            updateFormattedData(tableData);
+        } catch (e) {
+            console.log('initData failed', e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (currentUser) {
+            initData();
+        }
+    }, [currentUser]);
 
     const value = useMemo(() => {
         return {

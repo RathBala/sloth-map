@@ -5,7 +5,6 @@ import { signOut } from 'firebase/auth';
 import {
     collection,
     doc,
-    getDoc,
     getDocs,
     setDoc,
     deleteField,
@@ -14,6 +13,7 @@ import {
 import { AuthContext } from '../AuthContext.jsx';
 import { UserContext } from '../UserContext.jsx';
 
+//TODO: refactor, remove userData as it belongs to UserContext and we are basically duplicating state here
 const useUserData = () => {
     const currentUser = useContext(AuthContext);
     const {
