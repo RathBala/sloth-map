@@ -37,12 +37,6 @@ export const calculateCumulativeBalances = (
     investmentRate,
     goals
 ) => {
-    console.log('calculateCumulativeBalances called');
-
-    const updatedRows = [...rows].sort((a, b) =>
-        a.rowKey.localeCompare(b.rowKey)
-    );
-
     const sortedGoals = Object.values(goals).sort(
         (a, b) => a.priority - b.priority
     );
@@ -50,12 +44,12 @@ export const calculateCumulativeBalances = (
     let goalIndex = 0;
     const totalGoals = sortedGoals.length;
 
-    const firstActiveIndex = updatedRows.findIndex((r) => r.isActive);
+    const firstActiveIndex = rows.findIndex((r) => r.isActive);
     if (firstActiveIndex === -1) {
-        return updatedRows; // No active rows
+        return rows; // No active rows
     }
 
-    const firstActiveRow = updatedRows[firstActiveIndex];
+    const firstActiveRow = rows[firstActiveIndex];
 
     if (!firstActiveRow.isTotalSavingsManual) {
         firstActiveRow.totalSavings = firstActiveRow.depositSavings || 0;
@@ -81,8 +75,8 @@ export const calculateCumulativeBalances = (
 
     let previousActiveRow = firstActiveRow;
 
-    for (let i = firstActiveIndex + 1; i < updatedRows.length; i++) {
-        const row = updatedRows[i];
+    for (let i = firstActiveIndex + 1; i < rows.length; i++) {
+        const row = rows[i];
         if (!row.isActive) continue;
 
         if (!row.isDepositSavingsManual) {
@@ -125,8 +119,7 @@ export const calculateCumulativeBalances = (
 
         previousActiveRow = row;
     }
-
-    return updatedRows;
+    return rows;
 };
 
 export const ensureNestEgg = (

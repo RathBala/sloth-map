@@ -7,7 +7,7 @@ import { formatNumber, formatMonth } from './utils/formatUtils';
 import { recalculateAllData } from './utils/recalculateAllData';
 import useUserSettings from './utils/useUserSettings';
 
-const defaultuserSettings = {
+const defaultUserSettings = {
     interestRate: 5,
     investmentReturnRate: 10,
     targetNestEgg: 100000,
@@ -15,7 +15,7 @@ const defaultuserSettings = {
 };
 
 export const UserContext = createContext({
-    userSettings: defaultuserSettings,
+    userSettings: defaultUserSettings,
     setuserSettings: () => {},
     loading: true,
     setLoading: () => {},
@@ -29,7 +29,7 @@ export const UserContext = createContext({
 export const UserContextProvider = ({ children }) => {
     const currentUser = useContext(AuthContext);
 
-    const [userSettings, setuserSettings] = useState(defaultuserSettings);
+    const [userSettings, setuserSettings] = useState(defaultUserSettings);
     const [loading, setLoading] = useState(false);
 
     const [rawTableData, setRawTableData] = useState([]);
@@ -46,12 +46,12 @@ export const UserContextProvider = ({ children }) => {
         targetNestEgg,
     } = useUserSettings();
 
-    const inituserSettings = async () => {
+    const initUserSettings = async () => {
         const userRef = getUserRef(currentUser);
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {
-            const newuserSettings = {
+            const newUserSettings = {
                 ...userDoc.data(),
                 email: currentUser.email,
                 uid: currentUser.uid,
@@ -59,20 +59,15 @@ export const UserContextProvider = ({ children }) => {
                     userDoc.data().dateOfBirth
                 ),
             };
-            console.log('Setting userSettings:', newuserSettings);
-            setuserSettings(newuserSettings);
+            setuserSettings(newUserSettings);
         } else {
-            await setDoc(userRef, defaultuserSettings);
-            const newuserSettings = {
-                ...defaultuserSettings,
+            await setDoc(userRef, defaultUserSettings);
+            const newUserSettings = {
+                ...defaultUserSettings,
                 email: currentUser.email,
                 uid: currentUser.uid,
             };
-            console.log(
-                'Creating and setting new userSettings:',
-                newuserSettings
-            );
-            setuserSettings(newuserSettings);
+            setuserSettings(newUserSettings);
         }
     };
 
@@ -109,6 +104,8 @@ export const UserContextProvider = ({ children }) => {
         );
 
         setTableData(data);
+
+        return data;
 
         console.log('table data is now: ', data);
     };
@@ -181,10 +178,10 @@ export const UserContextProvider = ({ children }) => {
         try {
             setLoading(true);
 
-            await inituserSettings();
+            await initUserSettings();
             const tableData = await fetchTableData();
-            transformData(tableData);
-            updateFormattedData(tableData);
+            const transformedData = transformData(tableData);
+            updateFormattedData(transformedData);
         } catch (e) {
             console.log('initData failed', e);
         } finally {
