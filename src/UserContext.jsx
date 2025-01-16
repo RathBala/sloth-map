@@ -5,9 +5,9 @@ import { convertDatabaseTimestamp } from './utils/dateUtils';
 import { getUserRef } from './utils/getUserRef';
 import { formatNumber, formatMonth } from './utils/formatUtils';
 import { recalculateAllData } from './utils/recalculateAllData';
-import useUserData from './utils/useUserData';
+import useUserSettings from './utils/useUserSettings';
 
-const defaultUserData = {
+const defaultuserSettings = {
     interestRate: 5,
     investmentReturnRate: 10,
     targetNestEgg: 100000,
@@ -15,8 +15,8 @@ const defaultUserData = {
 };
 
 export const UserContext = createContext({
-    userData: defaultUserData,
-    setUserData: () => {},
+    userSettings: defaultuserSettings,
+    setuserSettings: () => {},
     loading: true,
     setLoading: () => {},
     tableData: [],
@@ -29,7 +29,7 @@ export const UserContext = createContext({
 export const UserContextProvider = ({ children }) => {
     const currentUser = useContext(AuthContext);
 
-    const [userData, setUserData] = useState(defaultUserData);
+    const [userSettings, setuserSettings] = useState(defaultuserSettings);
     const [loading, setLoading] = useState(false);
 
     const [rawTableData, setRawTableData] = useState([]);
@@ -44,14 +44,14 @@ export const UserContextProvider = ({ children }) => {
         interestRate,
         investmentReturnRate,
         targetNestEgg,
-    } = useUserData();
+    } = useUserSettings();
 
-    const initUserData = async () => {
+    const inituserSettings = async () => {
         const userRef = getUserRef(currentUser);
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {
-            const newUserData = {
+            const newuserSettings = {
                 ...userDoc.data(),
                 email: currentUser.email,
                 uid: currentUser.uid,
@@ -59,17 +59,20 @@ export const UserContextProvider = ({ children }) => {
                     userDoc.data().dateOfBirth
                 ),
             };
-            console.log('Setting userData:', newUserData);
-            setUserData(newUserData);
+            console.log('Setting userSettings:', newuserSettings);
+            setuserSettings(newuserSettings);
         } else {
-            await setDoc(userRef, defaultUserData);
-            const newUserData = {
-                ...defaultUserData,
+            await setDoc(userRef, defaultuserSettings);
+            const newuserSettings = {
+                ...defaultuserSettings,
                 email: currentUser.email,
                 uid: currentUser.uid,
             };
-            console.log('Creating and setting new userData:', newUserData);
-            setUserData(newUserData);
+            console.log(
+                'Creating and setting new userSettings:',
+                newuserSettings
+            );
+            setuserSettings(newuserSettings);
         }
     };
 
@@ -106,6 +109,8 @@ export const UserContextProvider = ({ children }) => {
         );
 
         setTableData(data);
+
+        console.log('table data is now: ', data);
     };
 
     const processDataForSlothMap = (data) => {
@@ -176,7 +181,7 @@ export const UserContextProvider = ({ children }) => {
         try {
             setLoading(true);
 
-            await initUserData();
+            await inituserSettings();
             const tableData = await fetchTableData();
             transformData(tableData);
             updateFormattedData(tableData);
@@ -195,8 +200,8 @@ export const UserContextProvider = ({ children }) => {
 
     const value = useMemo(() => {
         return {
-            userData,
-            setUserData,
+            userSettings,
+            setuserSettings,
             loading,
             setLoading,
 
@@ -211,7 +216,7 @@ export const UserContextProvider = ({ children }) => {
             updateFormattedData,
         };
     }, [
-        userData,
+        userSettings,
         loading,
         rawTableData,
         tableData,

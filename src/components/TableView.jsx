@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import InputFields from './InputFields';
 import TableComponent from './TableComponent';
-import useUserData from '../utils/useUserData';
+import useUserSettings from '../utils/useUserSettings';
 import { formatMonth } from '../utils/formatUtils';
 
 export default function TableView() {
@@ -12,11 +12,11 @@ export default function TableView() {
         setTableData,
         formattedTableData,
         slothMapData,
-        userData,
+        userSettings,
         setUserInputs,
         goals,
         setFieldsToDelete,
-    } = useUserData();
+    } = useUserSettings();
 
     const lastEntry = tableData[tableData.length - 1];
     const achieveNestEggBy = lastEntry ? formatMonth(lastEntry.month) : 'TBC';
@@ -336,7 +336,7 @@ export default function TableView() {
         <>
             <InputFields
                 achieveNestEggBy={achieveNestEggBy}
-                dateOfBirth={userData.dateOfBirth}
+                dateOfBirth={userSettings.dateOfBirth}
                 isSettingsPage={false}
             />
             <button

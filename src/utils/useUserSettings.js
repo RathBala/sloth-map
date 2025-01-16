@@ -1,6 +1,6 @@
 /* eslint-disable no-debugger */
 import { useState, useContext } from 'react';
-import { auth, db } from '../firebase-config';
+import { auth, db } from '../firebase-config.js';
 import { signOut } from 'firebase/auth';
 import {
     collection,
@@ -13,11 +13,11 @@ import {
 import { AuthContext } from '../AuthContext.jsx';
 import { UserContext } from '../UserContext.jsx';
 
-//TODO: refactor, remove userData as it belongs to UserContext and we are basically duplicating state here
-const useUserData = () => {
+//TODO: refactor, remove userSettings as it belongs to UserContext and we are basically duplicating state here
+const useUserSettings = () => {
     const currentUser = useContext(AuthContext);
     const {
-        userData,
+        userSettings,
         loading,
         tableData,
         formattedTableData,
@@ -27,19 +27,19 @@ const useUserData = () => {
     } = useContext(UserContext);
 
     const [interestRate, setInterestRate] = useState(
-        userData?.interestRate || 5
+        userSettings?.interestRate || 5
     );
     const [investmentReturnRate, setInvestmentReturnRate] = useState(
-        userData?.investmentReturnRate || 10
+        userSettings?.investmentReturnRate || 10
     );
     const [targetNestEgg, setTargetNestEgg] = useState(
-        userData?.targetNestEgg || 100000
+        userSettings?.targetNestEgg || 100000
     );
 
-    const initialDob = userData?.dateOfBirth
-        ? userData.dateOfBirth.toDate
-            ? userData.dateOfBirth.toDate()
-            : new Date(userData.dateOfBirth)
+    const initialDob = userSettings?.dateOfBirth
+        ? userSettings.dateOfBirth.toDate
+            ? userSettings.dateOfBirth.toDate()
+            : new Date(userSettings.dateOfBirth)
         : null;
     const [dateOfBirth, setDateOfBirth] = useState(initialDob);
 
@@ -219,7 +219,7 @@ const useUserData = () => {
     };
 
     return {
-        userData: userData || null,
+        userSettings: userSettings || null,
         loading,
         tableData,
         formattedTableData,
@@ -247,4 +247,4 @@ const useUserData = () => {
     };
 };
 
-export default useUserData;
+export default useUserSettings;

@@ -11,20 +11,6 @@ import { parseMonth } from './parseMonth';
 export const generateMissingRowKeys = (data) => {
     if (data.length === 0) return data;
 
-    const parseRowKey = (rowKey) => {
-        const [year, month, variantIndexStr] = rowKey.split('-');
-        return {
-            date: new Date(Number(year), Number(month) - 1),
-            variantIndex: Number(variantIndexStr),
-        };
-    };
-
-    const formatMonth = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        return `${year}-${month}`;
-    };
-
     const uniqueMonthsSet = new Set(data.map((row) => row.month));
     const uniqueMonths = Array.from(uniqueMonthsSet).sort();
 
@@ -49,7 +35,7 @@ export const generateMissingRowKeys = (data) => {
         const newRow = {
             rowKey: newRowKey,
             month: month,
-            variantIndex: 0,
+            isActive: true,
         };
         data.push(newRow);
     });

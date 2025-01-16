@@ -5,7 +5,7 @@ import TableView from './components/TableView';
 import InputFields from './components/InputFields';
 import Authentication from './components/Auth';
 import SlothMap from './components/SlothMap';
-import useUserData from './utils/useUserData';
+import useUserSettings from './utils/useUserSettings';
 import { handleSaveClick } from './utils/useSave';
 import './App.css';
 import GoalModal from './components/GoalModal';
@@ -19,7 +19,7 @@ import cogSelectedIcon from './assets/Cog.svg';
 
 const App = () => {
     const {
-        userData,
+        userSettings,
         loading,
         tableData,
         formattedTableData,
@@ -36,7 +36,7 @@ const App = () => {
         logout,
         goals,
         saveGoal,
-    } = useUserData();
+    } = useUserSettings();
 
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const profileMenuRef = useRef(null);
@@ -85,7 +85,7 @@ const App = () => {
     // probably doesn't need to be a userEffect
     useEffect(() => {
         setIsProfileMenuOpen(false);
-    }, [userData]);
+    }, [userSettings]);
 
     // TODO: separate component
     const handleNewGoalClick = () => {
@@ -97,13 +97,11 @@ const App = () => {
         saveGoal(goal);
     };
 
-    console.log('App userData:', userData);
-
     if (loading) {
         return <div>Loading...</div>;
     }
 
-    if (!userData || !userData.email) {
+    if (!userSettings || !userSettings.email) {
         return <Authentication />;
     }
 
@@ -150,8 +148,8 @@ const App = () => {
                     <div className="welcome">
                         <h4>
                             Welcome{' '}
-                            {userData.email
-                                ? userData.email
+                            {userSettings.email
+                                ? userSettings.email
                                 : 'No user logged in'}
                         </h4>
                     </div>
@@ -240,12 +238,12 @@ const App = () => {
                         path="/settings"
                         element={
                             <InputFields
-                                interestRate={userData.interestRate || ''}
+                                interestRate={userSettings.interestRate || ''}
                                 investmentReturnRate={
-                                    userData.investmentReturnRate || ''
+                                    userSettings.investmentReturnRate || ''
                                 }
-                                targetNestEgg={userData.targetNestEgg || ''}
-                                dateOfBirth={userData.dateOfBirth}
+                                targetNestEgg={userSettings.targetNestEgg || ''}
+                                dateOfBirth={userSettings.dateOfBirth}
                                 handleDateOfBirthChange={
                                     handleDateOfBirthChange
                                 }

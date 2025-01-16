@@ -37,6 +37,8 @@ export const calculateCumulativeBalances = (
     investmentRate,
     goals
 ) => {
+    console.log('calculateCumulativeBalances called');
+
     const updatedRows = [...rows].sort((a, b) =>
         a.rowKey.localeCompare(b.rowKey)
     );

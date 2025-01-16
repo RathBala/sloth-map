@@ -11,6 +11,7 @@ export const recalculateAllData = (
 ) => {
     const mergedUserDataMap = new Map();
     tableData.forEach((row) => {
+        console.log('tableData row: ', row);
         mergedUserDataMap.set(row.rowKey, { rowKey: row.rowKey, ...row });
     });
 
@@ -45,6 +46,8 @@ export const recalculateAllData = (
         investmentReturnRate,
         goals
     );
+
+    console.log('calculatedData is: ', calculatedData);
 
     return calculatedData;
 };
