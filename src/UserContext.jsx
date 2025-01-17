@@ -29,8 +29,12 @@ export const UserContext = createContext({
 export const UserContextProvider = ({ children }) => {
     const currentUser = useContext(AuthContext);
 
-    const [userSettings, setuserSettings] = useState(defaultUserSettings);
     const [loading, setLoading] = useState(false);
+
+    const [interestRate, setInterestRate] = useState(5);
+    const [investmentReturnRate, setInvestmentReturnRate] = useState(10);
+    const [targetNestEgg, setTargetNestEgg] = useState(100000);
+    const [dateOfBirth, setDateOfBirth] = useState(null);
 
     const [rawTableData, setRawTableData] = useState([]);
     const [tableData, setTableData] = useState([]);
@@ -41,9 +45,9 @@ export const UserContextProvider = ({ children }) => {
     const {
         userInputs,
         goals,
-        interestRate,
-        investmentReturnRate,
-        targetNestEgg,
+        // interestRate,
+        // investmentReturnRate,
+        // targetNestEgg,
     } = useUserSettings();
 
     const initUserSettings = async () => {
@@ -54,10 +58,6 @@ export const UserContextProvider = ({ children }) => {
             const newUserSettings = {
                 ...userDoc.data(),
                 email: currentUser.email,
-                uid: currentUser.uid,
-                dateOfBirth: convertDatabaseTimestamp(
-                    userDoc.data().dateOfBirth
-                ),
             };
             setuserSettings(newUserSettings);
         } else {
@@ -104,10 +104,7 @@ export const UserContextProvider = ({ children }) => {
         );
 
         setTableData(data);
-
         return data;
-
-        console.log('table data is now: ', data);
     };
 
     const processDataForSlothMap = (data) => {
