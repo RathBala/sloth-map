@@ -26,22 +26,22 @@ const useUserSettings = () => {
         updateFormattedData,
     } = useContext(UserContext);
 
-    const [interestRate, setInterestRate] = useState(
-        userSettings?.interestRate || 5
-    );
-    const [investmentReturnRate, setInvestmentReturnRate] = useState(
-        userSettings?.investmentReturnRate || 10
-    );
-    const [targetNestEgg, setTargetNestEgg] = useState(
-        userSettings?.targetNestEgg || 100000
-    );
+    // const [interestRate, setInterestRate] = useState(
+    //     userSettings?.interestRate || 5
+    // );
+    // const [investmentReturnRate, setInvestmentReturnRate] = useState(
+    //     userSettings?.investmentReturnRate || 10
+    // );
+    // const [targetNestEgg, setTargetNestEgg] = useState(
+    //     userSettings?.targetNestEgg || 100000
+    // );
 
-    const initialDob = userSettings?.dateOfBirth
-        ? userSettings.dateOfBirth.toDate
-            ? userSettings.dateOfBirth.toDate()
-            : new Date(userSettings.dateOfBirth)
-        : null;
-    const [dateOfBirth, setDateOfBirth] = useState(initialDob);
+    // const initialDob = userSettings?.dateOfBirth
+    //     ? userSettings.dateOfBirth.toDate
+    //         ? userSettings.dateOfBirth.toDate()
+    //         : new Date(userSettings.dateOfBirth)
+    //     : null;
+    // const [dateOfBirth, setDateOfBirth] = useState(initialDob);
 
     const [userInputs, setUserInputs] = useState({});
     const [goals, setGoals] = useState({});
@@ -99,7 +99,6 @@ const useUserSettings = () => {
                     }
                 });
 
-                // updatedGoals = { ...updatedGoals };
                 otherGoals.forEach((g) => {
                     updatedGoals[g.id] = g;
                 });

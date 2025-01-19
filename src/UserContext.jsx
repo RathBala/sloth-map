@@ -1,27 +1,31 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
 import { AuthContext } from './AuthContext';
-import { convertDatabaseTimestamp } from './utils/dateUtils';
 import { getUserRef } from './utils/getUserRef';
 import { formatNumber, formatMonth } from './utils/formatUtils';
 import { recalculateAllData } from './utils/recalculateAllData';
-import useUserSettings from './utils/useUserSettings';
 
 const defaultUserSettings = {
     interestRate: 5,
     investmentReturnRate: 10,
     targetNestEgg: 100000,
     dateOfBirth: null,
-};
+  };
 
 export const UserContext = createContext({
     userSettings: defaultUserSettings,
     setuserSettings: () => {},
+
     loading: true,
     setLoading: () => {},
+
+    rawTableData: [],
+    setRawTableData: () => {},
+
     tableData: [],
     setTableData: () => {},
     formattedTableData: [],
+
     slothMapData: [],
     updateFormattedData: () => {},
 });
@@ -29,12 +33,9 @@ export const UserContext = createContext({
 export const UserContextProvider = ({ children }) => {
     const currentUser = useContext(AuthContext);
 
-    const [loading, setLoading] = useState(false);
+    const [userSettings, setUserSettings] = useState(defaultUserSettings);
 
-    const [interestRate, setInterestRate] = useState(5);
-    const [investmentReturnRate, setInvestmentReturnRate] = useState(10);
-    const [targetNestEgg, setTargetNestEgg] = useState(100000);
-    const [dateOfBirth, setDateOfBirth] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     const [rawTableData, setRawTableData] = useState([]);
     const [tableData, setTableData] = useState([]);
@@ -42,13 +43,7 @@ export const UserContextProvider = ({ children }) => {
 
     const [slothMapData, setSlothMapData] = useState([]);
 
-    const {
-        userInputs,
-        goals,
-        // interestRate,
-        // investmentReturnRate,
-        // targetNestEgg,
-    } = useUserSettings();
+    const [goals, setGoals] = useState({});
 
     const initUserSettings = async () => {
         const userRef = getUserRef(currentUser);
@@ -56,6 +51,7 @@ export const UserContextProvider = ({ children }) => {
 
         if (userDoc.exists()) {
             const newUserSettings = {
+                ...defaultUserSettings,
                 ...userDoc.data(),
                 email: currentUser.email,
             };
@@ -65,7 +61,6 @@ export const UserContextProvider = ({ children }) => {
             const newUserSettings = {
                 ...defaultUserSettings,
                 email: currentUser.email,
-                uid: currentUser.uid,
             };
             setuserSettings(newUserSettings);
         }
@@ -98,9 +93,9 @@ export const UserContextProvider = ({ children }) => {
             rawData,
             userInputs,
             goals,
-            interestRate,
-            investmentReturnRate,
-            targetNestEgg
+            userSettings.interestRate,
+            userSettings.investmentReturnRate,
+            userSettings.targetNestEgg
         );
 
         setTableData(data);
