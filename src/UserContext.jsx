@@ -1,7 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
 import { AuthContext } from './AuthContext';
 import { getUserRef } from './utils/getUserRef';
+import {
+    fetchUserSettingsFromFirestore,
+    saveUserSettingsToFirestore,
+    fetchTableDataFromFirestore,
+} from './utils/userServices';
 import { formatNumber, formatMonth } from './utils/formatUtils';
 import { recalculateAllData } from './utils/recalculateAllData';
 
@@ -10,7 +14,7 @@ const defaultUserSettings = {
     investmentReturnRate: 10,
     targetNestEgg: 100000,
     dateOfBirth: null,
-  };
+};
 
 export const UserContext = createContext({
     userSettings: defaultUserSettings,
@@ -24,10 +28,12 @@ export const UserContext = createContext({
 
     tableData: [],
     setTableData: () => {},
+
     formattedTableData: [],
+    setFormattedTableData, 
+    updateFormattedData: () => {},
 
     slothMapData: [],
-    updateFormattedData: () => {},
 });
 
 export const UserContextProvider = ({ children }) => {
@@ -45,57 +51,39 @@ export const UserContextProvider = ({ children }) => {
 
     const [goals, setGoals] = useState({});
 
-    const initUserSettings = async () => {
-        const userRef = getUserRef(currentUser);
-        const userDoc = await getDoc(userRef);
+    async function initData() {
+        try {
+            const fetchedSettings = await fetchUserSettingsFromFirestore(currentUser);
+            
+            if (fetchedSettings) {
+                setUserSettings(fetchedSettings);
+            } else {
+                await saveUserSettingsToFirestore(currentUser, defaultUserSettings);
+                setuserSettings({
+                    ...defaultUserSettings,
+                    email: currentUser.email,
+                });
+            }
 
-        if (userDoc.exists()) {
-            const newUserSettings = {
-                ...defaultUserSettings,
-                ...userDoc.data(),
-                email: currentUser.email,
-            };
-            setuserSettings(newUserSettings);
-        } else {
-            await setDoc(userRef, defaultUserSettings);
-            const newUserSettings = {
-                ...defaultUserSettings,
-                email: currentUser.email,
-            };
-            setuserSettings(newUserSettings);
+            const loadedTableData = await fetchTableDataFromFirestore(currentUser);
+            setRawTableData(loadedTableData);
+
+            const transformedData = transformData(loadedTableData);
+            
+            updateFormattedData(transformedData);
+        } catch (err) {
+            console.error('initData failed', err);
+        } finally {
+            setLoading(false);
         }
-    };
-
-    const fetchTableData = async () => {
-        const userRef = getUserRef(currentUser);
-        const tableDataRef = collection(userRef, 'tableData');
-        const snapshot = await getDocs(tableDataRef);
-
-        const loadedTableData = [];
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const rowKey = doc.id;
-            const [year, month] = rowKey.split('-');
-            loadedTableData.push({
-                ...data,
-                rowKey,
-                month: `${year}-${month}`,
-            });
-        });
-
-        setRawTableData(loadedTableData);
-
-        return loadedTableData;
-    };
+    }
 
     const transformData = (rawData) => {
         const data = recalculateAllData(
             rawData,
             userInputs,
             goals,
-            userSettings.interestRate,
-            userSettings.investmentReturnRate,
-            userSettings.targetNestEgg
+            userSettings,
         );
 
         setTableData(data);
@@ -150,8 +138,8 @@ export const UserContextProvider = ({ children }) => {
         return nodes;
     };
 
-    const updateFormattedData = (tableData) => {
-        const formatted = tableData.map((entry) => ({
+    const updateFormattedData = (data) => {
+        const formatted = data.map((entry) => ({
             ...entry,
             interestReturnFormatted: formatNumber(entry.interestReturn),
             investmentReturnFormatted: formatNumber(entry.investmentReturn),
@@ -166,21 +154,6 @@ export const UserContextProvider = ({ children }) => {
         setSlothMapData(mapData);
     };
 
-    const initData = async () => {
-        try {
-            setLoading(true);
-
-            await initUserSettings();
-            const tableData = await fetchTableData();
-            const transformedData = transformData(tableData);
-            updateFormattedData(transformedData);
-        } catch (e) {
-            console.log('initData failed', e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
         if (currentUser) {
             initData();
@@ -191,6 +164,7 @@ export const UserContextProvider = ({ children }) => {
         return {
             userSettings,
             setuserSettings,
+
             loading,
             setLoading,
 
@@ -201,8 +175,10 @@ export const UserContextProvider = ({ children }) => {
             setTableData,
 
             formattedTableData,
-            slothMapData,
+            setFormattedTableData,
             updateFormattedData,
+
+            slothMapData,
         };
     }, [
         userSettings,

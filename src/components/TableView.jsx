@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import InputFields from './InputFields';
 import TableComponent from './TableComponent';
 import useUserSettings from '../utils/useUserSettings';
@@ -8,15 +8,19 @@ export default function TableView() {
     const [showHistoricRows, setShowHistoricRows] = useState(false);
 
     const {
+        loading,
         tableData,
         setTableData,
         formattedTableData,
-        slothMapData,
         userSettings,
-        setUserInputs,
         goals,
-        setFieldsToDelete,
-    } = useUserSettings();
+    } = useContext(UserContext);
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    const { setUserInputs, setFieldsToDelete } = useUserSettings();
 
     const lastEntry = tableData[tableData.length - 1];
     const achieveNestEggBy = lastEntry ? formatMonth(lastEntry.month) : 'TBC';

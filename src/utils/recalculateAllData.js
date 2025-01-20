@@ -5,10 +5,10 @@ export const recalculateAllData = (
     tableData = [],
     userInputs = {},
     goals = {},
-    interestRate = 5,
-    investmentReturnRate = 10,
-    targetNestEgg = 100000
+    userSettings = {}
 ) => {
+    const { interestRate, investmentReturnRate, targetNestEgg } = userSettings;
+
     const mergedUserDataMap = new Map();
     tableData.forEach((row) => {
         console.log('tableData row: ', row);
