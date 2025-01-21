@@ -27,9 +27,7 @@ export const recalculateAllData = (
     });
 
     let mergedUserDataArray = Array.from(mergedUserDataMap.values());
-
     mergedUserDataArray.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
-
     mergedUserDataArray = generateMissingRowKeys(mergedUserDataArray);
 
     let calculatedData = calculateCumulativeBalances(

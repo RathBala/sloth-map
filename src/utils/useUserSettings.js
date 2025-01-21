@@ -12,10 +12,15 @@ import {
 } from 'firebase/firestore';
 import { AuthContext } from '../AuthContext.jsx';
 import { UserContext } from '../UserContext.jsx';
+import {
+    fetchGoalsFromFirestore,
+    saveGoalToFirestore,
+    saveTableDataToFirestore,
+  } from './userServices';
 
-//TODO: refactor, remove userSettings as it belongs to UserContext and we are basically duplicating state here
 const useUserSettings = () => {
     const currentUser = useContext(AuthContext);
+    
     const {
         userSettings,
         loading,

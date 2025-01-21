@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
-import InputFields from './InputFields';
+import { UserContext } from '../UserContext';
 import TableComponent from './TableComponent';
-import useUserSettings from '../utils/useUserSettings';
+import UserInfoDisplay from './UserInfoDisplay';
 import { formatMonth } from '../utils/formatUtils';
 
 export default function TableView() {
@@ -14,13 +14,15 @@ export default function TableView() {
         formattedTableData,
         userSettings,
         goals,
+        userInputs,
+        setUserInputs,
+        fieldsToDelete,
+        setFieldsToDelete,
     } = useContext(UserContext);
 
     if (loading) {
         return <div>Loading...</div>;
     }
-
-    const { setUserInputs, setFieldsToDelete } = useUserSettings();
 
     const lastEntry = tableData[tableData.length - 1];
     const achieveNestEggBy = lastEntry ? formatMonth(lastEntry.month) : 'TBC';

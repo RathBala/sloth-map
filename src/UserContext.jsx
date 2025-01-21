@@ -1,10 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AuthContext } from './AuthContext';
-import { getUserRef } from './utils/getUserRef';
 import {
     fetchUserSettingsFromFirestore,
     saveUserSettingsToFirestore,
     fetchTableDataFromFirestore,
+    // method to save userInputs to Firestore
 } from './utils/userServices';
 import { formatNumber, formatMonth } from './utils/formatUtils';
 import { recalculateAllData } from './utils/recalculateAllData';
@@ -30,10 +30,20 @@ export const UserContext = createContext({
     setTableData: () => {},
 
     formattedTableData: [],
-    setFormattedTableData, 
+    setFormattedTableData,
     updateFormattedData: () => {},
 
+    goals: {},
+    setGoals: () => {},
+
+    userInputs: {},
+    setUserInputs: () => {},
+
+    fieldsToDelete: {},
+    setFieldsToDelete: () => {},
+
     slothMapData: [],
+    setSlothMapData: () => {},
 });
 
 export const UserContextProvider = ({ children }) => {
@@ -47,29 +57,43 @@ export const UserContextProvider = ({ children }) => {
     const [tableData, setTableData] = useState([]);
     const [formattedTableData, setFormattedTableData] = useState([]);
 
+    const [goals, setGoals] = useState({});
+
+    const [userInputs, setUserInputs] = useState({});
+    const [fieldsToDelete, setFieldsToDelete] = useState({});
+
     const [slothMapData, setSlothMapData] = useState([]);
 
-    const [goals, setGoals] = useState({});
+    useEffect(() => {
+        if (currentUser) {
+            initData();
+        }
+    }, [currentUser]);
 
     async function initData() {
         try {
-            const fetchedSettings = await fetchUserSettingsFromFirestore(currentUser);
-            
+            const fetchedSettings =
+                await fetchUserSettingsFromFirestore(currentUser);
+
             if (fetchedSettings) {
                 setUserSettings(fetchedSettings);
             } else {
-                await saveUserSettingsToFirestore(currentUser, defaultUserSettings);
-                setuserSettings({
+                await saveUserSettingsToFirestore(
+                    currentUser,
+                    defaultUserSettings
+                );
+                setUserSettings({
                     ...defaultUserSettings,
                     email: currentUser.email,
                 });
             }
 
-            const loadedTableData = await fetchTableDataFromFirestore(currentUser);
+            const loadedTableData =
+                await fetchTableDataFromFirestore(currentUser);
             setRawTableData(loadedTableData);
 
             const transformedData = transformData(loadedTableData);
-            
+
             updateFormattedData(transformedData);
         } catch (err) {
             console.error('initData failed', err);
@@ -83,7 +107,7 @@ export const UserContextProvider = ({ children }) => {
             rawData,
             userInputs,
             goals,
-            userSettings,
+            userSettings
         );
 
         setTableData(data);
@@ -150,20 +174,13 @@ export const UserContextProvider = ({ children }) => {
 
         setFormattedTableData(formatted);
 
-        const mapData = processDataForSlothMap(formatted);
-        setSlothMapData(mapData);
+        setSlothMapData(processDataForSlothMap(formatted));
     };
-
-    useEffect(() => {
-        if (currentUser) {
-            initData();
-        }
-    }, [currentUser]);
 
     const value = useMemo(() => {
         return {
             userSettings,
-            setuserSettings,
+            setUserSettings,
 
             loading,
             setLoading,
@@ -174,17 +191,30 @@ export const UserContextProvider = ({ children }) => {
             tableData,
             setTableData,
 
+            goals,
+            setGoals,
+
+            userInputs,
+            setUserInputs,
+
+            fieldsToDelete,
+            setFieldsToDelete,
+
             formattedTableData,
             setFormattedTableData,
             updateFormattedData,
 
             slothMapData,
+            setSlothMapData,
         };
     }, [
         userSettings,
         loading,
         rawTableData,
         tableData,
+        goals,
+        userInputs,
+        fieldsToDelete,
         formattedTableData,
         slothMapData,
     ]);

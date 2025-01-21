@@ -1,23 +1,71 @@
 import { useContext } from 'react';
+import { AuthContext } from '../AuthContext';
 import { UserContext } from '../UserContext';
 import { saveUserSettingsToFirestore } from '../utils/userServices';
-import { AuthContext } from '../AuthContext';
+import { formatDateForInput } from '../utils/formatUtils';
 
-function SettingsEditor() {
-  const { userSettings, setUserSettings } = useContext(UserContext);
-  const currentUser = useContext(AuthContext);
+export default function Settings() {
+    const { userSettings, setUserSettings } = useContext(UserContext);
+    const currentUser = useContext(AuthContext);
 
-  const handleInterestRateChange = (newRate) => {
-    setUserSettings((prev) => ({
-      ...prev,
-      interestRate: newRate,
-    }));
+    function handleChange(field, value) {
+        let updatedValue = value;
+        if (field === 'dateOfBirth') {
+            updatedValue = value ? new Date(value) : null;
+        } else {
+            updatedValue = parseFloat(value) || 0;
+        }
+        setUserSettings((prev) => ({ ...prev, [field]: updatedValue }));
+        saveUserSettingsToFirestore(currentUser, {
+            ...userSettings,
+            [field]: updatedValue,
+        });
+    }
 
-    saveUserSettingsToFirestore(currentUser, {
-      ...userSettings,
-      interestRate: newRate,
-    });
-  };
+    return (
+        <div>
+            <h3>Settings</h3>
+            <div>
+                <label>Interest Rate (%):</label>
+                <input
+                    type="number"
+                    value={userSettings.interestRate ?? ''}
+                    onChange={(e) =>
+                        handleChange('interestRate', e.target.value)
+                    }
+                />
+            </div>
 
-  // Render UI
+            <div>
+                <label>Investment Return Rate (%):</label>
+                <input
+                    type="number"
+                    value={userSettings.investmentReturnRate ?? ''}
+                    onChange={(e) =>
+                        handleChange('investmentReturnRate', e.target.value)
+                    }
+                />
+            </div>
+
+            <div>
+                <label>Target Nest Egg:</label>
+                <input
+                    type="number"
+                    value={userSettings.targetNestEgg ?? ''}
+                    onChange={(e) =>
+                        handleChange('targetNestEgg', e.target.value)
+                    }
+                />
+            </div>
+
+            <div>
+                <label>Date of Birth:</label>
+                <input
+                    type="date"
+                    value={formatDateForInput(userSettings.dateOfBirth)}
+                    onChange={handleDateOfBirthChange}
+                />
+            </div>
+        </div>
+    );
 }

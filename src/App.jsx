@@ -1,11 +1,11 @@
 /* eslint-disable no-debugger */
-import { useState, useEffect, useRef } from 'react';
+import { useContext, useState, useEffect, useRef } from 'react';
 import { Route, Routes, Link, useLocation } from 'react-router-dom';
 import TableView from './components/TableView';
 import InputFields from './components/InputFields';
 import Authentication from './components/Auth';
 import SlothMap from './components/SlothMap';
-import useUserSettings from './utils/useUserSettings';
+import { UserContext } from './UserContext';
 import { handleSaveClick } from './utils/useSave';
 import './App.css';
 import GoalModal from './components/GoalModal';
@@ -19,11 +19,8 @@ import cogSelectedIcon from './assets/Cog.svg';
 
 const App = () => {
     const {
-        userSettings,
-        loading,
         tableData,
         formattedTableData,
-        slothMapData,
         setTableData,
         interestRate,
         setInterestRate,
@@ -34,9 +31,11 @@ const App = () => {
         dateOfBirth,
         setDateOfBirth,
         logout,
-        goals,
         saveGoal,
     } = useUserSettings();
+
+    const { userSettings, loading, slothMapData, goals } =
+        useContext(UserContext);
 
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const profileMenuRef = useRef(null);
