@@ -16,11 +16,11 @@ import {
     fetchGoalsFromFirestore,
     saveGoalToFirestore,
     saveTableDataToFirestore,
-  } from './userServices';
+} from './userServices';
 
 const useUserSettings = () => {
     const currentUser = useContext(AuthContext);
-    
+
     const {
         userSettings,
         loading,
@@ -223,31 +223,10 @@ const useUserSettings = () => {
     };
 
     return {
-        userSettings: userSettings || null,
-        loading,
-        tableData,
-        formattedTableData,
-        slothMapData,
-        setTableData,
-        interestRate,
-        setInterestRate,
-        investmentReturnRate,
-        setInvestmentReturnRate,
-        targetNestEgg,
-        setTargetNestEgg,
-        dateOfBirth,
-        setDateOfBirth,
         userInputs,
         setUserInputs,
         saveInputFields,
-        saveTableData,
         logout,
-        setFieldsToDelete,
-        goals,
-        saveGoal,
-        commitGoalsToFirestore,
-        fetchUserInputs,
-        fetchGoals,
     };
 };
 

@@ -30,7 +30,7 @@ export const UserContext = createContext({
     setTableData: () => {},
 
     formattedTableData: [],
-    setFormattedTableData,
+    setFormattedTableData: () => {},
     updateFormattedData: () => {},
 
     goals: {},

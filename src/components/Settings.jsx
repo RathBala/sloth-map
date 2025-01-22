@@ -2,7 +2,10 @@ import { useContext } from 'react';
 import { AuthContext } from '../AuthContext';
 import { UserContext } from '../UserContext';
 import { saveUserSettingsToFirestore } from '../utils/userServices';
-import { formatDateForInput } from '../utils/formatUtils';
+import {
+    formatDateForInput,
+    convertDatabaseTimestamp,
+} from '../utils/formatUtils';
 
 export default function Settings() {
     const { userSettings, setUserSettings } = useContext(UserContext);
@@ -24,7 +27,6 @@ export default function Settings() {
 
     return (
         <div>
-            <h3>Settings</h3>
             <div>
                 <label>Interest Rate (%):</label>
                 <input
@@ -62,8 +64,12 @@ export default function Settings() {
                 <label>Date of Birth:</label>
                 <input
                     type="date"
-                    value={formatDateForInput(userSettings.dateOfBirth)}
-                    onChange={handleDateOfBirthChange}
+                    value={formatDateForInput(
+                        convertDatabaseTimestamp(userSettings.dateOfBirth)
+                    )}
+                    onChange={(e) =>
+                        handleChange('dateOfBirth', e.target.value)
+                    }
                 />
             </div>
         </div>

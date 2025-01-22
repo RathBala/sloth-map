@@ -2,13 +2,14 @@
 import { useContext, useState, useEffect, useRef } from 'react';
 import { Route, Routes, Link, useLocation } from 'react-router-dom';
 import TableView from './components/TableView';
-import InputFields from './components/InputFields';
+import Settings from './components/Settings';
 import Authentication from './components/Auth';
 import SlothMap from './components/SlothMap';
 import { UserContext } from './UserContext';
 import { handleSaveClick } from './utils/useSave';
 import './App.css';
 import GoalModal from './components/GoalModal';
+import useUserSettings from './utils/useUserSettings';
 import plusIcon from './assets/Plus.svg';
 import tableIcon from './assets/table.png';
 import mapIcon from './assets/map.png';
@@ -18,21 +19,7 @@ import cogIcon from './assets/Cog.svg';
 import cogSelectedIcon from './assets/Cog.svg';
 
 const App = () => {
-    const {
-        tableData,
-        formattedTableData,
-        setTableData,
-        interestRate,
-        setInterestRate,
-        investmentReturnRate,
-        setInvestmentReturnRate,
-        targetNestEgg,
-        setTargetNestEgg,
-        dateOfBirth,
-        setDateOfBirth,
-        logout,
-        saveGoal,
-    } = useUserSettings();
+    const { logout } = useUserSettings();
 
     const { userSettings, loading, slothMapData, goals } =
         useContext(UserContext);
@@ -236,7 +223,7 @@ const App = () => {
                     <Route
                         path="/settings"
                         element={
-                            <InputFields
+                            <Settings
                                 interestRate={userSettings.interestRate || ''}
                                 investmentReturnRate={
                                     userSettings.investmentReturnRate || ''

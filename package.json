@@ -8,7 +8,8 @@
         "dev:test": "vite --mode test",
         "start:test": "vite --mode test",
         "cypress:open": "concurrently \"npm run dev\" \"wait-on tcp:5173 && cypress open\"",
-        "test": "firebase emulators:exec --only firestore,auth 'cypress run'",
+        "test:cypress": "firebase emulators:exec --only firestore,auth 'cypress run'",
+        "test:jest": "jest",
         "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
         "format": "prettier --write .",
@@ -36,6 +37,7 @@
         "eslint-plugin-react": "^7.34.1",
         "eslint-plugin-react-hooks": "^4.6.0",
         "eslint-plugin-react-refresh": "^0.4.6",
+        "jest": "^29.7.0",
         "prettier": "^3.2.5",
         "vite": "^5.2.0",
         "wait-on": "^8.0.1"

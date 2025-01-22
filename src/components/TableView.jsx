@@ -3,6 +3,7 @@ import { UserContext } from '../UserContext';
 import TableComponent from './TableComponent';
 import UserInfoDisplay from './UserInfoDisplay';
 import { formatMonth } from '../utils/formatUtils';
+import Settings from './Settings';
 
 export default function TableView() {
     const [showHistoricRows, setShowHistoricRows] = useState(false);
@@ -340,10 +341,9 @@ export default function TableView() {
 
     return (
         <>
-            <InputFields
-                achieveNestEggBy={achieveNestEggBy}
+            <UserInfoDisplay
                 dateOfBirth={userSettings.dateOfBirth}
-                isSettingsPage={false}
+                achieveNestEggBy={achieveNestEggBy}
             />
             <button
                 type="button"

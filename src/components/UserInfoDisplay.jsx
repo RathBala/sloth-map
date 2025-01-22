@@ -1,16 +1,22 @@
 import React from 'react';
+import { convertDatabaseTimestamp } from '../utils/formatUtils';
 
 function calculateCurrentAge(dateOfBirth) {
-    if (!dateOfBirth || isNaN(dateOfBirth.getTime())) return 'N/A';
+    const dateObj = convertDatabaseTimestamp(dateOfBirth);
+
+    if (!dateObj || isNaN(dateObj.getTime())) return 'N/A';
+
     const now = new Date();
-    let age = now.getFullYear() - dateOfBirth.getFullYear();
-    const monthDiff = now.getMonth() - dateOfBirth.getMonth();
+    let age = now.getFullYear() - dateObj.getFullYear();
+    const monthDiff = now.getMonth() - dateObj.getMonth();
+
     if (
         monthDiff < 0 ||
-        (monthDiff === 0 && now.getDate() < dateOfBirth.getDate())
+        (monthDiff === 0 && now.getDate() < dateObj.getDate())
     ) {
         age--;
     }
+
     return age;
 }
 
