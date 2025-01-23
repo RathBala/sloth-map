@@ -9,7 +9,6 @@ import { UserContext } from './UserContext';
 import { handleSaveClick } from './utils/useSave';
 import './App.css';
 import GoalModal from './components/GoalModal';
-import useUserSettings from './utils/useUserSettings';
 import plusIcon from './assets/Plus.svg';
 import tableIcon from './assets/table.png';
 import mapIcon from './assets/map.png';
@@ -19,20 +18,12 @@ import cogIcon from './assets/Cog.svg';
 import cogSelectedIcon from './assets/Cog.svg';
 
 const App = () => {
-    const { logout } = useUserSettings();
-
     const { userSettings, loading, slothMapData, goals } =
         useContext(UserContext);
 
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const profileMenuRef = useRef(null);
     const profileIconRef = useRef(null);
-
-    // const [tableData, setTableData] = useState(() => generateData(500, 300));
-    // const [showHistoricRows, setShowHistoricRows] = useState(false);
-
-    // const today = new Date();
-    // const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 
     // TODO: move goal modal stuff to a different component
     const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);

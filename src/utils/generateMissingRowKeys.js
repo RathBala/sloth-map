@@ -1,11 +1,3 @@
-/**
- * Generates any missing rowKeys between the earliest and latest rowKeys in the data.
- * Assumes rowKeys are in the format "YYYY-MM-variantIndex".
- *
- * @param {Array} data - The merged and sorted array of data entries.
- * @returns {Array} - The data array with missing rowKeys added.
- */
-
 import { parseMonth } from './parseMonth';
 
 export const generateMissingRowKeys = (data) => {

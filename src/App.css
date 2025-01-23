@@ -36,14 +36,15 @@ th .header-content {
 }
 
 .action-buttons-container {
-    position: relative;
-    top: 99px;
+    position: absolute; /* Changed from relative */
+    top: 79px; /* Matches top-nav height */
+    left: 0;
+    right: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 20px;
-    box-sizing: border-box;
-    overflow: visible;
+    min-height: 60px; /* Ensures consistent height */
     z-index: 999;
 }
 
@@ -351,6 +352,11 @@ th .header-content {
     align-items: center;
     padding: 20px;
     box-sizing: border-box;
+}
+
+.user-info-display {
+    margin-top: 70px;
+    padding-left: 20px;
 }
 
 @keyframes click-animation {

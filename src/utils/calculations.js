@@ -122,6 +122,7 @@ export const calculateCumulativeBalances = (
     return rows;
 };
 
+// TODO: clean up interest etc calculations to align with calculateCumulativeBalances
 export const ensureNestEgg = (
     target,
     data,
@@ -155,11 +156,9 @@ export const ensureNestEgg = (
 
         updatedData.push(newEntry);
 
-        // Recalculate only the new row
         const i = updatedData.length - 1;
-
-        // Initialize or carry over balances from the previous row
         const previousEntry = updatedData[i - 1];
+
         let runningTotalSavings = previousEntry.endingTotalSavings;
         let runningTotalInvestments = previousEntry.endingTotalInvestments;
 
