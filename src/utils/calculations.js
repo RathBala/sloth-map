@@ -31,12 +31,44 @@ export const generateData = (savings, investments) => {
     ];
 };
 
-export const calculateCumulativeBalances = (
-    rows,
+export const calculateCurrentRow = (
+    currentRow,
+    previousRow,
     interestRate,
-    investmentRate,
-    goals
+    investmentRate
 ) => {
+    if (!currentRow.isDepositSavingsManual) {
+        currentRow.depositSavings = previousRow.depositSavings;
+    }
+    if (!currentRow.isDepositInvestmentsManual) {
+        currentRow.depositInvestments = previousRow.depositInvestments;
+    }
+
+    const interestReturn = (interestRate / 12 / 100) * previousRow.totalSavings;
+    const investmentReturn =
+        (investmentRate / 12 / 100) * previousRow.totalInvestments;
+
+    currentRow.interestReturn = interestReturn;
+    currentRow.investmentReturn = investmentReturn;
+
+    if (!currentRow.isTotalSavingsManual) {
+        currentRow.totalSavings =
+            previousRow.totalSavings +
+            currentRow.depositSavings +
+            interestReturn;
+    }
+    if (!currentRow.isTotalInvestmentsManual) {
+        currentRow.totalInvestments =
+            previousRow.totalInvestments +
+            currentRow.depositInvestments +
+            investmentReturn;
+    }
+
+    currentRow.grandTotal =
+        currentRow.totalSavings + currentRow.totalInvestments;
+};
+
+export const calculateCumulativeBalances = (rows, goals) => {
     const sortedGoals = Object.values(goals).sort(
         (a, b) => a.priority - b.priority
     );
@@ -46,9 +78,8 @@ export const calculateCumulativeBalances = (
 
     const firstActiveIndex = rows.findIndex((r) => r.isActive);
     if (firstActiveIndex === -1) {
-        return rows; // No active rows
+        return rows;
     }
-
     const firstActiveRow = rows[firstActiveIndex];
 
     if (!firstActiveRow.isTotalSavingsManual) {
@@ -79,35 +110,7 @@ export const calculateCumulativeBalances = (
         const row = rows[i];
         if (!row.isActive) continue;
 
-        if (!row.isDepositSavingsManual) {
-            row.depositSavings = previousActiveRow.depositSavings;
-        }
-        if (!row.isDepositInvestmentsManual) {
-            row.depositInvestments = previousActiveRow.depositInvestments;
-        }
-
-        const interestReturn =
-            (interestRate / 12 / 100) * previousActiveRow.totalSavings;
-        const investmentReturn =
-            (investmentRate / 12 / 100) * previousActiveRow.totalInvestments;
-
-        row.interestReturn = interestReturn;
-        row.investmentReturn = investmentReturn;
-
-        if (!row.isTotalSavingsManual) {
-            row.totalSavings =
-                previousActiveRow.totalSavings +
-                row.depositSavings +
-                interestReturn;
-        }
-        if (!row.isTotalInvestmentsManual) {
-            row.totalInvestments =
-                previousActiveRow.totalInvestments +
-                row.depositInvestments +
-                investmentReturn;
-        }
-
-        row.grandTotal = row.totalSavings + row.totalInvestments;
+        calculateCurrentRow(row, previousActiveRow);
 
         while (
             goalIndex < totalGoals &&
@@ -122,7 +125,7 @@ export const calculateCumulativeBalances = (
     return rows;
 };
 
-// TODO: clean up interest etc calculations to align with calculateCumulativeBalances
+// TODO: clean up interest etc calculations to align with calculateCurrentRow
 export const ensureNestEgg = (
     target,
     data,
