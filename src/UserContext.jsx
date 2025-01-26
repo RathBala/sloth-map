@@ -75,8 +75,13 @@ export const UserContextProvider = ({ children }) => {
             const fetchedSettings =
                 await fetchUserSettingsFromFirestore(currentUser);
 
+            const mergedSettings = {
+                ...defaultUserSettings,
+                ...fetchedSettings,
+            };
+
             if (fetchedSettings) {
-                setUserSettings(fetchedSettings);
+                setUserSettings(mergedSettings);
             } else {
                 await saveUserSettingsToFirestore(
                     currentUser,

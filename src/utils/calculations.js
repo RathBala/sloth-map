@@ -68,7 +68,12 @@ export const calculateCurrentRow = (
         currentRow.totalSavings + currentRow.totalInvestments;
 };
 
-export const calculateCumulativeBalances = (rows, goals) => {
+export const calculateCumulativeBalances = (
+    rows,
+    interestRate,
+    investmentRate,
+    goals
+) => {
     const sortedGoals = Object.values(goals).sort(
         (a, b) => a.priority - b.priority
     );
@@ -110,7 +115,14 @@ export const calculateCumulativeBalances = (rows, goals) => {
         const row = rows[i];
         if (!row.isActive) continue;
 
-        calculateCurrentRow(row, previousActiveRow);
+        debugger;
+
+        calculateCurrentRow(
+            row,
+            previousActiveRow,
+            interestRate,
+            investmentRate
+        );
 
         while (
             goalIndex < totalGoals &&
@@ -125,7 +137,6 @@ export const calculateCumulativeBalances = (rows, goals) => {
     return rows;
 };
 
-// TODO: clean up interest etc calculations to align with calculateCurrentRow
 export const ensureNestEgg = (
     target,
     data,
@@ -138,7 +149,6 @@ export const ensureNestEgg = (
     let lastGrandTotal = updatedData[updatedData.length - 1].grandTotal;
 
     while (lastGrandTotal < target && iterations < MAX_ITERATIONS) {
-        // Add new month
         const lastMonthEntry = updatedData[updatedData.length - 1];
         const newMonth = getNextMonth(lastMonthEntry.month);
         const newEntry = {
@@ -146,64 +156,34 @@ export const ensureNestEgg = (
             month: newMonth,
             variantIndex: 0,
             rowKey: `${newMonth}-0`,
-            goal: null, // Reset goal
+            goal: null,
             isManualFromFirestore: false,
             isAlt: false,
             isActive: true,
-            // Reset any manual flags if necessary
             isDepositSavingsManual: false,
             isDepositInvestmentsManual: false,
             isTotalSavingsManual: false,
             isTotalInvestmentsManual: false,
+            interestReturn: 0,
+            investmentReturn: 0,
+            totalSavings: 0,
+            totalInvestments: 0,
+            grandTotal: 0,
         };
 
         updatedData.push(newEntry);
 
-        const i = updatedData.length - 1;
-        const previousEntry = updatedData[i - 1];
+        const currentRow = updatedData[updatedData.length - 1];
+        const previousRow = updatedData[updatedData.length - 2];
 
-        let runningTotalSavings = previousEntry.endingTotalSavings;
-        let runningTotalInvestments = previousEntry.endingTotalInvestments;
+        calculateCurrentRow(
+            currentRow,
+            previousRow,
+            interestRate,
+            investmentReturnRate
+        );
 
-        // Add deposits if active
-        runningTotalSavings += newEntry.depositSavings;
-        runningTotalInvestments += newEntry.depositInvestments;
-
-        // Apply any goals (unlikely in new rows, but included for completeness)
-        let goalsApplied = [];
-        // Assuming no new goals are added after initial calculations
-
-        // Calculate returns
-        let interestReturn = runningTotalSavings * (interestRate / 12 / 100);
-        let investmentReturn =
-            runningTotalInvestments * (investmentReturnRate / 12 / 100);
-
-        // Update ending balances
-        const endingTotalSavings = runningTotalSavings + interestReturn;
-        const endingTotalInvestments =
-            runningTotalInvestments + investmentReturn;
-
-        // Update the new entry with all calculated values
-        updatedData[i] = {
-            ...newEntry,
-            totalSavings: runningTotalSavings,
-            totalInvestments: runningTotalInvestments,
-            startingTotalSavings: runningTotalSavings,
-            startingTotalInvestments: runningTotalInvestments,
-            interestReturn,
-            investmentReturn,
-            endingTotalSavings,
-            endingTotalInvestments,
-            totalSaved: runningTotalSavings + runningTotalInvestments,
-            grandTotal:
-                runningTotalSavings +
-                runningTotalInvestments +
-                interestReturn +
-                investmentReturn,
-            goal: goalsApplied.length > 0 ? goalsApplied : null,
-        };
-
-        lastGrandTotal = updatedData[i].grandTotal;
+        lastGrandTotal = currentRow.grandTotal;
         iterations++;
     }
 
