@@ -28,6 +28,13 @@ export default function TableView() {
     const lastEntry = tableData[tableData.length - 1];
     const achieveNestEggBy = lastEntry ? formatMonth(lastEntry.month) : 'TBC';
 
+    const today = new Date();
+    const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+    const filteredData = showHistoricRows
+        ? formattedTableData
+        : formattedTableData.filter((row) => row.month >= currentMonth);
+
     const handleFieldChange = (rowKey, field, value) => {
         console.log(
             `handleFieldChange called for field: ${field} with value: ${value}`
@@ -361,7 +368,7 @@ export default function TableView() {
                 )}
             </button>
             <TableComponent
-                data={formattedTableData}
+                data={filteredData}
                 tableData={tableData}
                 onFieldChange={handleFieldChange}
                 onAltScenario={addAltScenario}
