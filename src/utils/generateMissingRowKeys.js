@@ -1,4 +1,5 @@
 import { parseMonth } from './parseMonth';
+import { defaultRow } from './constants';
 
 export const generateMissingRowKeys = (data) => {
     if (data.length === 0) return data;
@@ -25,6 +26,7 @@ export const generateMissingRowKeys = (data) => {
     missingMonths.forEach((month) => {
         const newRowKey = `${month}-0`;
         const newRow = {
+            ...defaultRow,
             rowKey: newRowKey,
             month: month,
             isActive: true,

@@ -1,5 +1,6 @@
 import { calculateCumulativeBalances, ensureNestEgg } from './calculations';
 import { generateMissingRowKeys } from './generateMissingRowKeys';
+import { defaultRow } from './constants';
 
 export const recalculateAllData = (
     tableData = [],
@@ -11,8 +12,8 @@ export const recalculateAllData = (
 
     const mergedUserDataMap = new Map();
     tableData.forEach((row) => {
-        console.log('tableData row: ', row);
-        mergedUserDataMap.set(row.rowKey, { rowKey: row.rowKey, ...row });
+        const mergedRow = { ...defaultRow, ...row };
+        mergedUserDataMap.set(mergedRow.rowKey, mergedRow);
     });
 
     Object.entries(userInputs).forEach(([rowKey, changes]) => {
@@ -22,7 +23,8 @@ export const recalculateAllData = (
                 ...changes,
             });
         } else {
-            mergedUserDataMap.set(rowKey, { rowKey, ...changes });
+            const changedRow = { ...defaultRow, rowKey, ...changes };
+            mergedUserDataMap.set(rowKey, changedRow);
         }
     });
 
