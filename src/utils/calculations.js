@@ -115,8 +115,6 @@ export const calculateCumulativeBalances = (
         const row = rows[i];
         if (!row.isActive) continue;
 
-        debugger;
-
         calculateCurrentRow(
             row,
             previousActiveRow,

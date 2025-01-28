@@ -68,6 +68,8 @@ const TableComponent = ({
     const [inputValues, setInputValues] = useState(initialState);
 
     useEffect(() => {
+        debugger;
+
         setInputValues(
             data.map((row) => ({
                 ...row,
@@ -90,6 +92,8 @@ const TableComponent = ({
                 commentary: row.commentary || '',
             }))
         );
+
+        debugger;
     }, [data]);
 
     const handleFocus = (rowKey, field) => {

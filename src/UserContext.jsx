@@ -23,20 +23,20 @@ export const UserContext = createContext({
     loading: true,
     setLoading: () => {},
 
-    rawTableData: [],
+    rawTableData: [], // firestore data
     setRawTableData: () => {},
 
-    tableData: [],
+    tableData: [], // consolidated data
     setTableData: () => {},
 
-    formattedTableData: [],
+    formattedTableData: [], // cleaned up consolidated data
     setFormattedTableData: () => {},
     updateFormattedData: () => {},
 
     goals: {},
     setGoals: () => {},
 
-    userInputs: {},
+    userInputs: {}, // user's unsaved changes to the table
     setUserInputs: () => {},
 
     fieldsToDelete: {},

@@ -36,13 +36,10 @@ export default function TableView() {
         : formattedTableData.filter((row) => row.month >= currentMonth);
 
     const handleFieldChange = (rowKey, field, value) => {
-        console.log(
-            `handleFieldChange called for field: ${field} with value: ${value}`
-        );
+        debugger;
 
         let updatedTableData = [...tableData];
 
-        // Find the index of the row to update
         const index = updatedTableData.findIndex(
             (row) => row.rowKey === rowKey
         );
@@ -56,6 +53,8 @@ export default function TableView() {
             isManual: true,
         });
 
+        debugger;
+
         setTableData(updatedTableData);
     };
 
@@ -67,7 +66,6 @@ export default function TableView() {
         } = options;
 
         let updatedData = [...data];
-
         updatedData[index] = { ...updatedData[index], [field]: value };
 
         if (isManual) {
@@ -79,19 +77,34 @@ export default function TableView() {
                     if (!newChanges[rowKey]) {
                         newChanges[rowKey] = {};
                     }
+
                     newChanges[rowKey][field] = value;
+
+                    switch (field) {
+                        case 'depositSavings':
+                            newChanges[rowKey].isDepositSavingsManual = true;
+                            updatedData[index].isDepositSavingsManual = true;
+                            break;
+                        case 'depositInvestments':
+                            newChanges[rowKey].isDepositInvestmentsManual =
+                                true;
+                            updatedData[index].isDepositInvestmentsManual =
+                                true;
+                            break;
+                        case 'totalSavings':
+                            newChanges[rowKey].isTotalSavingsManual = true;
+                            updatedData[index].isTotalSavingsManual = true;
+                            break;
+                        case 'totalInvestments':
+                            newChanges[rowKey].isTotalInvestmentsManual = true;
+                            updatedData[index].isTotalInvestmentsManual = true;
+                            break;
+                        default:
+                            break;
+                    }
+
                     return newChanges;
                 });
-            }
-
-            if (field === 'depositSavings') {
-                updatedData[index].isDepositSavingsManual = true;
-            } else if (field === 'depositInvestments') {
-                updatedData[index].isDepositInvestmentsManual = true;
-            } else if (field === 'totalSavings') {
-                updatedData[index].isTotalSavingsManual = true;
-            } else if (field === 'totalInvestments') {
-                updatedData[index].isTotalInvestmentsManual = true;
             }
 
             updatedData[index].isManualFromFirestore = isManualFromFirestore;
