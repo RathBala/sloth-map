@@ -29,10 +29,6 @@ export const UserContext = createContext({
     tableData: [], // consolidated data
     setTableData: () => {},
 
-    formattedTableData: [], // cleaned up consolidated data
-    setFormattedTableData: () => {},
-    updateFormattedData: () => {},
-
     goals: {},
     setGoals: () => {},
 
@@ -55,7 +51,6 @@ export const UserContextProvider = ({ children }) => {
 
     const [rawTableData, setRawTableData] = useState([]);
     const [tableData, setTableData] = useState([]);
-    const [formattedTableData, setFormattedTableData] = useState([]);
 
     const [goals, setGoals] = useState({});
 
@@ -98,8 +93,6 @@ export const UserContextProvider = ({ children }) => {
             setRawTableData(loadedTableData);
 
             const transformedData = transformData(loadedTableData);
-
-            updateFormattedData(transformedData);
         } catch (err) {
             console.error('initData failed', err);
         } finally {
@@ -167,21 +160,6 @@ export const UserContextProvider = ({ children }) => {
         return nodes;
     };
 
-    const updateFormattedData = (data) => {
-        const formatted = data.map((entry) => ({
-            ...entry,
-            interestReturnFormatted: formatNumber(entry.interestReturn),
-            investmentReturnFormatted: formatNumber(entry.investmentReturn),
-            totalSavingsFormatted: formatNumber(entry.totalSavings),
-            totalInvestmentsFormatted: formatNumber(entry.totalInvestments),
-            grandTotalFormatted: formatNumber(entry.grandTotal),
-        }));
-
-        setFormattedTableData(formatted);
-
-        setSlothMapData(processDataForSlothMap(formatted));
-    };
-
     const value = useMemo(() => {
         return {
             userSettings,
@@ -205,10 +183,6 @@ export const UserContextProvider = ({ children }) => {
             fieldsToDelete,
             setFieldsToDelete,
 
-            formattedTableData,
-            setFormattedTableData,
-            updateFormattedData,
-
             slothMapData,
             setSlothMapData,
         };
@@ -220,7 +194,6 @@ export const UserContextProvider = ({ children }) => {
         goals,
         userInputs,
         fieldsToDelete,
-        formattedTableData,
         slothMapData,
     ]);
 

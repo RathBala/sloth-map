@@ -12,7 +12,6 @@ export default function TableView() {
         loading,
         tableData,
         setTableData,
-        formattedTableData,
         userSettings,
         goals,
         userInputs,
@@ -20,6 +19,8 @@ export default function TableView() {
         fieldsToDelete,
         setFieldsToDelete,
     } = useContext(UserContext);
+
+    debugger;
 
     if (loading) {
         return <div>Loading...</div>;
@@ -32,12 +33,10 @@ export default function TableView() {
     const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 
     const filteredData = showHistoricRows
-        ? formattedTableData
-        : formattedTableData.filter((row) => row.month >= currentMonth);
+        ? tableData
+        : tableData.filter((row) => row.month >= currentMonth);
 
     const handleFieldChange = (rowKey, field, value) => {
-        debugger;
-
         let updatedTableData = [...tableData];
 
         const index = updatedTableData.findIndex(
@@ -52,8 +51,6 @@ export default function TableView() {
             trackChange: true,
             isManual: true,
         });
-
-        debugger;
 
         setTableData(updatedTableData);
     };
@@ -382,7 +379,6 @@ export default function TableView() {
             </button>
             <TableComponent
                 data={filteredData}
-                tableData={tableData}
                 onFieldChange={handleFieldChange}
                 onAltScenario={addAltScenario}
                 handleRowClick={handleRowClick}

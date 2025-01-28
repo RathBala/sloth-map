@@ -1,5 +1,5 @@
 /* eslint-disable no-debugger */
-import { useState, useEffect /*useRef*/ } from 'react';
+import { useState, useEffect /*useRef*/, useMemo } from 'react';
 import { formatNumber, formatMonth } from '../utils/formatUtils';
 import addIcon from '../assets/add.svg';
 import monthIcon from '../assets/Month.svg';
@@ -16,84 +16,55 @@ import investmentReturnIcon from '../assets/Investment Return.svg';
 import grandTotalIcon from '../assets/Grand Total.svg';
 import commentaryIcon from '../assets/Commentary.svg';
 
+const updateFormattedData = (data) => {
+    const formatted = data.map((entry) => ({
+        ...entry,
+        interestReturnFormatted: formatNumber(entry.interestReturn),
+        investmentReturnFormatted: formatNumber(entry.investmentReturn),
+        totalSavingsFormatted: formatNumber(entry.totalSavings),
+        totalInvestmentsFormatted: formatNumber(entry.totalInvestments),
+        grandTotalFormatted: formatNumber(entry.grandTotal),
+    }));
+
+    setFormattedTableData(formatted);
+
+    setSlothMapData(processDataForSlothMap(formatted));
+};
+
 const TableComponent = ({
     data,
-    tableData,
     onFieldChange,
     onAltScenario,
     handleRowClick,
     // onEditGoal,
 }) => {
-    // const prevDataRef = useRef();
     const today = new Date();
     const currentMonth = `${today.getFullYear()}-${String(
         today.getMonth() + 1
     ).padStart(2, '0')}`;
 
-    // useEffect(() => {
-    //     if (prevDataRef.current) {
-    //         const prevData = prevDataRef.current;
-    //         if (JSON.stringify(prevData) !== JSON.stringify(data)) {
-    //             // console.log(
-    //             //     'TableComponent received data:',
-    //             //     JSON.stringify(data, null, 2)
-    //             // );
-    //         }
-    //     }
-    //     prevDataRef.current = data;
-    // }, [data]);
-
     const [focusedRowKey, setFocusedRowKey] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
 
-    const initialState = data.map((row) => ({
-        ...row,
-        totalSavings: row.totalSavings?.toString() || '',
-        totalInvestments: row.totalInvestments?.toString() || '',
-        depositSavings: row.depositSavings?.toString() || '',
-        depositInvestments: row.depositInvestments?.toString() || '',
-        goalName: row.goal
-            ? Array.isArray(row.goal)
-                ? row.goal.map((g) => g.name).join(', ')
-                : row.goal.name
-            : '',
-        goalAmount: row.goal
-            ? Array.isArray(row.goal)
-                ? row.goal.reduce((sum, g) => sum + g.amount, 0).toString()
-                : row.goal.amount.toString()
-            : '',
-        commentary: row.commentary || '',
-    }));
-
-    const [inputValues, setInputValues] = useState(initialState);
-
-    useEffect(() => {
-        debugger;
-
-        setInputValues(
-            data.map((row) => ({
-                ...row,
-                totalSavings: row.totalSavings?.toString() || '',
-                totalInvestments: row.totalInvestments?.toString() || '',
-                depositSavings: row.depositSavings?.toString() || '',
-                depositInvestments: row.depositInvestments?.toString() || '',
-                goalName: row.goal
-                    ? Array.isArray(row.goal)
-                        ? row.goal.map((g) => g.name).join(', ')
-                        : row.goal.name
-                    : '',
-                goalAmount: row.goal
-                    ? Array.isArray(row.goal)
-                        ? row.goal
-                              .reduce((sum, g) => sum + g.amount, 0)
-                              .toString()
-                        : row.goal.amount.toString()
-                    : '',
-                commentary: row.commentary || '',
-            }))
-        );
-
-        debugger;
+    const inputValues = useMemo(() => {
+        return data.map((row) => ({
+            ...row,
+            totalSavings: row.totalSavings?.toString() || '',
+            totalInvestments: row.totalInvestments?.toString() || '',
+            depositSavings: row.depositSavings?.toString() || '',
+            depositInvestments: row.depositInvestments?.toString() || '',
+            goalName: row.goal
+                ? Array.isArray(row.goal)
+                    ? row.goal.map((g) => g.name).join(', ')
+                    : row.goal.name
+                : '',
+            goalAmount: row.goal
+                ? Array.isArray(row.goal)
+                    ? row.goal.reduce((sum, g) => sum + g.amount, 0).toString()
+                    : row.goal.amount.toString()
+                : '',
+            commentary: row.commentary || '',
+        }));
     }, [data]);
 
     const handleFocus = (rowKey, field) => {
@@ -113,23 +84,8 @@ const TableComponent = ({
 
         onFieldChange(rowKey, field, numericValue);
 
-        setInputValues((current) =>
-            current.map((item) =>
-                item.rowKey === rowKey
-                    ? { ...item, [field]: numericValue }
-                    : item
-            )
-        );
         setFocusedRowKey(null);
         setFocusedField(null);
-    };
-
-    const handleChange = (rowKey, field, value) => {
-        setInputValues((current) =>
-            current.map((item) =>
-                item.rowKey === rowKey ? { ...item, [field]: value } : item
-            )
-        );
     };
 
     const handleInputInteraction = (rowKey, field, e) => {
@@ -138,6 +94,10 @@ const TableComponent = ({
             handleFocus(rowKey, field);
         }
     };
+
+    if (inputValues == null) {
+        return null;
+    }
 
     return (
         <table>
@@ -269,7 +229,7 @@ const TableComponent = ({
                                     : 'alt-scenario inactive'
                                 : row.isActive
                                   ? 'active'
-                                  : tableData.some(
+                                  : data.some(
                                           (r) =>
                                               r.isAlt &&
                                               r.month === row.month &&
