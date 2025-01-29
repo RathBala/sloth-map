@@ -1,16 +1,16 @@
 /* eslint-disable no-debugger */
-import { useState, useEffect /*useRef*/, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+
 import { formatNumber, formatMonth } from '../utils/formatUtils';
+
 import addIcon from '../assets/add.svg';
 import monthIcon from '../assets/Month.svg';
 import depositSavingsIcon from '../assets/Deposit in Savings.svg';
 import depositInvestmentsIcon from '../assets/Deposit in Investments.svg';
-// import totalDepositIcon from '../assets/Total Deposit.svg';
 import goalIcon from '../assets/Goal.svg';
 import goalAmountIcon from '../assets/Goal Amount.svg';
 import totalSavingsAccountIcon from '../assets/Total in Savings.svg';
 import totalInvestmentsAccountIcon from '../assets/Total in Investments.svg';
-// import totalSavedIcon from '../assets/Total Saved.svg';
 import interestReturnIcon from '../assets/Interest Return.svg';
 import investmentReturnIcon from '../assets/Investment Return.svg';
 import grandTotalIcon from '../assets/Grand Total.svg';
@@ -36,16 +36,11 @@ const TableComponent = ({
     onFieldChange,
     onAltScenario,
     handleRowClick,
-    // onEditGoal,
 }) => {
-    const today = new Date();
-    const currentMonth = `${today.getFullYear()}-${String(
-        today.getMonth() + 1
-    ).padStart(2, '0')}`;
-
     const [focusedRowKey, setFocusedRowKey] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
 
+    // prepares input fields for rendering (since input fields need to be strings?)
     const inputValues = useMemo(() => {
         return data.map((row) => ({
             ...row,
@@ -74,13 +69,7 @@ const TableComponent = ({
 
     const handleBlur = (rowKey, field, value) => {
         const numericValue =
-            field === 'goal'
-                ? value
-                : parseFloat(value.replace(/,/g, '').replace(/^\$/, ''));
-        console.log(
-            `Updating on blur with cleaned numeric value:`,
-            numericValue
-        );
+            field === 'goal' ? value : parseFloat(value.replace(/,/g, ''));
 
         onFieldChange(rowKey, field, numericValue);
 
@@ -94,6 +83,11 @@ const TableComponent = ({
             handleFocus(rowKey, field);
         }
     };
+
+    const today = new Date();
+    const currentMonth = `${today.getFullYear()}-${String(
+        today.getMonth() + 1
+    ).padStart(2, '0')}`;
 
     if (inputValues == null) {
         return null;
