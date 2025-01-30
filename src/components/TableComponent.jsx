@@ -31,6 +31,21 @@ const updateFormattedData = (data) => {
     setSlothMapData(processDataForSlothMap(formatted));
 };
 
+function getRowClasses(row, allRows) {
+    if (row.isAlt) {
+        return row.isActive ? 'alt-scenario active' : 'alt-scenario inactive';
+    } else {
+        if (row.isActive) {
+            return 'active';
+        } else {
+            const hasActiveAltForMonth = allRows.some(
+                (r) => r.isAlt && r.month === row.month && r.isActive
+            );
+            return hasActiveAltForMonth ? 'inactive' : 'active';
+        }
+    }
+}
+
 const TableComponent = ({
     data,
     onFieldChange,
@@ -79,9 +94,7 @@ const TableComponent = ({
 
     const handleInputInteraction = (rowKey, field, e) => {
         e.stopPropagation();
-        if (field === 'depositSavings' && e.type === 'focus') {
-            handleFocus(rowKey, field);
-        }
+        handleFocus(rowKey, field);
     };
 
     const today = new Date();
@@ -216,22 +229,7 @@ const TableComponent = ({
                     <tr
                         key={row.rowKey}
                         data-rowkey={row.rowKey}
-                        className={
-                            row.isAlt
-                                ? row.isActive
-                                    ? 'alt-scenario active'
-                                    : 'alt-scenario inactive'
-                                : row.isActive
-                                  ? 'active'
-                                  : data.some(
-                                          (r) =>
-                                              r.isAlt &&
-                                              r.month === row.month &&
-                                              r.isActive
-                                      )
-                                    ? 'inactive'
-                                    : 'active'
-                        }
+                        className={getRowClasses(row, data)}
                         onClick={() => handleRowClick(row.rowKey)}
                     >
                         <td className="month-column">
@@ -304,6 +302,13 @@ const TableComponent = ({
                                         'depositInvestments'
                                     )
                                 }
+                                onClick={(e) =>
+                                    handleInputInteraction(
+                                        row.rowKey,
+                                        'depositInvestments',
+                                        e
+                                    )
+                                }
                                 onChange={(e) =>
                                     handleChange(
                                         row.rowKey,
@@ -371,6 +376,13 @@ const TableComponent = ({
                                     onFocus={() =>
                                         handleFocus(row.rowKey, 'totalSavings')
                                     }
+                                    onClick={(e) =>
+                                        handleInputInteraction(
+                                            row.rowKey,
+                                            'totalSavings',
+                                            e
+                                        )
+                                    }
                                     onChange={(e) =>
                                         handleChange(
                                             row.rowKey,
@@ -408,6 +420,13 @@ const TableComponent = ({
                                             'totalInvestments'
                                         )
                                     }
+                                    onClick={(e) =>
+                                        handleInputInteraction(
+                                            row.rowKey,
+                                            'totalInvestments',
+                                            e
+                                        )
+                                    }
                                     onChange={(e) =>
                                         handleChange(
                                             row.rowKey,
@@ -442,6 +461,13 @@ const TableComponent = ({
                                 value={row.commentary || ''}
                                 onFocus={() =>
                                     handleFocus(row.rowKey, 'commentary')
+                                }
+                                onClick={(e) =>
+                                    handleInputInteraction(
+                                        row.rowKey,
+                                        'commentary',
+                                        e
+                                    )
                                 }
                                 onChange={(e) =>
                                     handleChange(
