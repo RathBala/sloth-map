@@ -1,6 +1,5 @@
 /* eslint-disable no-debugger */
-import { useState, useMemo } from 'react';
-
+import EditableCell from './EditableCell';
 import { formatNumber, formatMonth } from '../utils/formatUtils';
 
 import addIcon from '../assets/add.svg';
@@ -16,34 +15,32 @@ import investmentReturnIcon from '../assets/Investment Return.svg';
 import grandTotalIcon from '../assets/Grand Total.svg';
 import commentaryIcon from '../assets/Commentary.svg';
 
-const updateFormattedData = (data) => {
-    const formatted = data.map((entry) => ({
-        ...entry,
-        interestReturnFormatted: formatNumber(entry.interestReturn),
-        investmentReturnFormatted: formatNumber(entry.investmentReturn),
-        totalSavingsFormatted: formatNumber(entry.totalSavings),
-        totalInvestmentsFormatted: formatNumber(entry.totalInvestments),
-        grandTotalFormatted: formatNumber(entry.grandTotal),
-    }));
+// const updateFormattedData = (data) => {
+//     const formatted = data.map((entry) => ({
+//         ...entry,
+//         interestReturnFormatted: formatNumber(entry.interestReturn),
+//         investmentReturnFormatted: formatNumber(entry.investmentReturn),
+//         totalSavingsFormatted: formatNumber(entry.totalSavings),
+//         totalInvestmentsFormatted: formatNumber(entry.totalInvestments),
+//         grandTotalFormatted: formatNumber(entry.grandTotal),
+//     }));
 
-    setFormattedTableData(formatted);
+//     setFormattedTableData(formatted);
 
-    setSlothMapData(processDataForSlothMap(formatted));
-};
+//     setSlothMapData(processDataForSlothMap(formatted));
+// };
 
 function getRowClasses(row, allRows) {
     if (row.isAlt) {
         return row.isActive ? 'alt-scenario active' : 'alt-scenario inactive';
-    } else {
-        if (row.isActive) {
-            return 'active';
-        } else {
-            const hasActiveAltForMonth = allRows.some(
-                (r) => r.isAlt && r.month === row.month && r.isActive
-            );
-            return hasActiveAltForMonth ? 'inactive' : 'active';
-        }
     }
+    if (row.isActive) {
+        return 'active';
+    }
+    const hasActiveAltForMonth = allRows.some(
+        (r) => r.isAlt && r.month === row.month && r.isActive
+    );
+    return hasActiveAltForMonth ? 'inactive' : 'active';
 }
 
 const TableComponent = ({
@@ -52,59 +49,56 @@ const TableComponent = ({
     onAltScenario,
     handleRowClick,
 }) => {
-    const [focusedRowKey, setFocusedRowKey] = useState(null);
-    const [focusedField, setFocusedField] = useState(null);
+    // // prepares input fields for rendering (since input fields need to be strings?)
+    // const inputValues = useMemo(() => {
+    //     return data.map((row) => ({
+    //         ...row,
+    //         totalSavings: row.totalSavings?.toString() || '',
+    //         totalInvestments: row.totalInvestments?.toString() || '',
+    //         depositSavings: row.depositSavings?.toString() || '',
+    //         depositInvestments: row.depositInvestments?.toString() || '',
+    //         goalName: row.goal
+    //             ? Array.isArray(row.goal)
+    //                 ? row.goal.map((g) => g.name).join(', ')
+    //                 : row.goal.name
+    //             : '',
+    //         goalAmount: row.goal
+    //             ? Array.isArray(row.goal)
+    //                 ? row.goal.reduce((sum, g) => sum + g.amount, 0).toString()
+    //                 : row.goal.amount.toString()
+    //             : '',
+    //         commentary: row.commentary || '',
+    //     }));
+    // }, [data]);
 
-    // prepares input fields for rendering (since input fields need to be strings?)
-    const inputValues = useMemo(() => {
-        return data.map((row) => ({
-            ...row,
-            totalSavings: row.totalSavings?.toString() || '',
-            totalInvestments: row.totalInvestments?.toString() || '',
-            depositSavings: row.depositSavings?.toString() || '',
-            depositInvestments: row.depositInvestments?.toString() || '',
-            goalName: row.goal
-                ? Array.isArray(row.goal)
-                    ? row.goal.map((g) => g.name).join(', ')
-                    : row.goal.name
-                : '',
-            goalAmount: row.goal
-                ? Array.isArray(row.goal)
-                    ? row.goal.reduce((sum, g) => sum + g.amount, 0).toString()
-                    : row.goal.amount.toString()
-                : '',
-            commentary: row.commentary || '',
-        }));
-    }, [data]);
+    // const handleFocus = (rowKey, field) => {
+    //     setFocusedRowKey(rowKey);
+    //     setFocusedField(field);
+    // };
 
-    const handleFocus = (rowKey, field) => {
-        setFocusedRowKey(rowKey);
-        setFocusedField(field);
-    };
+    // const handleBlur = (rowKey, field, value) => {
+    //     const numericValue =
+    //         field === 'goal' ? value : parseFloat(value.replace(/,/g, ''));
 
-    const handleBlur = (rowKey, field, value) => {
-        const numericValue =
-            field === 'goal' ? value : parseFloat(value.replace(/,/g, ''));
+    //     onFieldChange(rowKey, field, numericValue);
 
-        onFieldChange(rowKey, field, numericValue);
+    //     setFocusedRowKey(null);
+    //     setFocusedField(null);
+    // };
 
-        setFocusedRowKey(null);
-        setFocusedField(null);
-    };
-
-    const handleInputInteraction = (rowKey, field, e) => {
-        e.stopPropagation();
-        handleFocus(rowKey, field);
-    };
+    // const handleInputInteraction = (rowKey, field, e) => {
+    //     e.stopPropagation();
+    //     handleFocus(rowKey, field);
+    // };
 
     const today = new Date();
     const currentMonth = `${today.getFullYear()}-${String(
         today.getMonth() + 1
     ).padStart(2, '0')}`;
 
-    if (inputValues == null) {
-        return null;
-    }
+    // if (inputValues == null) {
+    //     return null;
+    // }
 
     return (
         <table>
@@ -225,7 +219,7 @@ const TableComponent = ({
                 </tr>
             </thead>
             <tbody>
-                {inputValues.map((row) => (
+                {data.map((row) => (
                     <tr
                         key={row.rowKey}
                         data-rowkey={row.rowKey}
@@ -245,82 +239,50 @@ const TableComponent = ({
                             {formatMonth(row.month)}
                         </td>
                         <td>
-                            <input
+                            <EditableCell
                                 data-cy={`depositSavings-${row.rowKey}`}
-                                type="text"
-                                value={
-                                    focusedRowKey === row.rowKey &&
-                                    focusedField === 'depositSavings'
-                                        ? row.depositSavings
-                                        : formatNumber(row.depositSavings || '')
-                                }
-                                onFocus={(e) =>
-                                    handleInputInteraction(
-                                        row.rowKey,
+                                rowId={row.rowKey}
+                                value={row.depositSavings?.toString() || ''}
+                                // onFocus={(e) =>
+                                //     handleInputInteraction(
+                                //         row.rowKey,
+                                //         'depositSavings',
+                                //         e
+                                //     )
+                                // }
+                                // onClick={(e) =>
+                                //     handleInputInteraction(
+                                //         row.rowKey,
+                                //         'depositSavings',
+                                //         e
+                                //     )
+                                // }
+                                onBlur={(rowId, value) =>
+                                    onFieldChange(
+                                        rowId,
                                         'depositSavings',
-                                        e
-                                    )
-                                }
-                                onClick={(e) =>
-                                    handleInputInteraction(
-                                        row.rowKey,
-                                        'depositSavings',
-                                        e
-                                    )
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        row.rowKey,
-                                        'depositSavings',
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={(e) =>
-                                    handleBlur(
-                                        row.rowKey,
-                                        'depositSavings',
-                                        e.target.value
+                                        parseFloat(value.replace(/,/g, ''))
                                     )
                                 }
                             />
                         </td>
                         <td>
-                            <input
+                            <EditableCell
                                 data-cy={`depositInvestments-${row.rowKey}`}
-                                type="text"
-                                value={
-                                    focusedRowKey === row.rowKey &&
-                                    focusedField === 'depositInvestments'
-                                        ? row.depositInvestments
-                                        : formatNumber(
-                                              row.depositInvestments || ''
-                                          )
-                                }
-                                onFocus={() =>
-                                    handleFocus(
-                                        row.rowKey,
-                                        'depositInvestments'
-                                    )
-                                }
-                                onClick={(e) =>
-                                    handleInputInteraction(
-                                        row.rowKey,
+                                rowId={row.rowKey}
+                                value={row.depositInvestments?.toString() || ''}
+                                // onClick={(e) =>
+                                //     handleInputInteraction(
+                                //         row.rowKey,
+                                //         'depositInvestments',
+                                //         e
+                                //     )
+                                // }
+                                onBlur={(rowId, value) =>
+                                    onFieldChange(
+                                        rowId,
                                         'depositInvestments',
-                                        e
-                                    )
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        row.rowKey,
-                                        'depositInvestments',
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={(e) =>
-                                    handleBlur(
-                                        row.rowKey,
-                                        'depositInvestments',
-                                        e.target.value
+                                        parseFloat(value.replace(/,/g, ''))
                                     )
                                 }
                             />
@@ -360,43 +322,25 @@ const TableComponent = ({
                                   ? formatNumber(row.goal.amount)
                                   : ''}
                         </td>
-
                         <td data-cy={`totalSavings-${row.rowKey}`}>
                             {row.month === currentMonth ? (
-                                <input
-                                    type="text"
-                                    value={
-                                        focusedRowKey === row.rowKey &&
-                                        focusedField === 'totalSavings'
-                                            ? row.totalSavings.toString()
-                                            : formatNumber(
-                                                  row.totalSavings || ''
-                                              )
-                                    }
-                                    onFocus={() =>
-                                        handleFocus(row.rowKey, 'totalSavings')
-                                    }
-                                    onClick={(e) =>
-                                        handleInputInteraction(
-                                            row.rowKey,
+                                <EditableCell
+                                    rowId={row.rowKey}
+                                    value={row.totalSavings?.toString() || ''}
+                                    onBlur={(rowId, value) =>
+                                        onFieldChange(
+                                            rowId,
                                             'totalSavings',
-                                            e
+                                            parseFloat(value.replace(/,/g, ''))
                                         )
                                     }
-                                    onChange={(e) =>
-                                        handleChange(
-                                            row.rowKey,
-                                            'totalSavings',
-                                            e.target.value
-                                        )
-                                    }
-                                    onBlur={(e) =>
-                                        handleBlur(
-                                            row.rowKey,
-                                            'totalSavings',
-                                            e.target.value
-                                        )
-                                    }
+                                    // onClick={(e) =>
+                                    //     handleInputInteraction(
+                                    //         row.rowKey,
+                                    //         'totalSavings',
+                                    //         e
+                                    //     )
+                                    // }
                                 />
                             ) : (
                                 formatNumber(row.totalSavings || '')
@@ -404,43 +348,25 @@ const TableComponent = ({
                         </td>
                         <td data-cy={`totalInvestments-${row.rowKey}`}>
                             {row.month === currentMonth ? (
-                                <input
-                                    type="text"
+                                <EditableCell
+                                    rowId={row.rowKey}
                                     value={
-                                        focusedRowKey === row.rowKey &&
-                                        focusedField === 'totalInvestments'
-                                            ? row.totalInvestments.toString()
-                                            : formatNumber(
-                                                  row.totalInvestments || ''
-                                              )
+                                        row.totalInvestments?.toString() || ''
                                     }
-                                    onFocus={() =>
-                                        handleFocus(
-                                            row.rowKey,
-                                            'totalInvestments'
-                                        )
-                                    }
-                                    onClick={(e) =>
-                                        handleInputInteraction(
-                                            row.rowKey,
+                                    onBlur={(rowId, value) =>
+                                        onFieldChange(
+                                            rowId,
                                             'totalInvestments',
-                                            e
+                                            parseFloat(value.replace(/,/g, ''))
                                         )
                                     }
-                                    onChange={(e) =>
-                                        handleChange(
-                                            row.rowKey,
-                                            'totalInvestments',
-                                            e.target.value
-                                        )
-                                    }
-                                    onBlur={(e) =>
-                                        handleBlur(
-                                            row.rowKey,
-                                            'totalInvestments',
-                                            e.target.value
-                                        )
-                                    }
+                                    // onClick={(e) =>
+                                    //     handleInputInteraction(
+                                    //         row.rowKey,
+                                    //         'totalInvestments',
+                                    //         e
+                                    //     )
+                                    // }
                                 />
                             ) : (
                                 formatNumber(row.totalInvestments || '')
@@ -456,33 +382,19 @@ const TableComponent = ({
                             {row.grandTotalFormatted}
                         </td>
                         <td data-cy={`commentary-${row.rowKey}`}>
-                            <input
-                                type="text"
+                            <EditableCell
+                                rowId={row.rowKey}
                                 value={row.commentary || ''}
-                                onFocus={() =>
-                                    handleFocus(row.rowKey, 'commentary')
+                                onBlur={(rowId, value) =>
+                                    onFieldChange(rowId, 'commentary', value)
                                 }
-                                onClick={(e) =>
-                                    handleInputInteraction(
-                                        row.rowKey,
-                                        'commentary',
-                                        e
-                                    )
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        row.rowKey,
-                                        'commentary',
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={(e) =>
-                                    handleBlur(
-                                        row.rowKey,
-                                        'commentary',
-                                        e.target.value
-                                    )
-                                }
+                                // onClick={(e) =>
+                                //     handleInputInteraction(
+                                //         row.rowKey,
+                                //         'commentary',
+                                //         e
+                                //     )
+                                // }
                             />
                         </td>
                     </tr>
