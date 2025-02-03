@@ -86,10 +86,10 @@ const TableComponent = ({
     //     setFocusedField(null);
     // };
 
-    // const handleInputInteraction = (rowKey, field, e) => {
-    //     e.stopPropagation();
-    //     handleFocus(rowKey, field);
-    // };
+    const handleInputInteraction = (rowKey, field, e) => {
+        e.stopPropagation();
+        handleFocus(rowKey, field);
+    };
 
     const today = new Date();
     const currentMonth = `${today.getFullYear()}-${String(
@@ -243,25 +243,18 @@ const TableComponent = ({
                                 data-cy={`depositSavings-${row.rowKey}`}
                                 rowId={row.rowKey}
                                 value={row.depositSavings?.toString() || ''}
-                                // onFocus={(e) =>
-                                //     handleInputInteraction(
-                                //         row.rowKey,
-                                //         'depositSavings',
-                                //         e
-                                //     )
-                                // }
-                                // onClick={(e) =>
-                                //     handleInputInteraction(
-                                //         row.rowKey,
-                                //         'depositSavings',
-                                //         e
-                                //     )
-                                // }
                                 onBlur={(rowId, value) =>
                                     onFieldChange(
                                         rowId,
                                         'depositSavings',
                                         parseFloat(value.replace(/,/g, ''))
+                                    )
+                                }
+                                onClick={(e) =>
+                                    handleInputInteraction(
+                                        row.rowKey,
+                                        'depositSavings',
+                                        e
                                     )
                                 }
                             />
@@ -271,18 +264,18 @@ const TableComponent = ({
                                 data-cy={`depositInvestments-${row.rowKey}`}
                                 rowId={row.rowKey}
                                 value={row.depositInvestments?.toString() || ''}
-                                // onClick={(e) =>
-                                //     handleInputInteraction(
-                                //         row.rowKey,
-                                //         'depositInvestments',
-                                //         e
-                                //     )
-                                // }
                                 onBlur={(rowId, value) =>
                                     onFieldChange(
                                         rowId,
                                         'depositInvestments',
                                         parseFloat(value.replace(/,/g, ''))
+                                    )
+                                }
+                                onClick={(e) =>
+                                    handleInputInteraction(
+                                        row.rowKey,
+                                        'depositInvestments',
+                                        e
                                     )
                                 }
                             />
@@ -334,13 +327,13 @@ const TableComponent = ({
                                             parseFloat(value.replace(/,/g, ''))
                                         )
                                     }
-                                    // onClick={(e) =>
-                                    //     handleInputInteraction(
-                                    //         row.rowKey,
-                                    //         'totalSavings',
-                                    //         e
-                                    //     )
-                                    // }
+                                    onClick={(e) =>
+                                        handleInputInteraction(
+                                            row.rowKey,
+                                            'totalSavings',
+                                            e
+                                        )
+                                    }
                                 />
                             ) : (
                                 formatNumber(row.totalSavings || '')
@@ -360,13 +353,13 @@ const TableComponent = ({
                                             parseFloat(value.replace(/,/g, ''))
                                         )
                                     }
-                                    // onClick={(e) =>
-                                    //     handleInputInteraction(
-                                    //         row.rowKey,
-                                    //         'totalInvestments',
-                                    //         e
-                                    //     )
-                                    // }
+                                    onClick={(e) =>
+                                        handleInputInteraction(
+                                            row.rowKey,
+                                            'totalInvestments',
+                                            e
+                                        )
+                                    }
                                 />
                             ) : (
                                 formatNumber(row.totalInvestments || '')
@@ -388,13 +381,13 @@ const TableComponent = ({
                                 onBlur={(rowId, value) =>
                                     onFieldChange(rowId, 'commentary', value)
                                 }
-                                // onClick={(e) =>
-                                //     handleInputInteraction(
-                                //         row.rowKey,
-                                //         'commentary',
-                                //         e
-                                //     )
-                                // }
+                                onClick={(e) =>
+                                    handleInputInteraction(
+                                        row.rowKey,
+                                        'commentary',
+                                        e
+                                    )
+                                }
                             />
                         </td>
                     </tr>

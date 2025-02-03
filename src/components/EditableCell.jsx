@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 
-function EditableCell({ rowId, value, onBlur }) {
+function EditableCell({ rowId, value, onBlur, onClick }) {
     // note to self: this keeps state local so typing isn't interrupted by parent re-renders
     const [inputValue, setInputValue] = useState(value);
 
@@ -18,6 +18,7 @@ function EditableCell({ rowId, value, onBlur }) {
             value={inputValue}
             onChange={handleChange}
             onBlur={handleBlur}
+            onClick={onClick}
         />
     );
 }
