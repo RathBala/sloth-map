@@ -20,8 +20,6 @@ export default function TableView() {
         setFieldsToDelete,
     } = useContext(UserContext);
 
-    debugger;
-
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -53,6 +51,8 @@ export default function TableView() {
         });
 
         setTableData(updatedTableData);
+
+        debugger;
     };
 
     const updateField = (data, index, field, value, options = {}) => {
