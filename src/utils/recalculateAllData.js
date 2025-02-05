@@ -47,7 +47,5 @@ export const recalculateAllData = (
         goals
     );
 
-    console.log('calculatedData is: ', calculatedData);
-
     return calculatedData;
 };

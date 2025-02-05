@@ -354,8 +354,6 @@ export default function TableView() {
         setUserInputs(updatedUserInputs);
     };
 
-    console.log('tableData in TableView:', tableData);
-
     return (
         <>
             <UserInfoDisplay
