@@ -243,13 +243,13 @@ const TableComponent = ({
                                 data-cy={`depositSavings-${row.rowKey}`}
                                 rowId={row.rowKey}
                                 value={row.depositSavings?.toString() || ''}
-                                onBlur={(rowId, value) =>
+                                onBlur={(rowId, value) => {
                                     onFieldChange(
                                         rowId,
                                         'depositSavings',
                                         parseFloat(value.replace(/,/g, ''))
-                                    )
-                                }
+                                    );
+                                }}
                                 onClick={(e) =>
                                     handleInputInteraction(
                                         row.rowKey,

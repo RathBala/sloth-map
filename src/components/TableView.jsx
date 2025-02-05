@@ -51,8 +51,6 @@ export default function TableView() {
         });
 
         setTableData(updatedTableData);
-
-        debugger;
     };
 
     const updateField = (data, index, field, value, options = {}) => {
@@ -355,6 +353,8 @@ export default function TableView() {
         setTableData(updatedTableData);
         setUserInputs(updatedUserInputs);
     };
+
+    console.log('tableData in TableView:', tableData);
 
     return (
         <>
