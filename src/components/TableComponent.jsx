@@ -86,11 +86,6 @@ const TableComponent = ({
     //     setFocusedField(null);
     // };
 
-    const handleInputInteraction = (rowKey, field, e) => {
-        e.stopPropagation();
-        handleFocus(rowKey, field);
-    };
-
     const today = new Date();
     const currentMonth = `${today.getFullYear()}-${String(
         today.getMonth() + 1
@@ -250,13 +245,7 @@ const TableComponent = ({
                                         parseFloat(value.replace(/,/g, ''))
                                     );
                                 }}
-                                onClick={(e) =>
-                                    handleInputInteraction(
-                                        row.rowKey,
-                                        'depositSavings',
-                                        e
-                                    )
-                                }
+                                onClick={(e) => e.stopPropagation()}
                             />
                         </td>
                         <td>
@@ -271,13 +260,7 @@ const TableComponent = ({
                                         parseFloat(value.replace(/,/g, ''))
                                     )
                                 }
-                                onClick={(e) =>
-                                    handleInputInteraction(
-                                        row.rowKey,
-                                        'depositInvestments',
-                                        e
-                                    )
-                                }
+                                onClick={(e) => e.stopPropagation()}
                             />
                         </td>
                         <td data-cy="goalColumn">
@@ -327,13 +310,7 @@ const TableComponent = ({
                                             parseFloat(value.replace(/,/g, ''))
                                         )
                                     }
-                                    onClick={(e) =>
-                                        handleInputInteraction(
-                                            row.rowKey,
-                                            'totalSavings',
-                                            e
-                                        )
-                                    }
+                                    onClick={(e) => e.stopPropagation()}
                                 />
                             ) : (
                                 formatNumber(row.totalSavings || '')
@@ -353,13 +330,7 @@ const TableComponent = ({
                                             parseFloat(value.replace(/,/g, ''))
                                         )
                                     }
-                                    onClick={(e) =>
-                                        handleInputInteraction(
-                                            row.rowKey,
-                                            'totalInvestments',
-                                            e
-                                        )
-                                    }
+                                    onClick={(e) => e.stopPropagation()}
                                 />
                             ) : (
                                 formatNumber(row.totalInvestments || '')
@@ -381,13 +352,7 @@ const TableComponent = ({
                                 onBlur={(rowId, value) =>
                                     onFieldChange(rowId, 'commentary', value)
                                 }
-                                onClick={(e) =>
-                                    handleInputInteraction(
-                                        row.rowKey,
-                                        'commentary',
-                                        e
-                                    )
-                                }
+                                onClick={(e) => e.stopPropagation()}
                             />
                         </td>
                     </tr>
