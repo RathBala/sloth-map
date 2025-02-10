@@ -35,25 +35,21 @@ export default function TableView() {
         : tableData.filter((row) => row.month >= currentMonth);
 
     const handleFieldChange = (rowKey, field, value) => {
-        let updatedTableData = [...tableData];
-
-        const index = updatedTableData.findIndex(
-            (row) => row.rowKey === rowKey
-        );
-        if (index === -1) {
-            console.warn(`No row found with rowKey: ${rowKey}`);
-            return;
-        }
-
-        updatedTableData = updateField(updatedTableData, index, field, value, {
-            trackChange: true,
-            isManual: true,
+        setTableData((prevTableData) => {
+            const updatedTableData = [...prevTableData];
+            const index = updatedTableData.findIndex(
+                (row) => row.rowKey === rowKey
+            );
+            return updateField(updatedTableData, index, field, value, {
+                trackChange: true,
+                isManual: true,
+            });
         });
-
-        setTableData(updatedTableData);
     };
 
     const updateField = (data, index, field, value, options = {}) => {
+        debugger;
+
         const {
             trackChange = true,
             isManual = false,
@@ -159,6 +155,8 @@ export default function TableView() {
                 }
             }
         }
+
+        debugger;
 
         return updatedData;
     };
