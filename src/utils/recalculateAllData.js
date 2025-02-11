@@ -1,6 +1,7 @@
 import { calculateCumulativeBalances, ensureNestEgg } from './calculations';
 import { generateMissingRowKeys } from './generateMissingRowKeys';
 import { defaultRow } from './constants';
+import { formatNumber } from './formatUtils';
 
 export const recalculateAllData = (
     tableData = [],
@@ -47,5 +48,14 @@ export const recalculateAllData = (
         goals
     );
 
-    return calculatedData;
+    const formattedData = calculatedData.map((row) => ({
+        ...row,
+        interestReturnFormatted: formatNumber(row.interestReturn),
+        investmentReturnFormatted: formatNumber(row.investmentReturn),
+        totalSavingsFormatted: formatNumber(row.totalSavings),
+        totalInvestmentsFormatted: formatNumber(row.totalInvestments),
+        grandTotalFormatted: formatNumber(row.grandTotal),
+    }));
+
+    return formattedData;
 };

@@ -85,10 +85,12 @@ export default function TableView() {
                         case 'totalSavings':
                             newChanges[rowKey].isTotalSavingsManual = true;
                             updatedData[index].isTotalSavingsManual = true;
+                            debugger;
                             break;
                         case 'totalInvestments':
                             newChanges[rowKey].isTotalInvestmentsManual = true;
                             updatedData[index].isTotalInvestmentsManual = true;
+                            debugger;
                             break;
                         default:
                             break;
