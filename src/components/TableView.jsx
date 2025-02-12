@@ -4,6 +4,7 @@ import TableComponent from './TableComponent';
 import UserInfoDisplay from './UserInfoDisplay';
 import { formatMonth } from '../utils/formatUtils';
 import Settings from './Settings';
+import { recalculateAllData } from '../utils/recalculateAllData';
 
 export default function TableView() {
     const [showHistoricRows, setShowHistoricRows] = useState(false);
@@ -40,10 +41,26 @@ export default function TableView() {
             const index = updatedTableData.findIndex(
                 (row) => row.rowKey === rowKey
             );
-            return updateField(updatedTableData, index, field, value, {
+            const newData = updateField(updatedTableData, index, field, value, {
                 trackChange: true,
                 isManual: true,
             });
+
+            if (
+                field === 'totalSavings' ||
+                field === 'totalInvestments' ||
+                field === 'totalSavings' ||
+                field === 'totalInvestments'
+            ) {
+                return recalculateAllData(
+                    newData,
+                    userInputs,
+                    goals,
+                    userSettings
+                );
+            }
+
+            return newData;
         });
     };
 
