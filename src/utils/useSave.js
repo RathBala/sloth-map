@@ -1,17 +1,39 @@
-export const handleSaveClick = async () => {
-    console.log('Save button clicked');
+import { useContext } from 'react';
 
-    try {
-        await saveInputFields();
-        await saveTableData();
-        await commitGoalsToFirestore();
+import { AuthContext } from '../AuthContext';
+import { UserContext } from '../UserContext';
 
-        const newInputs = await fetchUserInputs();
-        setUserInputs(newInputs);
+import {
+    saveUserSettingsToFirestore,
+    saveTableDataToFirestore,
+    saveGoalToFirestore,
+    fetchUserSettingsFromFirestore,
+} from './userServices';
 
-        console.log('All changes saved successfully');
-    } catch (error) {
-        console.error('Failed to save changes:', error);
-        alert('Error saving changes: ' + error.message);
-    }
-};
+export function useSave() {
+    const currentUser = useContext(AuthContext);
+    const { userSettings, userInputs, fieldsToDelete, setUserInputs } =
+        useContext(UserContext);
+
+    const save = async () => {
+        try {
+            await saveUserSettingsToFirestore(currentUser, userSettings);
+            await saveTableDataToFirestore(
+                currentUser,
+                userInputs,
+                fieldsToDelete
+            );
+            // await saveGoalToFirestore();
+
+            const newInputs = await fetchUserSettingsFromFirestore(currentUser);
+            setUserInputs(newInputs);
+
+            console.log('All changes saved successfully');
+        } catch (error) {
+            console.error('Failed to save changes:', error);
+            alert('Error saving changes: ' + error.message);
+        }
+    };
+
+    return { save };
+}

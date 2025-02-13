@@ -4,7 +4,6 @@ import {
     fetchUserSettingsFromFirestore,
     saveUserSettingsToFirestore,
     fetchTableDataFromFirestore,
-    // TODO: method to save userInputs to Firestore
 } from './utils/userServices';
 import { formatNumber, formatMonth } from './utils/formatUtils';
 import { recalculateAllData } from './utils/recalculateAllData';

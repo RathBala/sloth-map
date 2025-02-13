@@ -37,8 +37,6 @@ export const calculateCurrentRow = (
     interestRate,
     investmentRate
 ) => {
-    debugger;
-
     if (!currentRow.isDepositSavingsManual) {
         currentRow.depositSavings = previousRow.depositSavings;
     }

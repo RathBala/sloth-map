@@ -6,7 +6,7 @@ import Settings from './components/Settings';
 import Authentication from './components/Auth';
 import SlothMap from './components/SlothMap';
 import { UserContext } from './UserContext';
-import { handleSaveClick } from './utils/useSave';
+import { useSave } from './utils/useSave';
 import './App.css';
 import GoalModal from './components/GoalModal';
 import plusIcon from './assets/Plus.svg';
@@ -98,6 +98,8 @@ const App = () => {
         setDateOfBirth(date);
     };
 
+    const { save } = useSave();
+
     return (
         <div className="App">
             {/* TODO: make these below components */}
@@ -181,7 +183,7 @@ const App = () => {
 
             <div className="action-buttons-container">
                 <div className="left-buttons">
-                    <button onClick={handleSaveClick}>Save</button>
+                    <button onClick={save}>Save</button>
                 </div>
                 {!isSettingsSelected && (
                     <div className="right-buttons">
