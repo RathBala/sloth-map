@@ -47,8 +47,8 @@ export default function TableView() {
             });
 
             if (
-                field === 'totalSavings' ||
-                field === 'totalInvestments' ||
+                field === 'depositSavings' ||
+                field === 'depositInvestments' ||
                 field === 'totalSavings' ||
                 field === 'totalInvestments'
             ) {
