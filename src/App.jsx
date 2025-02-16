@@ -21,6 +21,8 @@ const App = () => {
     const { userSettings, loading, slothMapData, goals } =
         useContext(UserContext);
 
+    const { save } = useSave();
+
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const profileMenuRef = useRef(null);
     const profileIconRef = useRef(null);
@@ -97,8 +99,6 @@ const App = () => {
     const handleDateOfBirthChange = (date) => {
         setDateOfBirth(date);
     };
-
-    const { save } = useSave();
 
     return (
         <div className="App">

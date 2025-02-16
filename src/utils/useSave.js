@@ -12,7 +12,7 @@ import {
 
 export function useSave() {
     const currentUser = useContext(AuthContext);
-    const { userSettings, userInputs, fieldsToDelete, setUserInputs } =
+    const { userSettings, userInputs, fieldsToDelete, setUserSettings } =
         useContext(UserContext);
 
     const save = async () => {
@@ -25,12 +25,12 @@ export function useSave() {
             );
             // await saveGoalToFirestore();
 
-            const newInputs = await fetchUserSettingsFromFirestore(currentUser);
-            setUserInputs(newInputs);
+            const updatedUserSettings =
+                await fetchUserSettingsFromFirestore(currentUser);
+            setUserSettings(updatedUserSettings);
 
-            console.log('All changes saved successfully');
+            alert('All changes saved successfully!');
         } catch (error) {
-            console.error('Failed to save changes:', error);
             alert('Error saving changes: ' + error.message);
         }
     };
