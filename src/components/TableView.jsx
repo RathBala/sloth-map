@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { UserContext } from '../UserContext';
 import TableComponent from './TableComponent';
 import UserInfoDisplay from './UserInfoDisplay';
@@ -13,6 +13,7 @@ export default function TableView() {
         loading,
         tableData,
         setTableData,
+        rawTableData,
         userSettings,
         goals,
         userInputs,
@@ -20,6 +21,16 @@ export default function TableView() {
         fieldsToDelete,
         setFieldsToDelete,
     } = useContext(UserContext);
+
+    useEffect(() => {
+        const updatedData = recalculateAllData(
+            rawTableData,
+            userInputs,
+            goals,
+            userSettings
+        );
+        setTableData(updatedData);
+    }, [userSettings]);
 
     if (loading) {
         return <div>Loading...</div>;
