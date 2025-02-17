@@ -38,10 +38,8 @@ export default function TableView() {
 
     const lastEntry = tableData[tableData.length - 1];
     const achieveNestEggBy = lastEntry ? formatMonth(lastEntry.month) : 'TBC';
-
     const today = new Date();
     const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-
     const filteredData = showHistoricRows
         ? tableData
         : tableData.filter((row) => row.month >= currentMonth);

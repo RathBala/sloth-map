@@ -42,21 +42,17 @@ export const UserContext = createContext({
 });
 
 export const UserContextProvider = ({ children }) => {
-    const currentUser = useContext(AuthContext);
+    const [loading, setLoading] = useState(true);
 
     const [userSettings, setUserSettings] = useState(defaultUserSettings);
-
-    const [loading, setLoading] = useState(false);
-
     const [rawTableData, setRawTableData] = useState([]);
     const [tableData, setTableData] = useState([]);
-
     const [goals, setGoals] = useState({});
-
     const [userInputs, setUserInputs] = useState({});
     const [fieldsToDelete, setFieldsToDelete] = useState({});
-
     const [slothMapData, setSlothMapData] = useState([]);
+
+    const currentUser = useContext(AuthContext);
 
     useEffect(() => {
         if (currentUser) {
@@ -90,8 +86,6 @@ export const UserContextProvider = ({ children }) => {
             const loadedTableData =
                 await fetchTableDataFromFirestore(currentUser);
             setRawTableData(loadedTableData);
-
-            const transformedData = transformData(loadedTableData);
         } catch (err) {
             console.error('initData failed', err);
         } finally {
@@ -99,17 +93,17 @@ export const UserContextProvider = ({ children }) => {
         }
     }
 
-    const transformData = (rawData) => {
-        const data = recalculateAllData(
-            rawData,
-            userInputs,
-            goals,
-            userSettings
-        );
+    // const transformData = (rawData) => {
+    //     const data = recalculateAllData(
+    //         rawData,
+    //         userInputs,
+    //         goals,
+    //         userSettings
+    //     );
 
-        setTableData(data);
-        return data;
-    };
+    //     setTableData(data);
+    //     return data;
+    // };
 
     const processDataForSlothMap = (data) => {
         const today = new Date();
@@ -159,8 +153,8 @@ export const UserContextProvider = ({ children }) => {
         return nodes;
     };
 
-    const value = useMemo(() => {
-        return {
+    const value = useMemo(
+        () => ({
             userSettings,
             setUserSettings,
 
@@ -184,17 +178,18 @@ export const UserContextProvider = ({ children }) => {
 
             slothMapData,
             setSlothMapData,
-        };
-    }, [
-        userSettings,
-        loading,
-        rawTableData,
-        tableData,
-        goals,
-        userInputs,
-        fieldsToDelete,
-        slothMapData,
-    ]);
+        }),
+        [
+            userSettings,
+            loading,
+            rawTableData,
+            tableData,
+            goals,
+            userInputs,
+            fieldsToDelete,
+            slothMapData,
+        ]
+    );
 
     return (
         <UserContext.Provider value={value}>{children}</UserContext.Provider>

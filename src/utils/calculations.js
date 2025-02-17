@@ -142,6 +142,11 @@ export const ensureNestEgg = (
     investmentReturnRate
 ) => {
     let updatedData = [...data];
+
+    if (updatedData.length === 0) {
+        return updatedData;
+    }
+
     let iterations = 0;
     const MAX_ITERATIONS = 1000;
     let lastGrandTotal = updatedData[updatedData.length - 1].grandTotal;
