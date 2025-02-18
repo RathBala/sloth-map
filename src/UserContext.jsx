@@ -164,9 +164,6 @@ export const UserContextProvider = ({ children }) => {
             rawTableData,
             setRawTableData,
 
-            tableData,
-            setTableData,
-
             goals,
             setGoals,
 
@@ -183,7 +180,6 @@ export const UserContextProvider = ({ children }) => {
             userSettings,
             loading,
             rawTableData,
-            tableData,
             goals,
             userInputs,
             fieldsToDelete,
