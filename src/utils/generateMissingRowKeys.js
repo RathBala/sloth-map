@@ -2,6 +2,8 @@ import { parseMonth } from './parseMonth';
 import { defaultRow } from './constants';
 
 export const generateMissingRowKeys = (data) => {
+    debugger;
+
     if (data.length === 0) return data;
 
     const uniqueMonthsSet = new Set(data.map((row) => row.month));
@@ -35,6 +37,8 @@ export const generateMissingRowKeys = (data) => {
     });
 
     data.sort((a, b) => a.rowKey.localeCompare(b.rowKey));
+
+    debugger;
 
     return data;
 };

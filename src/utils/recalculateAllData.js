@@ -9,6 +9,8 @@ export const recalculateAllData = (
     goals = {},
     userSettings = {}
 ) => {
+    debugger;
+
     const { interestRate, investmentReturnRate, targetNestEgg } = userSettings;
 
     const mergedUserDataMap = new Map();
@@ -56,6 +58,8 @@ export const recalculateAllData = (
         totalInvestmentsFormatted: formatNumber(row.totalInvestments),
         grandTotalFormatted: formatNumber(row.grandTotal),
     }));
+
+    debugger;
 
     return formattedData;
 };
