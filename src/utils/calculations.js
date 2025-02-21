@@ -45,6 +45,7 @@ export const calculateCurrentRow = (
     }
 
     const interestReturn = (interestRate / 12 / 100) * previousRow.totalSavings;
+
     const investmentReturn =
         (investmentRate / 12 / 100) * previousRow.totalInvestments;
 

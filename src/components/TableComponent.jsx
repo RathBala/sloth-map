@@ -132,6 +132,26 @@ const TableComponent = ({
                     <th>
                         <div className="header-content">
                             <img
+                                src={interestReturnIcon}
+                                alt="Interest Return Icon"
+                                className="header-icon"
+                            />
+                            <span>Interest Return</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            <img
+                                src={investmentReturnIcon}
+                                alt="Investment Return Icon"
+                                className="header-icon"
+                            />
+                            <span>Investment Return</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div className="header-content">
+                            <img
                                 src={goalIcon}
                                 alt="Goal Icon"
                                 className="header-icon"
@@ -167,26 +187,6 @@ const TableComponent = ({
                                 className="header-icon"
                             />
                             <span>Total in Investments Account</span>
-                        </div>
-                    </th>
-                    <th>
-                        <div className="header-content">
-                            <img
-                                src={interestReturnIcon}
-                                alt="Interest Return Icon"
-                                className="header-icon"
-                            />
-                            <span>Interest Return</span>
-                        </div>
-                    </th>
-                    <th>
-                        <div className="header-content">
-                            <img
-                                src={investmentReturnIcon}
-                                alt="Investment Return Icon"
-                                className="header-icon"
-                            />
-                            <span>Investment Return</span>
                         </div>
                     </th>
                     <th>
@@ -263,6 +263,12 @@ const TableComponent = ({
                                 onClick={(e) => e.stopPropagation()}
                             />
                         </td>
+                        <td data-cy={`interestReturn-${row.rowKey}`}>
+                            {row.interestReturnFormatted}
+                        </td>
+                        <td data-cy={`investmentReturn-${row.rowKey}`}>
+                            {row.investmentReturnFormatted}
+                        </td>
                         <td data-cy="goalColumn">
                             {row.goal && Array.isArray(row.goal) ? (
                                 row.goal.map((g) => (
@@ -335,12 +341,6 @@ const TableComponent = ({
                             ) : (
                                 formatNumber(row.totalInvestments || '')
                             )}
-                        </td>
-                        <td data-cy={`interestReturn-${row.rowKey}`}>
-                            {row.interestReturnFormatted}
-                        </td>
-                        <td data-cy={`investmentReturn-${row.rowKey}`}>
-                            {row.investmentReturnFormatted}
                         </td>
                         <td data-cy={`grandTotal-${row.rowKey}`}>
                             {row.grandTotalFormatted}
